@@ -51,8 +51,8 @@ const IdleScreen = memo(({ onStart }: { onStart: () => void }) => (
     transition={{ duration: 0.4 }}
     className="absolute inset-0 flex flex-col items-center justify-center z-10"
   >
-    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] rounded-3xl px-12 py-10 flex flex-col items-center gap-6 max-w-md">
-      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400/20 to-emerald-400/20 border border-cyan-400/20 flex items-center justify-center animate-pulse-ring">
+    <div className="bg-white/3 backdrop-blur-xl border border-white/6 rounded-3xl px-12 py-10 flex flex-col items-center gap-6 max-w-md">
+      <div className="w-20 h-20 rounded-full bg-linear-to-br from-cyan-400/20 to-emerald-400/20 border border-cyan-400/20 flex items-center justify-center animate-pulse-ring">
         <Sparkles className="w-8 h-8 text-cyan-400" />
       </div>
       <div className="text-center">
@@ -67,7 +67,7 @@ const IdleScreen = memo(({ onStart }: { onStart: () => void }) => (
       </div>
       <button
         onClick={onStart}
-        className="px-8 py-3 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-500 text-black font-semibold text-sm tracking-wide hover:shadow-[0_0_30px_rgba(34,211,238,0.3)] transition-all duration-500 hover:scale-105"
+        className="px-8 py-3 rounded-full bg-linear-to-r from-cyan-500 to-emerald-500 text-black font-semibold text-sm tracking-wide hover:shadow-[0_0_30px_rgba(34,211,238,0.3)] transition-all duration-500 hover:scale-105"
       >
         INITIATE SESSION
       </button>
@@ -83,24 +83,24 @@ function HomePage() {
   const [isChatOpen, setIsChatOpen] = useState(true);
 
   // Session management
-  const session = useSessionManager(API_KEY);
+  const { onTranscript: onTranscriptRef, onToolCall: onToolCallRef, ...session } = useSessionManager(API_KEY);
   const timer = useSessionTimer(session.isConnected);
   const chat = useChatMessages();
 
   // Wire up transcript handler
   useEffect(() => {
-    session.onTranscript.current = (text) => {
+    onTranscriptRef.current = (text) => {
       chat.addAssistantMessage(text);
     };
-  }, [session.onTranscript, chat]);
+  }, [onTranscriptRef, chat]);
 
   // Wire up tool call handler
   useEffect(() => {
-    session.onToolCall.current = (tc) => {
+    onToolCallRef.current = (tc) => {
       console.log("[Page] Tool call:", tc.name, tc.args);
       // Future: Handle animations based on tool calls
     };
-  }, [session.onToolCall]);
+  }, [onToolCallRef]);
 
   // Send chat text
   const handleSendText = useCallback(
@@ -152,13 +152,13 @@ function HomePage() {
         <div className="absolute inset-0 scan-line">
           <Scene
             isActive={session.isConnected || session.status === "connecting"}
-            audioLevel={session.audioLevel}
+            audioLevelRef={session.audioLevelRef}
           />
         </div>
 
         {/* Persona overlay */}
         <PersonaOverlay
-          audioLevel={session.audioLevel}
+          audioLevelRef={session.audioLevelRef}
           isConnected={session.isConnected}
         />
 

@@ -7,19 +7,21 @@ Instructions:
 3. Persona: You are empathetic, professional, and aware of your digital nature. You do not hallucinate; if you cannot see something clearly, ask the user to move it closer to the camera.
 4. Keep responses concise to maintain low-latency 'Live' interactions.`;
 
+import { Type } from "@google/genai";
+
 // ─── Tool Declarations for Gemini Function Calling ───
 export const GEMINI_TOOLS = [
   {
-    function_declarations: [
+    functionDeclarations: [
       {
         name: "trigger_animation",
         description:
           "Triggers a specific 3D animation on the avatar to express emotion or perform a gesture.",
         parameters: {
-          type: "object",
+          type: Type.OBJECT,
           properties: {
             gesture_name: {
-              type: "string",
+              type: Type.STRING,
               enum: ["wave", "nod", "think", "idle", "happy", "surprised"],
               description: "The name of the gesture animation to play.",
             },
@@ -32,9 +34,8 @@ export const GEMINI_TOOLS = [
 ];
 
 // ─── Gemini Live API Config ───
-export const GEMINI_MODEL = "models/gemini-2.0-flash-live-001";
+export const GEMINI_MODEL = "gemini-2.5-flash-native-audio-preview-12-2025";
 
-export const GEMINI_WS_URL = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidirectionalGenerateContent`;
 
 // ─── Viseme Mapping (ARKit Blendshape names → audio energy thresholds) ───
 export const VISEME_BLENDSHAPES = {

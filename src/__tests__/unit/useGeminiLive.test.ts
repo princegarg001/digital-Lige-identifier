@@ -1,68 +1,69 @@
 /**
  * Unit Tests for useGeminiLive Hook
- * Tests WebSocket connection, message handling, and API integration
+ * Tests SDK-based connection, message handling, and API integration
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+
+// Must define __mockConnect and __mockSession at module level
+// since vi.mock factory is hoisted above all other code
+const __mockSession = {
+  sendRealtimeInput: vi.fn(),
+  sendClientContent: vi.fn(),
+  sendToolResponse: vi.fn(),
+  close: vi.fn(),
+};
+
+let __capturedCallbacks: {
+  onopen?: () => void;
+  onmessage?: (msg: unknown) => void;
+  onerror?: (e: ErrorEvent) => void;
+  onclose?: (e: CloseEvent) => void;
+} = {};
+
+const __mockConnect = vi.fn(async (options: { callbacks: typeof __capturedCallbacks }) => {
+  __capturedCallbacks = options.callbacks || {};
+  setTimeout(() => {
+    __capturedCallbacks.onopen?.();
+  }, 0);
+  return __mockSession;
+});
+
+vi.mock('@google/genai', () => {
+  class GoogleGenAI {
+    live = { connect: __mockConnect };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    constructor(_config: { apiKey: string }) {}
+  }
+
+  return {
+    GoogleGenAI,
+    Modality: { AUDIO: 'AUDIO' },
+    Type: {
+      TYPE_UNSPECIFIED: 'TYPE_UNSPECIFIED',
+      STRING: 'STRING',
+      NUMBER: 'NUMBER',
+      INTEGER: 'INTEGER',
+      BOOLEAN: 'BOOLEAN',
+      ARRAY: 'ARRAY',
+      OBJECT: 'OBJECT',
+      NULL: 'NULL',
+    },
+  };
+});
+
+// Import AFTER mock is set up (vitest hoists the mock above imports)
 import { useGeminiLive } from '@/hooks/useGeminiLive';
-
-// Mock WebSocket
-class MockWebSocket {
-  static OPEN = 1;
-  static CONNECTING = 0;
-  static CLOSING = 2;
-  static CLOSED = 3;
-  static instances: MockWebSocket[] = [];
-
-  readyState = MockWebSocket.CONNECTING;
-  onopen: ((event: Event) => void) | null = null;
-  onmessage: ((event: MessageEvent) => void) | null = null;
-  onerror: ((event: Event) => void) | null = null;
-  onclose: ((event: CloseEvent) => void) | null = null;
-  
-  sentMessages: string[] = [];
-
-  constructor(public url: string) {
-    MockWebSocket.instances.push(this);
-    setTimeout(() => {
-      this.readyState = MockWebSocket.OPEN;
-      this.onopen?.(new Event('open'));
-    }, 0);
-  }
-
-  send(data: string) {
-    this.sentMessages.push(data);
-  }
-
-  close() {
-    this.readyState = MockWebSocket.CLOSED;
-    this.onclose?.(new CloseEvent('close'));
-  }
-
-  // Helper to simulate receiving messages
-  simulateMessage(data: any) {
-    this.onmessage?.(new MessageEvent('message', { data: JSON.stringify(data) }));
-  }
-
-  static reset() {
-    MockWebSocket.instances = [];
-  }
-
-  static getLastInstance(): MockWebSocket | undefined {
-    return MockWebSocket.instances[MockWebSocket.instances.length - 1];
-  }
-}
 
 describe('useGeminiLive Hook', () => {
   beforeEach(() => {
-    // Replace global WebSocket with our mock class
-    global.WebSocket = MockWebSocket as any;
-    MockWebSocket.reset();
+    vi.clearAllMocks();
+    __capturedCallbacks = {};
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('Connection Management', () => {
@@ -71,56 +72,38 @@ describe('useGeminiLive Hook', () => {
       expect(result.current.status).toBe('disconnected');
     });
 
-    it('should connect to Gemini WebSocket with correct URL', async () => {
+    it('should connect using the SDK', async () => {
       const { result } = renderHook(() => useGeminiLive('test-api-key'));
       
       act(() => {
         result.current.connect();
       });
 
-      await vi.waitFor(() => {
-        const instance = MockWebSocket.getLastInstance();
-        expect(instance).toBeDefined();
-        expect(instance!.url).toContain('wss://generativelanguage.googleapis.com');
-        expect(instance!.url).toContain('key=test-api-key');
-      });
-    });
-
-    it('should send setup message on connection', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
-      
-      act(() => {
-        result.current.connect();
-      });
+      expect(result.current.status).toBe('connecting');
 
       await vi.waitFor(() => {
-        const instance = MockWebSocket.getLastInstance();
-        expect(instance).toBeDefined();
-        expect(instance!.sentMessages.length).toBeGreaterThan(0);
-        const setupMsg = JSON.parse(instance!.sentMessages[0]);
-        expect(setupMsg.setup).toBeDefined();
-        expect(setupMsg.setup.model).toBe('models/gemini-2.0-flash-live-001');
-      });
-    });
-
-    it('should transition to connected status after setup complete', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
-      
-      act(() => {
-        result.current.connect();
-      });
-
-      await vi.waitFor(() => {
-        expect(result.current.status).toBe('connecting');
-      });
-
-      act(() => {
-        const instance = MockWebSocket.getLastInstance();
-        instance!.simulateMessage({ setupComplete: true });
+        expect(__mockConnect).toHaveBeenCalledTimes(1);
       });
 
       await vi.waitFor(() => {
         expect(result.current.status).toBe('connected');
+      });
+    });
+
+    it('should pass correct model and config to SDK', async () => {
+      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      
+      act(() => {
+        result.current.connect();
+      });
+
+      await vi.waitFor(() => {
+        expect(__mockConnect).toHaveBeenCalledTimes(1);
+        const callArgs = __mockConnect.mock.calls[0][0];
+        expect(callArgs.model).toBe('gemini-2.5-flash-native-audio-preview-12-2025');
+        expect(callArgs.config.responseModalities).toEqual(['AUDIO']);
+        expect(callArgs.callbacks.onopen).toBeDefined();
+        expect(callArgs.callbacks.onmessage).toBeDefined();
       });
     });
 
@@ -132,7 +115,7 @@ describe('useGeminiLive Hook', () => {
       });
 
       await vi.waitFor(() => {
-        expect(result.current.status).toBe('connecting');
+        expect(result.current.status).toBe('connected');
       });
 
       act(() => {
@@ -140,25 +123,16 @@ describe('useGeminiLive Hook', () => {
       });
 
       expect(result.current.status).toBe('disconnected');
+      expect(__mockSession.close).toHaveBeenCalled();
     });
   });
 
   describe('Video Frame Streaming', () => {
-    it('should send video frames in correct format', async () => {
+    it('should send video frames via SDK session', async () => {
       const { result } = renderHook(() => useGeminiLive('test-api-key'));
       
       act(() => {
         result.current.connect();
-      });
-
-      // Wait for connection to actually open
-      await vi.waitFor(() => {
-        expect(MockWebSocket.getLastInstance()?.readyState).toBe(MockWebSocket.OPEN);
-      });
-
-      act(() => {
-        const instance = MockWebSocket.getLastInstance();
-        instance!.simulateMessage({ setupComplete: true });
       });
 
       await vi.waitFor(() => {
@@ -171,47 +145,31 @@ describe('useGeminiLive Hook', () => {
         result.current.sendVideoFrame(testFrame);
       });
 
-      const instance = MockWebSocket.getLastInstance();
-      const videoMsg = instance!.sentMessages.find(msg => 
-        msg.includes('realtimeInput')
-      );
-      
-      expect(videoMsg).toBeDefined();
-      const parsed = JSON.parse(videoMsg!);
-      expect(parsed.realtimeInput.mediaChunks[0].data).toBe(testFrame);
-      expect(parsed.realtimeInput.mediaChunks[0].mimeType).toBe('image/jpeg');
+      expect(__mockSession.sendRealtimeInput).toHaveBeenCalledWith({
+        video: {
+          data: testFrame,
+          mimeType: 'image/jpeg',
+        },
+      });
     });
 
-    it('should not send frames when disconnected', () => {
+    it('should not throw when sending frames before connected', () => {
       const { result } = renderHook(() => useGeminiLive('test-api-key'));
       
-      const instance = MockWebSocket.getLastInstance();
-      const initialLength = instance?.sentMessages?.length || 0;
-      
-      act(() => {
-        result.current.sendVideoFrame('test');
-      });
-
-      expect(instance?.sentMessages?.length || 0).toBe(initialLength);
+      expect(() => {
+        act(() => {
+          result.current.sendVideoFrame('test');
+        });
+      }).not.toThrow();
     });
   });
 
   describe('Audio Streaming', () => {
-    it('should send audio chunks in correct format', async () => {
+    it('should send audio chunks via SDK session', async () => {
       const { result } = renderHook(() => useGeminiLive('test-api-key'));
       
       act(() => {
         result.current.connect();
-      });
-
-      // Wait for connection to actually open
-      await vi.waitFor(() => {
-        expect(MockWebSocket.getLastInstance()?.readyState).toBe(MockWebSocket.OPEN);
-      });
-
-      act(() => {
-        const instance = MockWebSocket.getLastInstance();
-        instance!.simulateMessage({ setupComplete: true });
       });
 
       await vi.waitFor(() => {
@@ -224,15 +182,35 @@ describe('useGeminiLive Hook', () => {
         result.current.sendAudioChunk(testAudio);
       });
 
-      const instance = MockWebSocket.getLastInstance();
-      const audioMsg = instance!.sentMessages.find(msg => 
-        msg.includes('audio/pcm')
-      );
+      expect(__mockSession.sendRealtimeInput).toHaveBeenCalledWith({
+        audio: {
+          data: testAudio,
+          mimeType: 'audio/pcm;rate=16000',
+        },
+      });
+    });
+  });
+
+  describe('Text Sending', () => {
+    it('should send text via SDK sendClientContent', async () => {
+      const { result } = renderHook(() => useGeminiLive('test-api-key'));
       
-      expect(audioMsg).toBeDefined();
-      const parsed = JSON.parse(audioMsg!);
-      expect(parsed.realtimeInput.mediaChunks[0].data).toBe(testAudio);
-      expect(parsed.realtimeInput.mediaChunks[0].mimeType).toBe('audio/pcm;rate=16000');
+      act(() => {
+        result.current.connect();
+      });
+
+      await vi.waitFor(() => {
+        expect(result.current.status).toBe('connected');
+      });
+
+      act(() => {
+        result.current.sendText('Hello world');
+      });
+
+      expect(__mockSession.sendClientContent).toHaveBeenCalledWith({
+        turns: [{ role: 'user', parts: [{ text: 'Hello world' }] }],
+        turnComplete: true,
+      });
     });
   });
 
@@ -248,13 +226,11 @@ describe('useGeminiLive Hook', () => {
       });
 
       await vi.waitFor(() => {
-        const instance = MockWebSocket.getLastInstance();
-        instance!.simulateMessage({ setupComplete: true });
+        expect(result.current.status).toBe('connected');
       });
 
       act(() => {
-        const instance = MockWebSocket.getLastInstance();
-        instance!.simulateMessage({
+        __capturedCallbacks.onmessage?.({
           serverContent: {
             modelTurn: {
               parts: [
@@ -284,13 +260,11 @@ describe('useGeminiLive Hook', () => {
       });
 
       await vi.waitFor(() => {
-        const instance = MockWebSocket.getLastInstance();
-        instance!.simulateMessage({ setupComplete: true });
+        expect(result.current.status).toBe('connected');
       });
 
       act(() => {
-        const instance = MockWebSocket.getLastInstance();
-        instance!.simulateMessage({
+        __capturedCallbacks.onmessage?.({
           serverContent: {
             modelTurn: {
               parts: [{ text: 'Hello, how can I help you?' }]
@@ -302,7 +276,7 @@ describe('useGeminiLive Hook', () => {
       expect(transcriptCallback).toHaveBeenCalledWith('Hello, how can I help you?');
     });
 
-    it('should handle tool calls', async () => {
+    it('should handle tool calls and send responses', async () => {
       const { result } = renderHook(() => useGeminiLive('test-api-key'));
       
       const toolCallback = vi.fn();
@@ -313,13 +287,11 @@ describe('useGeminiLive Hook', () => {
       });
 
       await vi.waitFor(() => {
-        const instance = MockWebSocket.getLastInstance();
-        instance!.simulateMessage({ setupComplete: true });
+        expect(result.current.status).toBe('connected');
       });
 
       act(() => {
-        const instance = MockWebSocket.getLastInstance();
-        instance!.simulateMessage({
+        __capturedCallbacks.onmessage?.({
           toolCall: {
             functionCalls: [
               {
@@ -338,48 +310,80 @@ describe('useGeminiLive Hook', () => {
         id: 'call-123'
       });
 
-      // Should send tool response back
-      const instance = MockWebSocket.getLastInstance();
-      const toolResponse = instance!.sentMessages.find(msg => 
-        msg.includes('toolResponse')
-      );
-      expect(toolResponse).toBeDefined();
+      expect(__mockSession.sendToolResponse).toHaveBeenCalledWith({
+        functionResponses: [
+          {
+            id: 'call-123',
+            name: 'trigger_animation',
+            response: { result: 'ok' },
+          },
+        ],
+      });
+    });
+
+    it('should handle interruptions gracefully', async () => {
+      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      
+      const audioCallback = vi.fn();
+      result.current.onAudioData.current = audioCallback;
+
+      act(() => {
+        result.current.connect();
+      });
+
+      await vi.waitFor(() => {
+        expect(result.current.status).toBe('connected');
+      });
+
+      expect(() => {
+        act(() => {
+          __capturedCallbacks.onmessage?.({
+            serverContent: {
+              interrupted: true,
+            }
+          });
+        });
+      }).not.toThrow();
+
+      expect(audioCallback).not.toHaveBeenCalled();
     });
   });
 
   describe('Error Handling', () => {
-    it('should handle WebSocket errors', async () => {
+    it('should handle SDK connection errors', async () => {
+      __mockConnect.mockRejectedValueOnce(new Error('Network error'));
+
       const { result } = renderHook(() => useGeminiLive('test-api-key'));
       
       act(() => {
         result.current.connect();
-      });
-
-      act(() => {
-        const instance = MockWebSocket.getLastInstance();
-        instance!.onerror?.(new Event('error'));
       });
 
       await vi.waitFor(() => {
         expect(result.current.status).toBe('error');
-        expect(result.current.errorMessage).toBeDefined();
+        expect(result.current.errorMessage).toContain('Network error');
       });
     });
 
-    it('should handle malformed messages gracefully', async () => {
+    it('should handle onerror callback', async () => {
       const { result } = renderHook(() => useGeminiLive('test-api-key'));
       
       act(() => {
         result.current.connect();
       });
 
-      // Should not throw
-      expect(() => {
-        act(() => {
-          const instance = MockWebSocket.getLastInstance();
-          instance!.onmessage?.(new MessageEvent('message', { data: 'invalid json' }));
-        });
-      }).not.toThrow();
+      await vi.waitFor(() => {
+        expect(result.current.status).toBe('connected');
+      });
+
+      act(() => {
+        __capturedCallbacks.onerror?.(new ErrorEvent('error', { message: 'WebSocket failed' }));
+      });
+
+      await vi.waitFor(() => {
+        expect(result.current.status).toBe('error');
+        expect(result.current.errorMessage).toContain('WebSocket failed');
+      });
     });
   });
 });

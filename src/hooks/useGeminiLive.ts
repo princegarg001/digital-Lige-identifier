@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { GoogleGenAI, Modality, type Session, type LiveServerMessage } from "@google/genai";
 import {
   GEMINI_MODEL,
   GEMINI_TOOLS,
-  GEMINI_WS_URL,
   SYSTEM_PROMPT,
 } from "@/lib/constants";
 
@@ -30,7 +30,8 @@ export interface UseGeminiLiveReturn {
 }
 
 /**
- * Manages the WebSocket connection to the Gemini Multimodal Live API.
+ * Manages the connection to the Gemini Multimodal Live API
+ * using the official @google/genai SDK.
  *
  * @param apiKey - Gemini API key from environment
  * @returns Connection controls, send functions, and callback refs
@@ -41,11 +42,11 @@ export interface UseGeminiLiveReturn {
  * @see vercel-react-best-practices: advanced-event-handler-refs
  */
 export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
-  const socketRef = useRef<WebSocket | null>(null);
+  const sessionRef = useRef<Session | null>(null);
   const [status, setStatus] = useState<GeminiStatus>("disconnected");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Use a ref to track latest status to avoid stale closures in WS handlers
+  // Use a ref to track latest status to avoid stale closures in callbacks
   const statusRef = useRef<GeminiStatus>(status);
   useEffect(() => {
     statusRef.current = status;
@@ -56,67 +57,49 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
   const onToolCall = useRef<((tc: ToolCallPayload) => void) | null>(null);
   const onTranscript = useRef<((text: string) => void) | null>(null);
 
+  // SDK client — initialized once per apiKey
+  const clientRef = useRef<GoogleGenAI | null>(null);
+  useEffect(() => {
+    clientRef.current = new GoogleGenAI({ apiKey });
+  }, [apiKey]);
+
   const disconnect = useCallback(() => {
-    if (socketRef.current) {
-      socketRef.current.close();
-      socketRef.current = null;
+    if (sessionRef.current) {
+      sessionRef.current.close();
+      sessionRef.current = null;
     }
     setStatus("disconnected");
   }, []);
 
   const connect = useCallback(() => {
-    if (socketRef.current) disconnect();
+    if (sessionRef.current) disconnect();
+    if (!clientRef.current) {
+      setErrorMessage("SDK client not initialized. Check API key.");
+      setStatus("error");
+      return;
+    }
 
     setStatus("connecting");
     setErrorMessage(null);
 
-    const url = `${GEMINI_WS_URL}?key=${apiKey}`;
-    const ws = new WebSocket(url);
-    socketRef.current = ws;
+    const ai = clientRef.current;
 
-    ws.onopen = () => {
-      console.log("[GeminiLive] WebSocket opened, sending setup...");
-      ws.send(
-        JSON.stringify({
-          setup: {
-            model: GEMINI_MODEL,
-            generation_config: {
-              response_modalities: ["AUDIO"],
-              speech_config: {
-                voice_config: {
-                  prebuilt_voice_config: {
-                    voice_name: "Aoede",
-                  },
-                },
-              },
-            },
-            system_instruction: {
-              parts: [{ text: SYSTEM_PROMPT }],
-            },
-            tools: GEMINI_TOOLS,
-          },
-        })
-      );
-    };
-
-    ws.onmessage = (event) => {
+    // Handle incoming messages from the Live API
+    const handleMessage = (message: LiveServerMessage) => {
       try {
-        const data = JSON.parse(event.data);
-
-        // Setup complete
-        if (data.setupComplete) {
-          console.log("[GeminiLive] Setup complete, ready to stream.");
-          setStatus("connected");
-          return;
-        }
-
         // Server content (audio response and/or text)
-        if (data.serverContent) {
-          const parts = data.serverContent.modelTurn?.parts;
+        if (message.serverContent) {
+          // Handle interruption — clear any pending audio
+          if (message.serverContent.interrupted) {
+            console.log("[GeminiLive] Interrupted by user speech.");
+            return;
+          }
+
+          const parts = message.serverContent.modelTurn?.parts;
           if (parts) {
             for (const part of parts) {
               if (part.inlineData?.mimeType?.startsWith("audio/")) {
-                onAudioData.current?.(part.inlineData.data);
+                onAudioData.current?.(part.inlineData.data as string);
               }
               if (part.text) {
                 onTranscript.current?.(part.text);
@@ -126,111 +109,117 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
         }
 
         // Tool call response
-        if (data.toolCall) {
-          const calls = data.toolCall.functionCalls;
+        if (message.toolCall) {
+          const calls = message.toolCall.functionCalls;
           if (calls) {
             for (const call of calls) {
               console.log("[GeminiLive] Tool call:", call.name, call.args);
               onToolCall.current?.({
-                name: call.name,
-                args: call.args || {},
+                name: call.name || "",
+                args: (call.args as Record<string, string>) || {},
                 id: call.id,
               });
 
-              // Send tool response back
-              ws.send(
-                JSON.stringify({
-                  toolResponse: {
-                    functionResponses: [
-                      {
-                        id: call.id,
-                        name: call.name,
-                        response: { result: "ok" },
-                      },
-                    ],
+              // Send tool response back via SDK
+              sessionRef.current?.sendToolResponse({
+                functionResponses: [
+                  {
+                    id: call.id || "",
+                    name: call.name || "",
+                    response: { result: "ok" },
                   },
-                })
-              );
+                ],
+              });
             }
           }
         }
       } catch (err) {
-        console.warn("[GeminiLive] Failed to parse message:", err);
+        console.warn("[GeminiLive] Failed to handle message:", err);
       }
     };
 
-    ws.onerror = (err) => {
-      console.error("[GeminiLive] WebSocket error:", err);
-      setErrorMessage("WebSocket connection error");
-      setStatus("error");
-    };
-
-    // FIX: Use statusRef to avoid stale closure
-    ws.onclose = (event) => {
-      console.log("[GeminiLive] WebSocket closed:", event.code, event.reason);
-      if (statusRef.current !== "disconnected") {
-        setStatus("disconnected");
-      }
-    };
+    // Connect using the official SDK
+    ai.live
+      .connect({
+        model: GEMINI_MODEL,
+        config: {
+          responseModalities: [Modality.AUDIO],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: "Aoede",
+              },
+            },
+          },
+          systemInstruction: SYSTEM_PROMPT,
+          tools: GEMINI_TOOLS,
+        },
+        callbacks: {
+          onopen: () => {
+            console.log("[GeminiLive] Connected via SDK.");
+            setStatus("connected");
+          },
+          onmessage: handleMessage,
+          onerror: (e: ErrorEvent) => {
+            console.error("[GeminiLive] SDK error:", e.message);
+            setErrorMessage(
+              `Connection error: ${e.message || "Check API Key and network."}`
+            );
+            setStatus("error");
+          },
+          onclose: (e: CloseEvent) => {
+            console.log("[GeminiLive] Session closed:", e.code, e.reason);
+            if (statusRef.current !== "disconnected") {
+              setStatus("disconnected");
+            }
+          },
+        },
+      })
+      .then((session) => {
+        sessionRef.current = session;
+        console.log("[GeminiLive] Session established.");
+      })
+      .catch((err) => {
+        console.error("[GeminiLive] Failed to connect:", err);
+        setErrorMessage(
+          `Failed to connect: ${err instanceof Error ? err.message : String(err)}`
+        );
+        setStatus("error");
+      });
   }, [apiKey, disconnect]);
 
   // Send a base64 JPEG video frame
   const sendVideoFrame = useCallback((base64Image: string) => {
-    const ws = socketRef.current;
-    if (ws?.readyState === WebSocket.OPEN) {
-      ws.send(
-        JSON.stringify({
-          realtimeInput: {
-            mediaChunks: [
-              {
-                data: base64Image,
-                mimeType: "image/jpeg",
-              },
-            ],
-          },
-        })
-      );
-    }
+    sessionRef.current?.sendRealtimeInput({
+      video: {
+        data: base64Image,
+        mimeType: "image/jpeg",
+      },
+    });
   }, []);
 
   // Send a base64 PCM audio chunk
   const sendAudioChunk = useCallback((base64Audio: string) => {
-    const ws = socketRef.current;
-    if (ws?.readyState === WebSocket.OPEN) {
-      ws.send(
-        JSON.stringify({
-          realtimeInput: {
-            mediaChunks: [
-              {
-                data: base64Audio,
-                mimeType: "audio/pcm;rate=16000",
-              },
-            ],
-          },
-        })
-      );
-    }
+    sessionRef.current?.sendRealtimeInput({
+      audio: {
+        data: base64Audio,
+        mimeType: "audio/pcm;rate=16000",
+      },
+    });
   }, []);
 
   // Send a text message
   const sendText = useCallback((text: string) => {
-    const ws = socketRef.current;
-    if (ws?.readyState === WebSocket.OPEN) {
-      ws.send(
-        JSON.stringify({
-          clientContent: {
-            turns: [{ role: "user", parts: [{ text }] }],
-            turnComplete: true,
-          },
-        })
-      );
-    }
+    sessionRef.current?.sendClientContent({
+      turns: [{ role: "user", parts: [{ text }] }],
+      turnComplete: true,
+    });
   }, []);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      socketRef.current?.close();
+      sessionRef.current?.close();
     };
   }, []);
 

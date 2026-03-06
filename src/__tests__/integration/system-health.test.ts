@@ -3,7 +3,7 @@
  * Verifies all components work together according to the architecture diagrams
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 describe('Digital Persona System Health', () => {
   describe('Environment Configuration', () => {
@@ -16,7 +16,6 @@ describe('Digital Persona System Health', () => {
     it('should have valid GCP configuration', () => {
       // These can be optional for development but should be set for production
       const gcpProjectId = process.env.NEXT_PUBLIC_GCP_PROJECT_ID;
-      const gcsBucket = process.env.NEXT_PUBLIC_GCS_BUCKET_NAME;
       
       if (gcpProjectId && gcpProjectId !== 'your_project_id') {
         expect(gcpProjectId).toMatch(/^[a-z][a-z0-9-]*[a-z0-9]$/);
@@ -55,9 +54,9 @@ describe('Digital Persona System Health', () => {
       const { GEMINI_TOOLS } = await import('@/lib/constants');
       
       expect(GEMINI_TOOLS).toHaveLength(1);
-      expect(GEMINI_TOOLS[0].function_declarations).toBeDefined();
+      expect(GEMINI_TOOLS[0].functionDeclarations).toBeDefined();
       
-      const triggerAnim = GEMINI_TOOLS[0].function_declarations.find(
+      const triggerAnim = GEMINI_TOOLS[0].functionDeclarations.find(
         (f) => f.name === 'trigger_animation'
       );
       
@@ -66,9 +65,11 @@ describe('Digital Persona System Health', () => {
       expect(triggerAnim?.parameters.properties.gesture_name.enum).toContain('nod');
     });
 
-    it('should use correct Gemini model', async () => {
+    it('should use correct Gemini model (SDK format)', async () => {
       const { GEMINI_MODEL } = await import('@/lib/constants');
-      expect(GEMINI_MODEL).toBe('models/gemini-2.0-flash-live-001');
+      // SDK format: no "models/" prefix
+      expect(GEMINI_MODEL).toBe('gemini-2.5-flash-native-audio-preview-12-2025');
+      expect(GEMINI_MODEL).not.toContain('models/');
     });
 
     it('should have correct audio configuration', async () => {

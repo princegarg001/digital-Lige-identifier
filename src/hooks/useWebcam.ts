@@ -48,8 +48,10 @@ export function useWebcam() {
       }, 1000 / VIDEO_FPS);
 
       setIsActive(true);
+      return true;
     } catch (err) {
-      console.error("[Webcam] Error:", err);
+      console.error("[Webcam] Error starting camera:", err);
+      return false;
     }
   }, []);
 

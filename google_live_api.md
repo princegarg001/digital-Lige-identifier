@@ -23,8 +23,11 @@ NEXT_PUBLIC_GEMINI_API_KEY=your_copied_api_key_here
 NEXT_PUBLIC_MODEL_URL=/models/avatar-draco.glb
 ```
 
-## 3. Important Notes on Live API
-- The Live API operates entirely over WebSockets (`wss://`).
-- The endpoint is: `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidirectionalGenerateContent?key=YOUR_API_KEY`.
-- **Latency & Streaming**: To maintain low latency, video should ideally be streamed at 1 frame per second (as base64 JPEG chunks).
-- **Audio Constraints**: The API expects 16-bit PCM (16kHz) audio chunks for Voice Input. Providing audio in this format prevents stuttering and latency.
+## 3. SDK Integration
+This project uses the official `@google/genai` SDK for connecting to the Gemini Live API:
+- **Package**: `@google/genai` — provides `GoogleGenAI`, `Session`, `LiveServerMessage`, `Modality` types
+- **Model**: `gemini-2.5-flash-native-audio-preview-12-2025`
+- **Connection**: `ai.live.connect()` handles WebSocket setup automatically
+- **Sending audio**: `session.sendRealtimeInput({ audio: { data, mimeType } })`
+- **Sending video**: `session.sendRealtimeInput({ video: { data, mimeType } })`
+- **Audio format**: 16-bit PCM, 16kHz mono input → 24kHz output

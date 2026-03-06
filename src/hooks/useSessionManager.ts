@@ -10,9 +10,9 @@ import { useWebcam } from "./useWebcam";
  * Coordinates Gemini, audio, and webcam connections
  */
 export function useSessionManager(apiKey: string) {
-  const gemini = useGeminiLive(apiKey);
+  const { onAudioData: onAudioDataRef, ...gemini } = useGeminiLive(apiKey);
   const audio = useAudioProcessor();
-  const webcam = useWebcam();
+  const { onFrameRef, ...webcam } = useWebcam();
 
   const [isInitialized, setIsInitialized] = useState(false);
   const isConnected = gemini.status === "connected";
@@ -21,28 +21,30 @@ export function useSessionManager(apiKey: string) {
   useEffect(() => {
     if (!isInitialized) return;
 
-    gemini.onAudioData.current = (b64) => {
+    onAudioDataRef.current = (b64) => {
       audio.playAudioChunk(b64);
     };
-  }, [gemini.onAudioData, audio, isInitialized]);
+  }, [onAudioDataRef, audio, isInitialized]);
 
   // Wire webcam frames to Gemini
   useEffect(() => {
     if (!isInitialized) return;
 
-    webcam.onFrameRef.current = (base64) => {
+    onFrameRef.current = (base64) => {
       if (isConnected) {
         gemini.sendVideoFrame(base64);
       }
     };
-  }, [webcam.onFrameRef, isConnected, gemini, isInitialized]);
+  }, [onFrameRef, isConnected, gemini, isInitialized]);
 
   // Start session
   const startSession = useCallback(async () => {
     try {
       setIsInitialized(true);
       gemini.connect();
-      await webcam.start();
+      // Optional webcam: Do not auto-start camera
+      // await webcam.start();
+      
       audio.startMic((chunk) => {
         gemini.sendAudioChunk(chunk);
       });
@@ -50,7 +52,7 @@ export function useSessionManager(apiKey: string) {
       console.error("[SessionManager] Failed to start session:", error);
       setIsInitialized(false);
     }
-  }, [gemini, audio, webcam]);
+  }, [gemini, audio]);
 
   // Stop session
   const stopSession = useCallback(() => {
