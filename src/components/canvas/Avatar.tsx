@@ -5,7 +5,7 @@
 */
 
 import * as THREE from "three";
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useGraph, useFrame } from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
 import { GLTF, SkeletonUtils } from "three-stdlib";
@@ -55,6 +55,8 @@ interface AvatarProps {
  */
 export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const [hovered, setHovered] = useState(false);
+
   const { scene, animations } = useGLTF("/avatar-transformed.glb");
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const { nodes, materials } = useGraph(clone) as unknown as GLTFResult;
@@ -124,7 +126,29 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
   });
 
   return (
-    <group ref={groupRef} dispose={null} position={[0, -0.6, 0]}>
+    <group
+      ref={groupRef}
+      dispose={null}
+      position={[0, -0.6, 0]}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setHovered(true);
+        document.body.style.cursor = "pointer";
+      }}
+      onPointerOut={() => {
+        setHovered(false);
+        document.body.style.cursor = "default";
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        // Fallback interactivity if clicked
+        if (actions && actions["wave"]) {
+          actions["wave"].reset().fadeIn(0.5).play();
+          setTimeout(() => actions["wave"]?.fadeOut(0.5), 2000);
+        }
+      }}
+      scale={hovered ? 1.05 : 1}
+    >
       <primitive object={nodes.Hips} />
       <skinnedMesh
         geometry={nodes.Wolf3D_Hair.geometry}

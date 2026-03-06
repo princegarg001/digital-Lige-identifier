@@ -71,11 +71,14 @@ export default function Scene({
       />
 
       <OrbitControls
+        makeDefault
+        enableDamping
+        dampingFactor={0.05}
         enableZoom={true}
         enablePan={true}
         minPolarAngle={Math.PI / 2.5}
         maxPolarAngle={Math.PI / 2}
-        target={[0, 0.0, 0]}
+        target={[0, 0.4, 0]}
       />
     </Canvas>
   );
