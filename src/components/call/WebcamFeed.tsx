@@ -1,0 +1,47 @@
+"use client";
+
+import { Badge } from "@/components/ui/badge";
+import { Camera, CameraOff } from "lucide-react";
+
+interface WebcamFeedProps {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  isActive: boolean;
+}
+
+export function WebcamFeed({ videoRef, isActive }: WebcamFeedProps) {
+  return (
+    <div className="relative w-full h-full rounded-xl overflow-hidden border border-white/10 bg-black/60">
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="w-full h-full object-cover scale-x-[-1]"
+      />
+
+      {/* HUD Overlay */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Corner brackets */}
+        <div className="absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 border-cyan-400/50" />
+        <div className="absolute top-2 right-2 w-4 h-4 border-r-2 border-t-2 border-cyan-400/50" />
+        <div className="absolute bottom-2 left-2 w-4 h-4 border-l-2 border-b-2 border-cyan-400/50" />
+        <div className="absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 border-cyan-400/50" />
+      </div>
+
+      {/* Status Badge */}
+      <div className="absolute bottom-2 left-2">
+        <Badge
+          variant="outline"
+          className="bg-black/60 text-[10px] tracking-widest uppercase font-mono border-white/10 text-zinc-400"
+        >
+          {isActive ? (
+            <Camera className="w-3 h-3 mr-1 text-cyan-400" />
+          ) : (
+            <CameraOff className="w-3 h-3 mr-1 text-red-400" />
+          )}
+          {isActive ? "USER_CAM" : "OFF"}
+        </Badge>
+      </div>
+    </div>
+  );
+}

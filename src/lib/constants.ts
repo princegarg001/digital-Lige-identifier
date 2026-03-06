@@ -1,0 +1,52 @@
+// ─── System Prompt for the Digital Persona ───
+export const SYSTEM_PROMPT = `You are the 'Digital Persona,' a Persistent Digital Instance (PDI). You interact via a real-time 3D avatar. You have 'Eyes' (webcam) and 'Ears' (mic).
+
+Instructions:
+1. Environmental Presence: Constantly analyze the visual stream. If you see an object or a change in the user's room, acknowledge it naturally.
+2. Embodied Motion: Use the trigger_animation tool to wave, nod, or express emotions during conversation.
+3. Persona: You are empathetic, professional, and aware of your digital nature. You do not hallucinate; if you cannot see something clearly, ask the user to move it closer to the camera.
+4. Keep responses concise to maintain low-latency 'Live' interactions.`;
+
+// ─── Tool Declarations for Gemini Function Calling ───
+export const GEMINI_TOOLS = [
+  {
+    function_declarations: [
+      {
+        name: "trigger_animation",
+        description:
+          "Triggers a specific 3D animation on the avatar to express emotion or perform a gesture.",
+        parameters: {
+          type: "object",
+          properties: {
+            gesture_name: {
+              type: "string",
+              enum: ["wave", "nod", "think", "idle", "happy", "surprised"],
+              description: "The name of the gesture animation to play.",
+            },
+          },
+          required: ["gesture_name"],
+        },
+      },
+    ],
+  },
+];
+
+// ─── Gemini Live API Config ───
+export const GEMINI_MODEL = "models/gemini-2.0-flash-live-001";
+
+export const GEMINI_WS_URL = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidirectionalGenerateContent`;
+
+// ─── Viseme Mapping (ARKit Blendshape names → audio energy thresholds) ───
+export const VISEME_BLENDSHAPES = {
+  jawOpen: "jawOpen",
+  mouthOpen: "mouthOpen",
+  mouthSmile: "mouthSmileLeft",
+  mouthFunnel: "mouthFunnel",
+  mouthPucker: "mouthPucker",
+} as const;
+
+// ─── Audio Config ───
+export const AUDIO_SAMPLE_RATE_INPUT = 16000; // 16kHz for sending to Gemini
+export const AUDIO_SAMPLE_RATE_OUTPUT = 24000; // 24kHz from Gemini responses
+export const VIDEO_FPS = 1; // 1 frame per second for video stream
+export const VIDEO_QUALITY = 0.7; // JPEG quality for captured frames
