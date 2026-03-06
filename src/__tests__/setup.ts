@@ -1,6 +1,13 @@
-import { expect, afterEach, vi } from 'vitest';
+import { expect, afterEach, vi, beforeAll } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
+
+// Mock ResizeObserver before any imports
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+} as any;
 
 // Cleanup after each test
 afterEach(() => {
@@ -58,7 +65,7 @@ global.AudioContext = vi.fn().mockImplementation(() => ({
   close: vi.fn(),
 })) as any;
 
-// Mock fetch for asset loading
+// ResizeObserver already mocked above - no need to redefine
 global.fetch = vi.fn((url) => {
   if (url === '/avatar-transformed.glb') {
     // Create a minimal valid GLB file structure

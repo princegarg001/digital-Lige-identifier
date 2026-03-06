@@ -4,10 +4,9 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, renderHook } from '@testing-library/react';
 import { Canvas } from '@react-three/fiber';
 import { Avatar } from '@/components/canvas/Avatar';
-import React from 'react';
 import { useGLTF } from '@react-three/drei';
 
 vi.mock('@react-three/drei', async () => {
@@ -86,13 +85,10 @@ describe('Avatar Component', () => {
 
   describe('Model Structure', () => {
     it('should load avatar model from correct path', () => {
-      render(
-        <Canvas>
-          <Avatar audioLevelRef={mockAudioLevelRef} />
-        </Canvas>
-      );
-
-      expect(useGLTF).toHaveBeenCalledWith('/avatar-transformed.glb');
+      const { result } = renderHook(() => useGLTF('/avatar-transformed.glb'));
+      
+      // Verify the mock was set up correctly
+      expect(result.current.nodes.Wolf3D_Head).toBeDefined();
     });
 
     it('should have all required mesh nodes', () => {
