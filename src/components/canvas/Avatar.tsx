@@ -5,9 +5,9 @@
 */
 
 import * as THREE from "three";
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { useGraph, useFrame } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, useAnimations } from "@react-three/drei";
 import { GLTF, SkeletonUtils } from "three-stdlib";
 import {
   LIP_SYNC_SMOOTHING,
@@ -46,17 +46,39 @@ type GLTFResult = GLTF & {
 
 interface AvatarProps {
   audioLevelRef: React.RefObject<number>;
+  currentAnimation?: string;
 }
 
 /**
  * Wolf3D avatar with real-time lip-sync and idle breathing.
  * Reads `audioLevelRef.current` inside `useFrame` (60fps) without causing re-renders.
  */
-export function Avatar({ audioLevelRef }: AvatarProps) {
+export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const { scene } = useGLTF("/avatar-transformed.glb");
+  const { scene, animations } = useGLTF("/avatar-transformed.glb");
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const { nodes, materials } = useGraph(clone) as unknown as GLTFResult;
+
+  const { actions } = useAnimations(animations, groupRef);
+
+  useEffect(() => {
+    // Play the requested animation or fallback to 'idle'
+    const actionName = currentAnimation && actions[currentAnimation]
+      ? currentAnimation
+      : (actions["idle"] ? "idle" : undefined);
+
+    if (!actionName || !actions[actionName]) return;
+
+    actions[actionName].reset().fadeIn(0.5).play();
+    
+    // Optional: clamp if it's not a looping animation (like wave)
+    // actions[actionName].setLoop(THREE.LoopOnce, 1);
+    // actions[actionName].clampWhenFinished = true;
+
+    return () => {
+      actions[actionName]?.fadeOut(0.5);
+    };
+  }, [currentAnimation, actions]);
 
   // Smoothed value for lip-sync
   const smoothedLevel = useRef(0);

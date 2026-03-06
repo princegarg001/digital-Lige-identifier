@@ -12,6 +12,7 @@ import { Avatar } from "./Avatar";
 
 interface SceneProps {
   audioLevelRef: React.RefObject<number>;
+  currentAnimation?: string;
 }
 
 /**
@@ -20,6 +21,7 @@ interface SceneProps {
  */
 export default function Scene({
   audioLevelRef,
+  currentAnimation,
 }: SceneProps) {
   return (
     <Canvas
@@ -54,7 +56,7 @@ export default function Scene({
           floatIntensity={0.2}
           floatingRange={[-0.02, 0.02]}
         >
-          <Avatar audioLevelRef={audioLevelRef} />
+          <Avatar audioLevelRef={audioLevelRef} currentAnimation={currentAnimation} />
         </Float>
         <Environment preset="city" />
       </Suspense>

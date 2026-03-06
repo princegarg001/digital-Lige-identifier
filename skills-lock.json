@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "skills": {
+    "r3f-animation": {
+      "source": "enzed/r3f-skills",
+      "sourceType": "github",
+      "computedHash": "c9e9ec609496aa89f44757212e220f601ca1387e38644a47603c5fb415eb2bb5"
+    },
+    "r3f-fundamentals": {
+      "source": "enzed/r3f-skills",
+      "sourceType": "github",
+      "computedHash": "45fdccb223eb747d7194d200e3f219820ada0cc6fa0226103de96261a22fdb3c"
+    },
+    "r3f-interaction": {
+      "source": "enzed/r3f-skills",
+      "sourceType": "github",
+      "computedHash": "702bc09fc0c20a325b93bacd5fc1361eae04b46dcb90534c04bd3c87a5cf52d7"
+    },
+    "r3f-lighting": {
+      "source": "enzed/r3f-skills",
+      "sourceType": "github",
+      "computedHash": "1ceb9cb1c883419c880a470c7b15597683f2051f3ec6d193723a14285b18baf9"
+    },
+    "r3f-physics": {
+      "source": "enzed/r3f-skills",
+      "sourceType": "github",
+      "computedHash": "0c3021872a32f7ce3a87d0ab1a260380de0b21b0d13a2ac64108ff1db13aaa5f"
+    }
+  }
+}

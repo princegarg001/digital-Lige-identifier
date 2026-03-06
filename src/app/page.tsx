@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useState, memo } from "react";
+import { useCallback, useEffect, useState, useRef, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
@@ -81,6 +81,7 @@ IdleScreen.displayName = "IdleScreen";
 function HomePage() {
   // UI State
   const [isChatOpen, setIsChatOpen] = useState(true);
+  const [currentAnimation, setCurrentAnimation] = useState<string>("idle");
 
   // Session management
   const { onTranscript: onTranscriptRef, onToolCall: onToolCallRef, ...session } = useSessionManager(API_KEY);
@@ -95,10 +96,20 @@ function HomePage() {
   }, [onTranscriptRef, chat]);
 
   // Wire up tool call handler
+  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     onToolCallRef.current = (tc) => {
       console.log("[Page] Tool call:", tc.name, tc.args);
-      // Future: Handle animations based on tool calls
+      if (tc.name === "trigger_animation" && tc.args.gesture_name) {
+        setCurrentAnimation(tc.args.gesture_name);
+        
+        // Revert to idle after 3 seconds (approximate duration of most gestures)
+        if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current);
+        animationTimeoutRef.current = setTimeout(() => {
+          setCurrentAnimation("idle");
+        }, 3000);
+      }
     };
   }, [onToolCallRef]);
 
@@ -147,6 +158,7 @@ function HomePage() {
       <div className="absolute inset-0 scan-line z-0">
         <Scene
           audioLevelRef={session.audioLevelRef}
+          currentAnimation={currentAnimation}
         />
       </div>
 
