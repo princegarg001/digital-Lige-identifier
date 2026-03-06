@@ -78,6 +78,7 @@ export function Avatar({ audioLevelRef }: AvatarProps) {
       const mouthIdx = head.morphTargetDictionary["mouthOpen"];
 
       if (jawIdx !== undefined) {
+        // eslint-disable-next-line react-hooks/immutability
         head.morphTargetInfluences[jawIdx] = Math.min(1, level * LIP_SYNC_JAW_MULTIPLIER);
       }
       if (mouthIdx !== undefined) {

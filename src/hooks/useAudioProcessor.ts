@@ -115,9 +115,7 @@ export function useAudioProcessor() {
     audioLevelRef.current = 0;
   }, []);
 
-  // Drain the playback queue sequentially.
-  // Plain function (not useCallback) since it accesses only refs.
-  const drainQueue = () => {
+  const drainQueue = useCallback(function drain() {
     const ctx = playbackCtxRef.current;
     if (!ctx || playbackQueueRef.current.length === 0) {
       isPlayingRef.current = false;
@@ -129,9 +127,9 @@ export function useAudioProcessor() {
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     source.connect(ctx.destination);
-    source.onended = () => drainQueue();
+    source.onended = () => drain();
     source.start();
-  };
+  }, []);
 
   // ── Playback of Gemini audio ──
   const playAudioChunk = useCallback((base64: string) => {
@@ -171,7 +169,7 @@ export function useAudioProcessor() {
     } catch (err) {
       console.warn("[AudioProcessor] Playback error:", err);
     }
-  }, []);
+  }, [drainQueue]);
 
   return {
     isMicActive,

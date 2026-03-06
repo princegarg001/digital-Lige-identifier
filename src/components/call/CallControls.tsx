@@ -36,16 +36,19 @@ export function CallControls({
   onToggleChat,
 }: CallControlsProps) {
   return (
-    <footer className="flex items-center justify-center px-6 py-4">
-      <GlassPanel rounded="2xl" className="px-5 py-3 flex items-center gap-2">
-        {/* Fullscreen */}
+    <footer className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center justify-center z-50">
+      <div className="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-4 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+        {/* Chat */}
         <IconButton
-          icon={Maximize2}
-          label="Fullscreen"
-          size="md"
-          variant="ghost"
-          onClick={() => document.documentElement.requestFullscreen?.()}
+          icon={MessageSquare}
+          label={isChatOpen ? "Close chat" : "Open chat"}
+          active={isChatOpen}
+          variant={isChatOpen ? "primary" : "ghost"}
+          onClick={onToggleChat}
+          className="hover:bg-white/10 rounded-full"
         />
+
+        <div className="w-[1px] h-8 bg-white/10 mx-2" />
 
         {/* Mic */}
         <IconButton
@@ -54,6 +57,7 @@ export function CallControls({
           active={isMicActive}
           variant="ghost"
           onClick={onToggleMic}
+          className={cn("rounded-full", !isMicActive && "bg-red-500/20 text-red-400 hover:bg-red-500/30")}
         />
 
         {/* Camera */}
@@ -63,34 +67,24 @@ export function CallControls({
           active={isCameraActive}
           variant="ghost"
           onClick={onToggleCamera}
+          className={cn("rounded-full", !isCameraActive && "bg-red-500/20 text-red-400 hover:bg-red-500/30")}
         />
 
         {/* Connect / Disconnect */}
-        <IconButton
-          icon={isConnected ? PhoneOff : Phone}
-          label={isConnected ? "End session" : "Start session"}
-          variant={isConnected ? "danger" : "success"}
-          size="lg"
+        <button
           onClick={onToggleConnection}
-        />
+          className={cn(
+            "flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 shadow-lg ml-2",
+            isConnected 
+              ? "bg-red-500 hover:bg-red-600 shadow-red-500/20" 
+              : "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20"
+          )}
+          title={isConnected ? "End session" : "Start session"}
+        >
+          {isConnected ? <PhoneOff className="w-6 h-6 text-white" /> : <Phone className="w-6 h-6 text-white" />}
+        </button>
 
-        {/* Chat */}
-        <IconButton
-          icon={MessageSquare}
-          label={isChatOpen ? "Close chat" : "Open chat"}
-          active={isChatOpen}
-          variant={isChatOpen ? "primary" : "ghost"}
-          onClick={onToggleChat}
-        />
-
-        {/* Settings */}
-        <IconButton
-          icon={Settings}
-          label="Settings"
-          variant="ghost"
-          onClick={() => {}}
-        />
-      </GlassPanel>
+      </div>
     </footer>
   );
 }

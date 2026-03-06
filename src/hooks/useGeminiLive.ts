@@ -186,7 +186,7 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
         );
         setStatus("error");
       });
-  }, [apiKey, disconnect]);
+  }, [disconnect]);
 
   // Send a base64 JPEG video frame
   const sendVideoFrame = useCallback((base64Image: string) => {

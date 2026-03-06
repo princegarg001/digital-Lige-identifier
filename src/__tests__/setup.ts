@@ -1,6 +1,8 @@
-import { expect, afterEach, vi, beforeAll } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Mock ResizeObserver before any imports
 global.ResizeObserver = class ResizeObserver {

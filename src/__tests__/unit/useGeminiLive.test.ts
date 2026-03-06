@@ -22,7 +22,8 @@ let __capturedCallbacks: {
   onclose?: (e: CloseEvent) => void;
 } = {};
 
-const __mockConnect = vi.fn(async (options: { callbacks: typeof __capturedCallbacks }) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const __mockConnect = vi.fn(async (options: any) => {
   __capturedCallbacks = options.callbacks || {};
   setTimeout(() => {
     __capturedCallbacks.onopen?.();

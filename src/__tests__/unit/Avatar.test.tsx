@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Unit Tests for Avatar Component
  * Tests 3D model loading, lip-sync, and animation handling

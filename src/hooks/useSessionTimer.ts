@@ -16,6 +16,7 @@ export function useSessionTimer(isActive: boolean) {
         setSeconds((s) => s + 1);
       }, 1000);
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSeconds(0);
       if (intervalRef.current) {
         clearInterval(intervalRef.current);

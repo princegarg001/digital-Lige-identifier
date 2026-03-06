@@ -204,7 +204,8 @@ describe('useChatMessages Hook', () => {
     it('should return created user message', () => {
       const { result } = renderHook(() => useChatMessages());
 
-      let message;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let message: any;
       act(() => {
         message = result.current.addUserMessage('Test');
       });
@@ -217,7 +218,8 @@ describe('useChatMessages Hook', () => {
     it('should return created assistant message', () => {
       const { result } = renderHook(() => useChatMessages());
 
-      let message;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let message: any;
       act(() => {
         message = result.current.addAssistantMessage('Response');
       });
