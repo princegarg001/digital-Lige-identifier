@@ -1,7 +1,7 @@
 "use client";
 
-import { GlassPanel } from "@/components/shared/GlassPanel";
 import { IconButton } from "@/components/shared/IconButton";
+import { cn } from "@/lib/utils";
 import {
   Mic,
   MicOff,
@@ -9,9 +9,7 @@ import {
   VideoOff,
   PhoneOff,
   Phone,
-  Settings,
   MessageSquare,
-  Maximize2,
 } from "lucide-react";
 
 interface CallControlsProps {
@@ -48,7 +46,7 @@ export function CallControls({
           className="hover:bg-white/10 rounded-full"
         />
 
-        <div className="w-[1px] h-8 bg-white/10 mx-2" />
+        <div className="w-px h-8 bg-white/10 mx-2" />
 
         {/* Mic */}
         <IconButton

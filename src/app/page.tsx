@@ -143,57 +143,63 @@ function HomePage() {
         />
       }
     >
-      {/* Header */}
-      <CallHeader status={session.status} sessionTime={timer.formatted} />
+      {/* 3D Scene Background */}
+      <div className="absolute inset-0 scan-line z-0">
+        <Scene
+          audioLevelRef={session.audioLevelRef}
+        />
+      </div>
 
-      {/* 3D Avatar Area */}
-      <div className="flex-1 relative">
-        {/* 3D Scene */}
-        <div className="absolute inset-0 scan-line">
-          <Scene
-            isActive={session.isConnected || session.status === "connecting"}
-            audioLevelRef={session.audioLevelRef}
-          />
+      {/* Floating Header */}
+      <div className="absolute top-0 left-0 right-0 z-10 px-6 py-4 pointer-events-none">
+        <div className="pointer-events-auto inline-block">
+          <CallHeader status={session.status} sessionTime={timer.formatted} />
         </div>
+      </div>
 
-        {/* Persona overlay */}
+      {/* Floating Webcam (FaceTime PiP Style) */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.3 }}
+        className="absolute top-6 right-6 w-48 h-64 rounded-2xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10 z-10"
+      >
+        <WebcamFeed
+          videoRef={session.videoRef}
+          isActive={session.isCameraActive}
+        />
+      </motion.div>
+
+      {/* Persona overlay (Waveform) */}
+      <div className="absolute bottom-24 left-6 z-10 pointer-events-none">
         <PersonaOverlay
           audioLevelRef={session.audioLevelRef}
           isConnected={session.isConnected}
         />
-
-        {/* Floating Webcam */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3 }}
-          className="absolute top-4 right-4 w-52 h-36 rounded-xl overflow-hidden shadow-2xl z-10"
-        >
-          <WebcamFeed
-            videoRef={session.videoRef}
-            isActive={session.isCameraActive}
-          />
-        </motion.div>
-
-        {/* Idle Screen */}
-        <AnimatePresence>
-          {!session.isConnected && session.status !== "connecting" && (
-            <IdleScreen onStart={session.toggleSession} />
-          )}
-        </AnimatePresence>
       </div>
 
-      {/* Bottom Controls */}
-      <CallControls
-        isConnected={session.isConnected}
-        isMicActive={session.isMicActive}
-        isCameraActive={session.isCameraActive}
-        isChatOpen={isChatOpen}
-        onToggleConnection={session.toggleSession}
-        onToggleMic={session.toggleMic}
-        onToggleCamera={session.toggleCamera}
-        onToggleChat={() => setIsChatOpen(!isChatOpen)}
-      />
+      {/* Idle Screen */}
+      <AnimatePresence>
+        {!session.isConnected && session.status !== "connecting" && (
+          <IdleScreen onStart={session.toggleSession} />
+        )}
+      </AnimatePresence>
+
+      {/* Floating Bottom Controls */}
+      <div className="absolute bottom-6 left-0 right-0 z-10 flex justify-center pointer-events-none">
+        <div className="pointer-events-auto">
+          <CallControls
+            isConnected={session.isConnected}
+            isMicActive={session.isMicActive}
+            isCameraActive={session.isCameraActive}
+            isChatOpen={isChatOpen}
+            onToggleConnection={session.toggleSession}
+            onToggleMic={session.toggleMic}
+            onToggleCamera={session.toggleCamera}
+            onToggleChat={() => setIsChatOpen(!isChatOpen)}
+          />
+        </div>
+      </div>
     </VideoCallLayout>
   );
 }

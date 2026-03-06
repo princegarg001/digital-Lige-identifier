@@ -12,7 +12,6 @@ import { Avatar } from "./Avatar";
 
 interface SceneProps {
   audioLevelRef: React.RefObject<number>;
-  isActive?: boolean;
 }
 
 /**
@@ -21,11 +20,10 @@ interface SceneProps {
  */
 export default function Scene({
   audioLevelRef,
-  isActive = false,
 }: SceneProps) {
   return (
     <Canvas
-      camera={{ position: [0, 1.5, 3], fov: 45 }}
+      camera={{ position: [0, 1.0, 1.2], fov: 45 }}
       shadows
       gl={{ antialias: true, alpha: true }}
       style={{ background: "transparent" }}
@@ -50,16 +48,14 @@ export default function Scene({
       <pointLight position={[0, 2, 4]} intensity={0.5} color="#ffffff" />
 
       <Suspense fallback={null}>
-        {isActive && (
-          <Float
-            speed={1}
-            rotationIntensity={0.1}
-            floatIntensity={0.2}
-            floatingRange={[-0.02, 0.02]}
-          >
-            <Avatar audioLevelRef={audioLevelRef} />
-          </Float>
-        )}
+        <Float
+          speed={1}
+          rotationIntensity={0.1}
+          floatIntensity={0.2}
+          floatingRange={[-0.02, 0.02]}
+        >
+          <Avatar audioLevelRef={audioLevelRef} />
+        </Float>
         <Environment preset="city" />
       </Suspense>
 
@@ -73,11 +69,11 @@ export default function Scene({
       />
 
       <OrbitControls
-        enableZoom={false}
-        enablePan={false}
+        enableZoom={true}
+        enablePan={true}
         minPolarAngle={Math.PI / 2.5}
         maxPolarAngle={Math.PI / 2}
-        target={[0, 1.2, 0]}
+        target={[0, 0.0, 0]}
       />
     </Canvas>
   );

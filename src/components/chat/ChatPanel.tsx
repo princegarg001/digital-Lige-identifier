@@ -30,8 +30,8 @@ export function ChatPanel({
   return (
     <GlassPanel
       variant="heavy"
-      rounded="2xl"
-      className={cn("h-full flex flex-col overflow-hidden", className)}
+      rounded="3xl"
+      className={cn("h-full flex flex-col min-h-0 overflow-hidden shadow-2xl backdrop-blur-md bg-black/40 border border-white/10", className)}
     >
       {/* Header with Tabs */}
       <ChatHeader
