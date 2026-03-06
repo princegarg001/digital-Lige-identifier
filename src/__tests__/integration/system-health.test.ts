@@ -1,0 +1,81 @@
+/**
+ * System Health Integration Tests
+ * Verifies all components work together according to the architecture diagrams
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+describe('Digital Persona System Health', () => {
+  describe('Environment Configuration', () => {
+    it('should have required environment variables', () => {
+      expect(process.env.NEXT_PUBLIC_GEMINI_API_KEY).toBeDefined();
+      expect(process.env.NEXT_PUBLIC_GEMINI_API_KEY).not.toBe('');
+      expect(process.env.NEXT_PUBLIC_GEMINI_API_KEY).toMatch(/^AIza/);
+    });
+
+    it('should have valid GCP configuration', () => {
+      // These can be optional for development but should be set for production
+      const gcpProjectId = process.env.NEXT_PUBLIC_GCP_PROJECT_ID;
+      const gcsBucket = process.env.NEXT_PUBLIC_GCS_BUCKET_NAME;
+      
+      if (gcpProjectId && gcpProjectId !== 'your_project_id') {
+        expect(gcpProjectId).toMatch(/^[a-z][a-z0-9-]*[a-z0-9]$/);
+      }
+    });
+  });
+
+  describe('Asset Availability', () => {
+    it('should have avatar model in public directory', async () => {
+      const response = await fetch('/avatar-transformed.glb');
+      expect(response.ok).toBe(true);
+      expect(response.headers.get('content-type')).toContain('model/gltf-binary');
+    });
+
+    it('should have valid GLB file structure', async () => {
+      const response = await fetch('/avatar-transformed.glb');
+      const buffer = await response.arrayBuffer();
+      
+      // GLB files start with "glTF" magic number (0x46546C67)
+      const view = new DataView(buffer);
+      const magic = view.getUint32(0, true);
+      expect(magic).toBe(0x46546C67);
+    });
+  });
+
+  describe('Constants Configuration', () => {
+    it('should have valid system prompt', async () => {
+      const { SYSTEM_PROMPT } = await import('@/lib/constants');
+      
+      expect(SYSTEM_PROMPT).toContain('Digital Persona');
+      expect(SYSTEM_PROMPT).toContain('Environmental Presence');
+      expect(SYSTEM_PROMPT).toContain('trigger_animation');
+    });
+
+    it('should have valid Gemini tools configuration', async () => {
+      const { GEMINI_TOOLS } = await import('@/lib/constants');
+      
+      expect(GEMINI_TOOLS).toHaveLength(1);
+      expect(GEMINI_TOOLS[0].function_declarations).toBeDefined();
+      
+      const triggerAnim = GEMINI_TOOLS[0].function_declarations.find(
+        (f) => f.name === 'trigger_animation'
+      );
+      
+      expect(triggerAnim).toBeDefined();
+      expect(triggerAnim?.parameters.properties.gesture_name.enum).toContain('wave');
+      expect(triggerAnim?.parameters.properties.gesture_name.enum).toContain('nod');
+    });
+
+    it('should use correct Gemini model', async () => {
+      const { GEMINI_MODEL } = await import('@/lib/constants');
+      expect(GEMINI_MODEL).toBe('models/gemini-2.0-flash-live-001');
+    });
+
+    it('should have correct audio configuration', async () => {
+      const { AUDIO_SAMPLE_RATE_INPUT, AUDIO_SAMPLE_RATE_OUTPUT } = await import('@/lib/constants');
+      
+      expect(AUDIO_SAMPLE_RATE_INPUT).toBe(16000);
+      expect(AUDIO_SAMPLE_RATE_OUTPUT).toBe(24000);
+    });
+  });
+});

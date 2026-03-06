@@ -1,281 +1,208 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
-// Components
-import { WebcamFeed } from "@/components/call/WebcamFeed";
+// Error Boundary
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+// Layout
+import { VideoCallLayout } from "@/components/layout/VideoCallLayout";
+
+// Call Components
+import { CallHeader } from "@/components/call/CallHeader";
 import { CallControls } from "@/components/call/CallControls";
-import { StatusBar } from "@/components/call/StatusBar";
-import { AudioWaveform } from "@/components/call/AudioWaveform";
-import {
-  TranscriptPanel,
-  type TranscriptMessage,
-} from "@/components/call/TranscriptPanel";
+import { WebcamFeed } from "@/components/call/WebcamFeed";
+import { PersonaOverlay } from "@/components/call/PersonaOverlay";
+
+// Chat Components
+import { ChatPanel } from "@/components/chat/ChatPanel";
 
 // Hooks
-import { useGeminiLive } from "@/hooks/useGeminiLive";
-import { useAudioProcessor } from "@/hooks/useAudioProcessor";
-import { useWebcam } from "@/hooks/useWebcam";
+import { useSessionManager } from "@/hooks/useSessionManager";
+import { useSessionTimer } from "@/hooks/useSessionTimer";
+import { useChatMessages } from "@/hooks/useChatMessages";
 
-// Lazy-load the 3D scene (no SSR)
-const Scene = dynamic(() => import("@/components/canvas/Scene"), { ssr: false });
+// 3D Scene (lazy, no SSR)
+const Scene = dynamic(() => import("@/components/canvas/Scene"), {
+  ssr: false,
+  loading: () => <SceneLoader />,
+});
 
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
 
-export default function Home() {
-  // ── State ──
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [messages, setMessages] = useState<TranscriptMessage[]>([]);
+// Loading component for 3D scene
+function SceneLoader() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="text-zinc-500 text-sm">Loading 3D scene...</div>
+    </div>
+  );
+}
 
-  // ── Hooks ──
-  const gemini = useGeminiLive(API_KEY);
-  const audio = useAudioProcessor();
-  const webcam = useWebcam();
+// Memoized idle screen
+const IdleScreen = memo(({ onStart }: { onStart: () => void }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    exit={{ opacity: 0, scale: 0.9 }}
+    transition={{ duration: 0.4 }}
+    className="absolute inset-0 flex flex-col items-center justify-center z-10"
+  >
+    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] rounded-3xl px-12 py-10 flex flex-col items-center gap-6 max-w-md">
+      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400/20 to-emerald-400/20 border border-cyan-400/20 flex items-center justify-center animate-pulse-ring">
+        <Sparkles className="w-8 h-8 text-cyan-400" />
+      </div>
+      <div className="text-center">
+        <h2 className="text-xl font-semibold tracking-wide mb-2">
+          Digital Persona
+        </h2>
+        <p className="text-sm text-zinc-500 leading-relaxed">
+          Start a session to activate your AI persona.
+          <br />
+          Grant camera & mic permissions for full interaction.
+        </p>
+      </div>
+      <button
+        onClick={onStart}
+        className="px-8 py-3 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-500 text-black font-semibold text-sm tracking-wide hover:shadow-[0_0_30px_rgba(34,211,238,0.3)] transition-all duration-500 hover:scale-105"
+      >
+        INITIATE SESSION
+      </button>
+    </div>
+  </motion.div>
+));
 
-  const isConnected = gemini.status === "connected";
+IdleScreen.displayName = "IdleScreen";
 
-  // ── Wire up Gemini callbacks ──
+// Main component
+function HomePage() {
+  // UI State
+  const [isChatOpen, setIsChatOpen] = useState(true);
+
+  // Session management
+  const session = useSessionManager(API_KEY);
+  const timer = useSessionTimer(session.isConnected);
+  const chat = useChatMessages();
+
+  // Wire up transcript handler
   useEffect(() => {
-    gemini.onAudioData.current = (b64) => {
-      audio.playAudioChunk(b64);
+    session.onTranscript.current = (text) => {
+      chat.addAssistantMessage(text);
     };
-  }, [gemini.onAudioData, audio]);
+  }, [session.onTranscript, chat]);
 
+  // Wire up tool call handler
   useEffect(() => {
-    gemini.onTranscript.current = (text) => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: text,
-          timestamp: new Date(),
-        },
-      ]);
+    session.onToolCall.current = (tc) => {
+      console.log("[Page] Tool call:", tc.name, tc.args);
+      // Future: Handle animations based on tool calls
     };
-  }, [gemini.onTranscript]);
+  }, [session.onToolCall]);
 
-  useEffect(() => {
-    gemini.onToolCall.current = (tc) => {
-      console.log("[Page] Tool call received:", tc);
-      // Tool calls are handled by the Avatar through audio level for now
-    };
-  }, [gemini.onToolCall]);
-
-  // ── Wire webcam frames → Gemini ──
-  useEffect(() => {
-    webcam.onFrameRef.current = (base64) => {
-      if (isConnected) {
-        gemini.sendVideoFrame(base64);
-      }
-    };
-  }, [webcam.onFrameRef, isConnected, gemini]);
-
-  // ── Connection control ──
-  const handleToggleConnection = useCallback(() => {
-    if (isConnected) {
-      gemini.disconnect();
-      audio.stopMic();
-      webcam.stop();
-    } else {
-      gemini.connect();
-      webcam.start();
-      audio.startMic((chunk) => {
-        gemini.sendAudioChunk(chunk);
-      });
-    }
-  }, [isConnected, gemini, audio, webcam]);
-
-  const handleToggleMic = useCallback(() => {
-    if (audio.isMicActive) {
-      audio.stopMic();
-    } else {
-      audio.startMic((chunk) => {
-        if (gemini.status === "connected") {
-          gemini.sendAudioChunk(chunk);
-        }
-      });
-    }
-  }, [audio, gemini]);
-
-  const handleToggleCamera = useCallback(() => {
-    if (webcam.isActive) {
-      webcam.stop();
-    } else {
-      webcam.start();
-    }
-  }, [webcam]);
-
+  // Send chat text
   const handleSendText = useCallback(
     (text: string) => {
-      gemini.sendText(text);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "user",
-          content: text,
-          timestamp: new Date(),
-        },
-      ]);
+      chat.addUserMessage(text);
+      session.sendText(text);
     },
-    [gemini]
+    [chat, session]
   );
 
-  return (
-    <main className="h-screen w-screen bg-[#030712] relative flex overflow-hidden">
-      {/* ── Background Grid ── */}
-      <div className="absolute inset-0 grid-bg opacity-50" />
-
-      {/* ── Ambient glow blurs ── */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
-
-      {/* ── Main Content Area ── */}
-      <div className="flex-1 flex flex-col relative z-10">
-        {/* ── Top Bar ── */}
-        <header className="flex items-center justify-between px-6 py-4">
-          {/* Logo / Title */}
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-400 to-emerald-400 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-black" />
-            </div>
-            <div>
-              <h1 className="text-sm font-semibold tracking-wide">
-                DIGITAL PERSONA
-              </h1>
-              <p className="text-[10px] text-zinc-500 font-mono tracking-widest uppercase">
-                Substrate v1.0
-              </p>
-            </div>
-          </div>
-
-          {/* Status */}
-          <StatusBar status={gemini.status} />
-        </header>
-
-        {/* ── 3D Avatar Area ── */}
-        <div className="flex-1 relative">
-          {/* The 3D Scene */}
-          <div className="absolute inset-0 scan-line">
-            <Scene
-              isActive={isConnected || gemini.status === "connecting"}
-              audioLevel={audio.audioLevel}
-            />
-          </div>
-
-          {/* Persona name overlay */}
-          <AnimatePresence>
-            {isConnected && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="absolute bottom-6 left-6"
-              >
-                <div className="glass rounded-xl px-4 py-2.5">
-                  <div className="flex items-center gap-3">
-                    <AudioWaveform
-                      audioLevel={audio.audioLevel}
-                      isActive={isConnected}
-                    />
-                    <div>
-                      <p className="text-sm font-medium text-white">
-                        AI Persona
-                      </p>
-                      <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">
-                        {audio.audioLevel > 0.05 ? "Speaking" : "Listening"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Floating Webcam (top-right) */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="absolute top-4 right-4 w-56 h-40 rounded-xl overflow-hidden shadow-2xl"
+  // Error handling
+  if (session.errorMessage) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+        <div className="glass rounded-2xl p-8 max-w-md w-full">
+          <h2 className="text-xl font-semibold mb-4 text-red-500">
+            Connection Error
+          </h2>
+          <p className="text-sm text-zinc-400 mb-4">{session.errorMessage}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full px-4 py-2 bg-cyan-500 text-black rounded-lg font-medium hover:bg-cyan-400 transition-colors"
           >
-            <WebcamFeed videoRef={webcam.videoRef} isActive={webcam.isActive} />
-          </motion.div>
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-          {/* Center prompt when disconnected */}
-          <AnimatePresence>
-            {!isConnected && gemini.status !== "connecting" && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="absolute inset-0 flex flex-col items-center justify-center"
-              >
-                <div className="glass rounded-3xl px-12 py-10 flex flex-col items-center gap-6 max-w-md">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400/20 to-emerald-400/20 border border-cyan-400/20 flex items-center justify-center animate-pulse-ring">
-                    <Sparkles className="w-8 h-8 text-cyan-400" />
-                  </div>
-                  <div className="text-center">
-                    <h2 className="text-xl font-semibold tracking-wide mb-2">
-                      Digital Persona
-                    </h2>
-                    <p className="text-sm text-zinc-500 leading-relaxed">
-                      Start a session to activate your AI persona.
-                      <br />
-                      Grant camera & mic permissions for full interaction.
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleToggleConnection}
-                    className="px-8 py-3 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-500 text-black font-semibold text-sm tracking-wide hover:shadow-[0_0_30px_rgba(34,211,238,0.3)] transition-all duration-500 hover:scale-105"
-                  >
-                    INITIATE SESSION
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+  return (
+    <VideoCallLayout
+      isChatOpen={isChatOpen}
+      chatPanel={
+        <ChatPanel
+          messages={chat.messages}
+          onSendText={handleSendText}
+          isConnected={session.isConnected}
+          isTyping={chat.isTyping}
+        />
+      }
+    >
+      {/* Header */}
+      <CallHeader status={session.status} sessionTime={timer.formatted} />
+
+      {/* 3D Avatar Area */}
+      <div className="flex-1 relative">
+        {/* 3D Scene */}
+        <div className="absolute inset-0 scan-line">
+          <Scene
+            isActive={session.isConnected || session.status === "connecting"}
+            audioLevel={session.audioLevel}
+          />
         </div>
 
-        {/* ── Bottom Controls ── */}
-        <footer className="flex items-center justify-center px-6 py-5">
-          <div className="glass rounded-2xl px-6 py-3">
-            <CallControls
-              isConnected={isConnected}
-              isMicActive={audio.isMicActive}
-              isCameraActive={webcam.isActive}
-              isChatOpen={isChatOpen}
-              onToggleConnection={handleToggleConnection}
-              onToggleMic={handleToggleMic}
-              onToggleCamera={handleToggleCamera}
-              onToggleChat={() => setIsChatOpen(!isChatOpen)}
-            />
-          </div>
-        </footer>
+        {/* Persona overlay */}
+        <PersonaOverlay
+          audioLevel={session.audioLevel}
+          isConnected={session.isConnected}
+        />
+
+        {/* Floating Webcam */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          className="absolute top-4 right-4 w-52 h-36 rounded-xl overflow-hidden shadow-2xl z-10"
+        >
+          <WebcamFeed
+            videoRef={session.videoRef}
+            isActive={session.isCameraActive}
+          />
+        </motion.div>
+
+        {/* Idle Screen */}
+        <AnimatePresence>
+          {!session.isConnected && session.status !== "connecting" && (
+            <IdleScreen onStart={session.toggleSession} />
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* ── Transcript Panel (right side) ── */}
-      <AnimatePresence>
-        {isChatOpen && (
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 320, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="h-full py-4 pr-4 relative z-20"
-          >
-            <TranscriptPanel
-              messages={messages}
-              onSendText={handleSendText}
-              onClose={() => setIsChatOpen(false)}
-              isOpen={isChatOpen}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </main>
+      {/* Bottom Controls */}
+      <CallControls
+        isConnected={session.isConnected}
+        isMicActive={session.isMicActive}
+        isCameraActive={session.isCameraActive}
+        isChatOpen={isChatOpen}
+        onToggleConnection={session.toggleSession}
+        onToggleMic={session.toggleMic}
+        onToggleCamera={session.toggleCamera}
+        onToggleChat={() => setIsChatOpen(!isChatOpen)}
+      />
+    </VideoCallLayout>
+  );
+}
+
+// Export with error boundary
+export default function Home() {
+  return (
+    <ErrorBoundary>
+      <HomePage />
+    </ErrorBoundary>
   );
 }

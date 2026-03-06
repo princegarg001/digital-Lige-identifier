@@ -9,6 +9,13 @@ import React, { useRef } from "react";
 import { useGraph, useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { GLTF, SkeletonUtils } from "three-stdlib";
+import {
+  LIP_SYNC_SMOOTHING,
+  LIP_SYNC_JAW_MULTIPLIER,
+  LIP_SYNC_MOUTH_MULTIPLIER,
+  BREATHING_SPEED,
+  BREATHING_AMPLITUDE,
+} from "@/lib/constants";
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -38,10 +45,14 @@ type GLTFResult = GLTF & {
 };
 
 interface AvatarProps {
-  audioLevel?: number;
+  audioLevelRef: React.RefObject<number>;
 }
 
-export function Avatar({ audioLevel = 0 }: AvatarProps) {
+/**
+ * Wolf3D avatar with real-time lip-sync and idle breathing.
+ * Reads `audioLevelRef.current` inside `useFrame` (60fps) without causing re-renders.
+ */
+export function Avatar({ audioLevelRef }: AvatarProps) {
   const groupRef = useRef<THREE.Group>(null);
   const { scene } = useGLTF("/avatar-transformed.glb");
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene]);
@@ -51,9 +62,11 @@ export function Avatar({ audioLevel = 0 }: AvatarProps) {
   const smoothedLevel = useRef(0);
 
   useFrame(() => {
+    const rawLevel = audioLevelRef.current ?? 0;
+
     // Smooth the audio level to avoid jitter
     smoothedLevel.current +=
-      (audioLevel - smoothedLevel.current) * 0.15;
+      (rawLevel - smoothedLevel.current) * LIP_SYNC_SMOOTHING;
     const level = smoothedLevel.current;
 
     // Drive jaw/mouth morph targets for lip-sync
@@ -65,10 +78,10 @@ export function Avatar({ audioLevel = 0 }: AvatarProps) {
       const mouthIdx = head.morphTargetDictionary["mouthOpen"];
 
       if (jawIdx !== undefined) {
-        head.morphTargetInfluences[jawIdx] = Math.min(1, level * 1.8);
+        head.morphTargetInfluences[jawIdx] = Math.min(1, level * LIP_SYNC_JAW_MULTIPLIER);
       }
       if (mouthIdx !== undefined) {
-        head.morphTargetInfluences[mouthIdx] = Math.min(1, level * 1.5);
+        head.morphTargetInfluences[mouthIdx] = Math.min(1, level * LIP_SYNC_MOUTH_MULTIPLIER);
       }
     }
 
@@ -76,14 +89,14 @@ export function Avatar({ audioLevel = 0 }: AvatarProps) {
     if (teeth?.morphTargetDictionary && teeth?.morphTargetInfluences) {
       const jawIdx = teeth.morphTargetDictionary["jawOpen"];
       if (jawIdx !== undefined) {
-        teeth.morphTargetInfluences[jawIdx] = Math.min(1, level * 1.8);
+        teeth.morphTargetInfluences[jawIdx] = Math.min(1, level * LIP_SYNC_JAW_MULTIPLIER);
       }
     }
 
     // Subtle idle breathing — small Y oscillation on Hips
     if (nodes.Hips) {
       nodes.Hips.position.y =
-        Math.sin(Date.now() * 0.001) * 0.003;
+        Math.sin(Date.now() * BREATHING_SPEED) * BREATHING_AMPLITUDE;
     }
   });
 

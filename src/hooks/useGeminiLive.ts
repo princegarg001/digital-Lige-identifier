@@ -23,16 +23,33 @@ export interface UseGeminiLiveReturn {
   sendVideoFrame: (base64: string) => void;
   sendAudioChunk: (base64: string) => void;
   sendText: (text: string) => void;
-  onAudioData: React.MutableRefObject<((b64: string) => void) | null>;
-  onToolCall: React.MutableRefObject<((tc: ToolCallPayload) => void) | null>;
-  onTranscript: React.MutableRefObject<((text: string) => void) | null>;
+  onAudioData: React.RefObject<((b64: string) => void) | null>;
+  onToolCall: React.RefObject<((tc: ToolCallPayload) => void) | null>;
+  onTranscript: React.RefObject<((text: string) => void) | null>;
   errorMessage: string | null;
 }
 
+/**
+ * Manages the WebSocket connection to the Gemini Multimodal Live API.
+ *
+ * @param apiKey - Gemini API key from environment
+ * @returns Connection controls, send functions, and callback refs
+ *
+ * @remarks
+ * Callback refs (`onAudioData`, `onToolCall`, `onTranscript`) are used
+ * instead of callback props to avoid re-renders on every audio chunk.
+ * @see vercel-react-best-practices: advanced-event-handler-refs
+ */
 export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
   const socketRef = useRef<WebSocket | null>(null);
   const [status, setStatus] = useState<GeminiStatus>("disconnected");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Use a ref to track latest status to avoid stale closures in WS handlers
+  const statusRef = useRef<GeminiStatus>(status);
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   // Callback refs — avoids re-rendering on every audio chunk
   const onAudioData = useRef<((b64: string) => void) | null>(null);
@@ -59,7 +76,6 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
 
     ws.onopen = () => {
       console.log("[GeminiLive] WebSocket opened, sending setup...");
-      // Send setup message
       ws.send(
         JSON.stringify({
           setup: {
@@ -99,11 +115,9 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
           const parts = data.serverContent.modelTurn?.parts;
           if (parts) {
             for (const part of parts) {
-              // Audio data
               if (part.inlineData?.mimeType?.startsWith("audio/")) {
                 onAudioData.current?.(part.inlineData.data);
               }
-              // Text transcript
               if (part.text) {
                 onTranscript.current?.(part.text);
               }
@@ -151,13 +165,14 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
       setStatus("error");
     };
 
+    // FIX: Use statusRef to avoid stale closure
     ws.onclose = (event) => {
       console.log("[GeminiLive] WebSocket closed:", event.code, event.reason);
-      if (status !== "disconnected") {
+      if (statusRef.current !== "disconnected") {
         setStatus("disconnected");
       }
     };
-  }, [apiKey, disconnect, status]);
+  }, [apiKey, disconnect]);
 
   // Send a base64 JPEG video frame
   const sendVideoFrame = useCallback((base64Image: string) => {

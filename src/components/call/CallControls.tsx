@@ -1,11 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { GlassPanel } from "@/components/shared/GlassPanel";
+import { IconButton } from "@/components/shared/IconButton";
 import {
   Mic,
   MicOff,
@@ -15,9 +11,8 @@ import {
   Phone,
   Settings,
   MessageSquare,
-  type LucideIcon,
+  Maximize2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface CallControlsProps {
   isConnected: boolean;
@@ -28,51 +23,6 @@ interface CallControlsProps {
   onToggleMic: () => void;
   onToggleCamera: () => void;
   onToggleChat: () => void;
-}
-
-function ControlButton({
-  icon: Icon,
-  label,
-  active = true,
-  variant = "default",
-  onClick,
-}: {
-  icon: LucideIcon;
-  label: string;
-  active?: boolean;
-  variant?: "default" | "danger" | "success";
-  onClick: () => void;
-}) {
-  const variants = {
-    default: active
-      ? "bg-white/5 hover:bg-white/10 text-white border-white/10"
-      : "bg-white/5 hover:bg-white/10 text-zinc-500 border-white/5",
-    danger:
-      "bg-red-500/20 hover:bg-red-500/30 text-red-400 border-red-500/20 glow-red",
-    success:
-      "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border-emerald-500/20 glow-emerald",
-  };
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onClick}
-          className={cn(
-            "w-12 h-12 rounded-full transition-all duration-300",
-            variants[variant]
-          )}
-        >
-          <Icon className="w-5 h-5" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="bg-zinc-900 text-zinc-300 border-zinc-800">
-        <p>{label}</p>
-      </TooltipContent>
-    </Tooltip>
-  );
 }
 
 export function CallControls({
@@ -86,45 +36,61 @@ export function CallControls({
   onToggleChat,
 }: CallControlsProps) {
   return (
-    <div className="flex items-center gap-3">
-      {/* Mic Toggle */}
-      <ControlButton
-        icon={isMicActive ? Mic : MicOff}
-        label={isMicActive ? "Mute microphone" : "Unmute microphone"}
-        active={isMicActive}
-        onClick={onToggleMic}
-      />
+    <footer className="flex items-center justify-center px-6 py-4">
+      <GlassPanel rounded="2xl" className="px-5 py-3 flex items-center gap-2">
+        {/* Fullscreen */}
+        <IconButton
+          icon={Maximize2}
+          label="Fullscreen"
+          size="md"
+          variant="ghost"
+          onClick={() => document.documentElement.requestFullscreen?.()}
+        />
 
-      {/* Camera Toggle */}
-      <ControlButton
-        icon={isCameraActive ? Video : VideoOff}
-        label={isCameraActive ? "Turn off camera" : "Turn on camera"}
-        active={isCameraActive}
-        onClick={onToggleCamera}
-      />
+        {/* Mic */}
+        <IconButton
+          icon={isMicActive ? Mic : MicOff}
+          label={isMicActive ? "Mute microphone" : "Unmute microphone"}
+          active={isMicActive}
+          variant="ghost"
+          onClick={onToggleMic}
+        />
 
-      {/* Connect / Disconnect */}
-      <ControlButton
-        icon={isConnected ? PhoneOff : Phone}
-        label={isConnected ? "End session" : "Start session"}
-        variant={isConnected ? "danger" : "success"}
-        onClick={onToggleConnection}
-      />
+        {/* Camera */}
+        <IconButton
+          icon={isCameraActive ? Video : VideoOff}
+          label={isCameraActive ? "Turn off camera" : "Turn on camera"}
+          active={isCameraActive}
+          variant="ghost"
+          onClick={onToggleCamera}
+        />
 
-      {/* Chat */}
-      <ControlButton
-        icon={MessageSquare}
-        label={isChatOpen ? "Close chat" : "Open chat"}
-        active={isChatOpen}
-        onClick={onToggleChat}
-      />
+        {/* Connect / Disconnect */}
+        <IconButton
+          icon={isConnected ? PhoneOff : Phone}
+          label={isConnected ? "End session" : "Start session"}
+          variant={isConnected ? "danger" : "success"}
+          size="lg"
+          onClick={onToggleConnection}
+        />
 
-      {/* Settings */}
-      <ControlButton
-        icon={Settings}
-        label="Settings"
-        onClick={() => {}}
-      />
-    </div>
+        {/* Chat */}
+        <IconButton
+          icon={MessageSquare}
+          label={isChatOpen ? "Close chat" : "Open chat"}
+          active={isChatOpen}
+          variant={isChatOpen ? "primary" : "ghost"}
+          onClick={onToggleChat}
+        />
+
+        {/* Settings */}
+        <IconButton
+          icon={Settings}
+          label="Settings"
+          variant="ghost"
+          onClick={() => {}}
+        />
+      </GlassPanel>
+    </footer>
   );
 }

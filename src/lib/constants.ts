@@ -50,3 +50,12 @@ export const AUDIO_SAMPLE_RATE_INPUT = 16000; // 16kHz for sending to Gemini
 export const AUDIO_SAMPLE_RATE_OUTPUT = 24000; // 24kHz from Gemini responses
 export const VIDEO_FPS = 1; // 1 frame per second for video stream
 export const VIDEO_QUALITY = 0.7; // JPEG quality for captured frames
+
+// ─── Lip-Sync Parameters ───
+export const LIP_SYNC_SMOOTHING = 0.15; // Lerp factor for smoothing audio level
+export const LIP_SYNC_JAW_MULTIPLIER = 1.8; // Scale factor for jawOpen morph target
+export const LIP_SYNC_MOUTH_MULTIPLIER = 1.5; // Scale factor for mouthOpen morph target
+
+// ─── Breathing Animation ───
+export const BREATHING_SPEED = 0.001; // Speed of idle breathing oscillation
+export const BREATHING_AMPLITUDE = 0.003; // Amplitude of Y-axis breathing movement

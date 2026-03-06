@@ -7,18 +7,20 @@ import {
   OrbitControls,
   Float,
 } from "@react-three/drei";
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import { Avatar } from "./Avatar";
 
 interface SceneProps {
-  animationName?: string;
-  audioLevel?: number;
+  audioLevelRef: React.RefObject<number>;
   isActive?: boolean;
 }
 
+/**
+ * 3D canvas scene with dual-colored lighting, environment, and the Avatar.
+ * Receives `audioLevelRef` (not state) to avoid re-renders on every audio frame.
+ */
 export default function Scene({
-  animationName = "idle",
-  audioLevel = 0,
+  audioLevelRef,
   isActive = false,
 }: SceneProps) {
   return (
@@ -55,7 +57,7 @@ export default function Scene({
             floatIntensity={0.2}
             floatingRange={[-0.02, 0.02]}
           >
-            <Avatar audioLevel={audioLevel} />
+            <Avatar audioLevelRef={audioLevelRef} />
           </Float>
         )}
         <Environment preset="city" />

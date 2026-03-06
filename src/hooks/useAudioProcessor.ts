@@ -4,20 +4,30 @@ import { useCallback, useRef, useState } from "react";
 import { AUDIO_SAMPLE_RATE_INPUT, AUDIO_SAMPLE_RATE_OUTPUT } from "@/lib/constants";
 
 /**
- * Handles:
- * 1. Capturing microphone audio → converting to 16kHz 16-bit PCM → base64
- * 2. Playing back Gemini audio responses (24kHz PCM)
- * 3. Computing audio levels for lip-sync
+ * Manages microphone audio capture, Gemini audio playback, and real-time audio levels.
+ *
+ * @remarks
+ * - Capture: Records at 16kHz 16-bit PCM mono, outputs base64 chunks.
+ * - Playback: Decodes 24kHz PCM from Gemini and queues sequential playback.
+ * - Audio Level: Exposed as a `useRef` to avoid 60fps re-renders.
+ *   Components that need it (e.g. Avatar, AudioWaveform) should read
+ *   `audioLevelRef.current` inside their own animation loops (useFrame / rAF).
  */
 export function useAudioProcessor() {
   const [isMicActive, setIsMicActive] = useState(false);
-  const [audioLevel, setAudioLevel] = useState(0);
+
+  /**
+   * Audio level as a ref — NOT state — to prevent 60fps re-renders.
+   * Read this inside `useFrame` / `requestAnimationFrame`.
+   * @see vercel-react-best-practices: rerender-use-ref-transient-values
+   */
+  const audioLevelRef = useRef(0);
 
   const streamRef = useRef<MediaStream | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
-  const workletRef = useRef<AudioWorkletNode | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number>(0);
+  const processorRef = useRef<ScriptProcessorNode | null>(null);
 
   // Playback refs
   const playbackCtxRef = useRef<AudioContext | null>(null);
@@ -50,20 +60,21 @@ export function useAudioProcessor() {
           source.connect(analyser);
           analyserRef.current = analyser;
 
-          // Use ScriptProcessor as a fallback (AudioWorklet requires served worklet file)
+          // ScriptProcessor for PCM capture
           const processor = ctx.createScriptProcessor(4096, 1, 1);
           source.connect(processor);
           processor.connect(ctx.destination);
+          processorRef.current = processor;
 
           processor.onaudioprocess = (e) => {
             const float32 = e.inputBuffer.getChannelData(0);
-            // Convert Float32 → Int16
+            // Float32 → Int16
             const int16 = new Int16Array(float32.length);
             for (let i = 0; i < float32.length; i++) {
               const s = Math.max(-1, Math.min(1, float32[i]));
               int16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
             }
-            // Convert to base64
+            // Int16 → base64
             const bytes = new Uint8Array(int16.buffer);
             let binary = "";
             for (let i = 0; i < bytes.length; i++) {
@@ -72,13 +83,13 @@ export function useAudioProcessor() {
             onChunk(btoa(binary));
           };
 
-          // Animation loop for audio level
+          // rAF loop for audio level → ref (not state)
           const updateLevel = () => {
             if (!analyserRef.current) return;
             const data = new Uint8Array(analyserRef.current.frequencyBinCount);
             analyserRef.current.getByteFrequencyData(data);
             const avg = data.reduce((sum, v) => sum + v, 0) / data.length;
-            setAudioLevel(avg / 255);
+            audioLevelRef.current = avg / 255;
             animFrameRef.current = requestAnimationFrame(updateLevel);
           };
           updateLevel();
@@ -99,9 +110,28 @@ export function useAudioProcessor() {
     streamRef.current = null;
     audioCtxRef.current = null;
     analyserRef.current = null;
+    processorRef.current = null;
     setIsMicActive(false);
-    setAudioLevel(0);
+    audioLevelRef.current = 0;
   }, []);
+
+  // Drain the playback queue sequentially.
+  // Plain function (not useCallback) since it accesses only refs.
+  const drainQueue = () => {
+    const ctx = playbackCtxRef.current;
+    if (!ctx || playbackQueueRef.current.length === 0) {
+      isPlayingRef.current = false;
+      audioLevelRef.current = 0;
+      return;
+    }
+    isPlayingRef.current = true;
+    const buffer = playbackQueueRef.current.shift()!;
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.onended = () => drainQueue();
+    source.start();
+  };
 
   // ── Playback of Gemini audio ──
   const playAudioChunk = useCallback((base64: string) => {
@@ -113,7 +143,7 @@ export function useAudioProcessor() {
       }
       const ctx = playbackCtxRef.current;
 
-      // Decode base64 → Int16 → Float32
+      // base64 → Int16 → Float32
       const binary = atob(base64);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) {
@@ -129,11 +159,11 @@ export function useAudioProcessor() {
       buffer.copyToChannel(float32, 0);
       playbackQueueRef.current.push(buffer);
 
-      // Compute playback audio level for lip-sync
+      // Update audio level ref for lip-sync during playback
       const rms = Math.sqrt(
         float32.reduce((sum, v) => sum + v * v, 0) / float32.length
       );
-      setAudioLevel(Math.min(1, rms * 4));
+      audioLevelRef.current = Math.min(1, rms * 4);
 
       if (!isPlayingRef.current) {
         drainQueue();
@@ -143,25 +173,9 @@ export function useAudioProcessor() {
     }
   }, []);
 
-  const drainQueue = useCallback(() => {
-    const ctx = playbackCtxRef.current;
-    if (!ctx || playbackQueueRef.current.length === 0) {
-      isPlayingRef.current = false;
-      setAudioLevel(0);
-      return;
-    }
-    isPlayingRef.current = true;
-    const buffer = playbackQueueRef.current.shift()!;
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.connect(ctx.destination);
-    source.onended = () => drainQueue();
-    source.start();
-  }, []);
-
   return {
     isMicActive,
-    audioLevel,
+    audioLevelRef,
     startMic,
     stopMic,
     playAudioChunk,
