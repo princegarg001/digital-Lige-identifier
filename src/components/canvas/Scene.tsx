@@ -6,6 +6,7 @@ import {
   ContactShadows,
   OrbitControls,
   Float,
+  Center,
 } from "@react-three/drei";
 import React, { Suspense } from "react";
 import { Avatar } from "./Avatar";
@@ -25,7 +26,7 @@ export default function Scene({
 }: SceneProps) {
   return (
     <Canvas
-      camera={{ position: [0, 1.2, 2.0], fov: 50 }}
+      camera={{ position: [0, -0.4, 0.8], fov: 38 }}
       shadows
       gl={{ antialias: true, alpha: true }}
       style={{ background: "transparent" }}
@@ -54,9 +55,11 @@ export default function Scene({
           speed={1}
           rotationIntensity={0.1}
           floatIntensity={0.2}
-          floatingRange={[-0.01, 0.01]}
+          floatingRange={[-0.012, 0.012]}
         >
-          <Avatar audioLevelRef={audioLevelRef} currentAnimation={currentAnimation} />
+          <Center top>
+            <Avatar audioLevelRef={audioLevelRef} currentAnimation={currentAnimation} />
+          </Center>
         </Float>
         <Environment preset="city" />
       </Suspense>
@@ -66,7 +69,7 @@ export default function Scene({
         scale={10}
         blur={2.4}
         far={0.8}
-        position={[0, 0, 0]}
+        position={[0, -1.8, 0]}
         color="#22d3ee"
       />
 
@@ -76,7 +79,7 @@ export default function Scene({
         dampingFactor={0.05}
         enableZoom={true}
         enablePan={true}
-        target={[0, 1.2, 0]}
+        target={[0, -0.4, 0]}
       />
     </Canvas>
   );

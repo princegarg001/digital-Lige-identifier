@@ -28,7 +28,7 @@ export function VideoCallLayout({
       <div className="absolute top-0 right-0 w-75 h-75 bg-purple-500/2 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Main content area (Video Card) */}
-      <div className="flex-1 flex flex-col relative z-10 min-w-0 rounded-3xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl backdrop-blur-md">
+      <div className="flex-1 flex flex-col relative z-10 min-w-0 rounded-3xl border border-white/10 bg-black/40 shadow-2xl backdrop-blur-md">
         {children}
       </div>
 
