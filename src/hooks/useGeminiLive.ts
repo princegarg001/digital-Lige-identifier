@@ -6,7 +6,6 @@ import {
   GEMINI_MODEL,
   GEMINI_TOOLS,
   SYSTEM_PROMPT,
-  VAD_CONFIG,
 } from "@/lib/constants";
 
 export type GeminiStatus = "disconnected" | "connecting" | "connected" | "error";
@@ -233,9 +232,6 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
           systemInstruction: SYSTEM_PROMPT,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           tools: GEMINI_TOOLS as any,
-          // Explicit VAD config for predictable turn-taking and interruption behavior
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          realtimeInputConfig: VAD_CONFIG as any,
         },
         callbacks: {
           onopen: () => {
@@ -275,30 +271,45 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
 
   /** Send a base64 JPEG video frame */
   const sendVideoFrame = useCallback((base64Image: string) => {
-    sessionRef.current?.sendRealtimeInput({
-      video: {
-        data: base64Image,
-        mimeType: "image/jpeg",
-      },
-    });
+    if (statusRef.current !== "connected") return;
+    try {
+      sessionRef.current?.sendRealtimeInput({
+        video: {
+          data: base64Image,
+          mimeType: "image/jpeg",
+        },
+      });
+    } catch (e) {
+      console.warn("[GeminiLive] Failed to send video frame:", e);
+    }
   }, []);
 
   /** Send a base64 PCM audio chunk (16kHz, 16-bit mono) */
   const sendAudioChunk = useCallback((base64Audio: string) => {
-    sessionRef.current?.sendRealtimeInput({
-      audio: {
-        data: base64Audio,
-        mimeType: "audio/pcm;rate=16000",
-      },
-    });
+    if (statusRef.current !== "connected") return;
+    try {
+      sessionRef.current?.sendRealtimeInput({
+        audio: {
+          data: base64Audio,
+          mimeType: "audio/pcm;rate=16000",
+        },
+      });
+    } catch (e) {
+      console.warn("[GeminiLive] Failed to send audio chunk:", e);
+    }
   }, []);
 
   /** Send a text message to the model */
   const sendText = useCallback((text: string) => {
-    sessionRef.current?.sendClientContent({
-      turns: [{ role: "user", parts: [{ text }] }],
-      turnComplete: true,
-    });
+    if (statusRef.current !== "connected") return;
+    try {
+      sessionRef.current?.sendClientContent({
+        turns: [{ role: "user", parts: [{ text }] }],
+        turnComplete: true,
+      });
+    } catch (e) {
+      console.warn("[GeminiLive] Failed to send text:", e);
+    }
   }, []);
 
   // ── Cleanup on unmount ────────────────────────────────────────────────────

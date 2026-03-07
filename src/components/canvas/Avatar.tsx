@@ -57,11 +57,24 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
-  const { scene, animations } = useGLTF("/avatar-transformed.glb");
+  const avatarUrl = process.env.NEXT_PUBLIC_AVATAR_GLB ? `/${process.env.NEXT_PUBLIC_AVATAR_GLB}` : "/avatar-transformed.glb";
+  const { scene, animations: avatarAnimations } = useGLTF(avatarUrl);
+  
+  // Load official animations
+  const { animations: idleAnimation } = useGLTF("/animations/idle.glb");
+  const { animations: waveAnimation } = useGLTF("/animations/wave.glb");
+  
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const { nodes, materials } = useGraph(clone) as unknown as GLTFResult;
 
-  const { actions } = useAnimations(animations, groupRef);
+  // Combine animations and bind them to the groupRef
+  const allAnimations = [
+    ...(avatarAnimations || []),
+    ...(idleAnimation || []).map(a => Object.assign(a, { name: 'idle' })),
+    ...(waveAnimation || []).map(a => Object.assign(a, { name: 'wave' }))
+  ];
+  
+  const { actions } = useAnimations(allAnimations, groupRef);
 
   useEffect(() => {
     // Play the requested animation or fallback to 'idle'
@@ -115,6 +128,31 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
       const jawIdx = teeth.morphTargetDictionary["jawOpen"];
       if (jawIdx !== undefined) {
         teeth.morphTargetInfluences[jawIdx] = Math.min(1, level * LIP_SYNC_JAW_MULTIPLIER);
+      }
+    }
+
+    // ARKit Hover Smile Effect
+    if (head?.morphTargetDictionary && head?.morphTargetInfluences) {
+      const smileLeftIdx = head.morphTargetDictionary["mouthSmileLeft"];
+      const smileRightIdx = head.morphTargetDictionary["mouthSmileRight"];
+      const cheekLeftIdx = head.morphTargetDictionary["cheekSquintLeft"];
+      const cheekRightIdx = head.morphTargetDictionary["cheekSquintRight"];
+
+      const targetSmile = hovered ? 0.8 : 0;
+      const targetCheek = hovered ? 0.3 : 0;
+
+      // Smoothly interpolate towards the target smile value
+      if (smileLeftIdx !== undefined) {
+        head.morphTargetInfluences[smileLeftIdx] += (targetSmile - head.morphTargetInfluences[smileLeftIdx]) * 0.1;
+      }
+      if (smileRightIdx !== undefined) {
+        head.morphTargetInfluences[smileRightIdx] += (targetSmile - head.morphTargetInfluences[smileRightIdx]) * 0.1;
+      }
+      if (cheekLeftIdx !== undefined) {
+        head.morphTargetInfluences[cheekLeftIdx] += (targetCheek - head.morphTargetInfluences[cheekLeftIdx]) * 0.1;
+      }
+      if (cheekRightIdx !== undefined) {
+        head.morphTargetInfluences[cheekRightIdx] += (targetCheek - head.morphTargetInfluences[cheekRightIdx]) * 0.1;
       }
     }
 
@@ -216,4 +254,11 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
   );
 }
 
-useGLTF.preload("/avatar-transformed.glb");
+// Preload the specific files so they load faster
+if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_AVATAR_GLB) {
+  useGLTF.preload(`/${process.env.NEXT_PUBLIC_AVATAR_GLB}`);
+} else {
+  useGLTF.preload("/avatar-transformed.glb");
+}
+useGLTF.preload("/animations/idle.glb");
+useGLTF.preload("/animations/wave.glb");

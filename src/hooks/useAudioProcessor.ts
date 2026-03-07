@@ -15,6 +15,7 @@ import { AUDIO_SAMPLE_RATE_INPUT, AUDIO_SAMPLE_RATE_OUTPUT } from "@/lib/constan
  */
 export function useAudioProcessor() {
   const [isMicActive, setIsMicActive] = useState(false);
+  const [permissionError, setPermissionError] = useState<string | null>(null);
 
   /**
    * Audio level as a ref — NOT state — to prevent 60fps re-renders.
@@ -38,7 +39,21 @@ export function useAudioProcessor() {
   const startMic = useCallback(
     (onChunk: (base64: string) => void) => {
       (async () => {
+        setPermissionError(null);
         try {
+          // Explicitly check permissions on browsers that support it
+          if (navigator.permissions && navigator.permissions.query) {
+            try {
+              const perm = await navigator.permissions.query({ name: "microphone" as PermissionName });
+              if (perm.state === "denied") {
+                throw new Error("Microphone access is explicitly denied in browser settings.");
+              }
+            } catch (e) {
+              // Ignore if browser doesn't support 'microphone' permission query (e.g. Firefox)
+              console.log("[AudioProcessor] Permission query skipped:", e);
+            }
+          }
+
           const stream = await navigator.mediaDevices.getUserMedia({
             audio: {
               sampleRate: AUDIO_SAMPLE_RATE_INPUT,
@@ -97,6 +112,19 @@ export function useAudioProcessor() {
           setIsMicActive(true);
         } catch (err) {
           console.error("[AudioProcessor] Mic error:", err);
+          let errorMsg = "Could not access microphone.";
+          if (err instanceof DOMException) {
+            if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+              errorMsg = "No microphone found. Please plug one in.";
+            } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+              errorMsg = "Microphone access was denied. Please allow it in settings.";
+            } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+              errorMsg = "Microphone is already in use by another application.";
+            }
+          } else if (err instanceof Error) {
+            errorMsg = err.message;
+          }
+          setPermissionError(errorMsg);
         }
       })();
     },
@@ -173,6 +201,7 @@ export function useAudioProcessor() {
 
   return {
     isMicActive,
+    permissionError,
     audioLevelRef,
     startMic,
     stopMic,

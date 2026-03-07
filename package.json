@@ -15,7 +15,9 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "health-check": "ts-node scripts/health-check.ts",
-    "pre-deploy": "npm run health-check && npm run test:run && npm run build"
+    "pre-deploy": "npm run health-check && npm run test:run && npm run build",
+    "validate-avatar": "node scripts/validate-avatar.mjs",
+    "setup-avatar": "node scripts/download-animations.mjs && npm run validate-avatar"
   },
   "dependencies": {
     "@google/genai": "^1.44.0",

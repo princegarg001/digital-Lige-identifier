@@ -159,14 +159,15 @@ function HomePage() {
   );
 
   // Error handling
-  if (session.errorMessage) {
+  const anyError = session.errorMessage || session.micError || session.cameraError;
+  if (anyError) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
         <div className="glass rounded-2xl p-8 max-w-md w-full">
           <h2 className="text-xl font-semibold mb-4 text-red-500">
             Connection Error
           </h2>
-          <p className="text-sm text-zinc-400 mb-4">{session.errorMessage}</p>
+          <p className="text-sm text-zinc-400 mb-4">{anyError}</p>
           <button
             onClick={() => window.location.reload()}
             className="w-full px-4 py-2 bg-cyan-500 text-black rounded-lg font-medium hover:bg-cyan-400 transition-colors"

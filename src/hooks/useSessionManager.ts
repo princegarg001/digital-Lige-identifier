@@ -60,6 +60,16 @@ export function useSessionManager(apiKey: string) {
 
   // ── Session lifecycle ─────────────────────────────────────────────────────
 
+  // Auto-cleanup media devices if Gemini drops connection (error or network loss)
+  useEffect(() => {
+    if (!isInitialized) return;
+    if (gemini.status === "disconnected" || gemini.status === "error") {
+      audio.stopMic();
+      webcam.stop();
+      setTimeout(() => setIsInitialized(false), 0);
+    }
+  }, [gemini.status, isInitialized, audio, webcam]);
+
   const startSession = useCallback(async () => {
     try {
       setIsInitialized(true);
@@ -113,6 +123,8 @@ export function useSessionManager(apiKey: string) {
     isConnected,
     status: gemini.status,
     errorMessage: gemini.errorMessage,
+    micError: audio.permissionError,
+    cameraError: webcam.permissionError,
     audioLevelRef: audio.audioLevelRef,
     isMicActive: audio.isMicActive,
     isCameraActive: webcam.isActive,
