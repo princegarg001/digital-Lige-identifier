@@ -6,30 +6,51 @@ import { useAudioProcessor } from "./useAudioProcessor";
 import { useWebcam } from "./useWebcam";
 
 /**
- * Centralized session management hook
- * Coordinates Gemini, audio, and webcam connections
+ * Centralized session management hook.
+ * Coordinates Gemini Live, audio, and webcam; wires built-in tool handlers.
+ *
+ * @remarks
+ * **Built-in tool handlers registered here:**
+ * - `get_time_date` — returns current ISO timestamp and locale string
+ *
+ * Application-level tools (e.g. `trigger_animation`, `set_persona_mode`,
+ * `display_text`) should be registered by the page via the returned
+ * `registerTool` function BEFORE calling `toggleSession`.
  */
 export function useSessionManager(apiKey: string) {
-  const { onAudioData: onAudioDataRef, ...gemini } = useGeminiLive(apiKey);
+  const { onAudioData: onAudioDataRef, registerTool, ...gemini } = useGeminiLive(apiKey);
   const audio = useAudioProcessor();
   const { onFrameRef, ...webcam } = useWebcam();
 
   const [isInitialized, setIsInitialized] = useState(false);
   const isConnected = gemini.status === "connected";
 
-  // Wire up Gemini callbacks
+  // ── Wire up built-in tool handlers ────────────────────────────────────────
+  // Registered once; stable because `registerTool` is memoised with useCallback.
+  useEffect(() => {
+    // get_time_date: lets the persona answer time/date questions accurately
+    registerTool("get_time_date", () => {
+      const now = new Date();
+      return {
+        iso: now.toISOString(),
+        formatted: now.toLocaleString(),
+        date: now.toLocaleDateString(),
+        time: now.toLocaleTimeString(),
+      };
+    });
+  }, [registerTool]);
+
+  // ── Wire Gemini audio output → speaker ───────────────────────────────────
   useEffect(() => {
     if (!isInitialized) return;
-
     onAudioDataRef.current = (b64) => {
       audio.playAudioChunk(b64);
     };
   }, [onAudioDataRef, audio, isInitialized]);
 
-  // Wire webcam frames to Gemini
+  // ── Wire webcam frames → Gemini ───────────────────────────────────────────
   useEffect(() => {
     if (!isInitialized) return;
-
     onFrameRef.current = (base64) => {
       if (isConnected) {
         gemini.sendVideoFrame(base64);
@@ -37,14 +58,12 @@ export function useSessionManager(apiKey: string) {
     };
   }, [onFrameRef, isConnected, gemini, isInitialized]);
 
-  // Start session
+  // ── Session lifecycle ─────────────────────────────────────────────────────
+
   const startSession = useCallback(async () => {
     try {
       setIsInitialized(true);
       gemini.connect();
-      // Optional webcam: Do not auto-start camera
-      // await webcam.start();
-      
       audio.startMic((chunk) => {
         gemini.sendAudioChunk(chunk);
       });
@@ -54,7 +73,6 @@ export function useSessionManager(apiKey: string) {
     }
   }, [gemini, audio]);
 
-  // Stop session
   const stopSession = useCallback(() => {
     gemini.disconnect();
     audio.stopMic();
@@ -62,7 +80,6 @@ export function useSessionManager(apiKey: string) {
     setIsInitialized(false);
   }, [gemini, audio, webcam]);
 
-  // Toggle session
   const toggleSession = useCallback(() => {
     if (isConnected) {
       stopSession();
@@ -71,7 +88,6 @@ export function useSessionManager(apiKey: string) {
     }
   }, [isConnected, startSession, stopSession]);
 
-  // Toggle mic only
   const toggleMic = useCallback(() => {
     if (audio.isMicActive) {
       audio.stopMic();
@@ -84,7 +100,6 @@ export function useSessionManager(apiKey: string) {
     }
   }, [audio, gemini]);
 
-  // Toggle camera only
   const toggleCamera = useCallback(() => {
     if (webcam.isActive) {
       webcam.stop();
@@ -109,7 +124,19 @@ export function useSessionManager(apiKey: string) {
     toggleCamera,
     sendText: gemini.sendText,
 
-    // Callbacks
+    /**
+     * Register an application-level tool handler.
+     * Must be called before `toggleSession` / `connect`.
+     *
+     * @example
+     * registerTool("set_persona_mode", ({ mode }) => {
+     *   setPersonaMode(mode as string);
+     *   return { acknowledged: true, mode };
+     * });
+     */
+    registerTool,
+
+    // Callback refs (for transcript and tool-call side-effects in the page)
     onToolCall: gemini.onToolCall,
     onTranscript: gemini.onTranscript,
   };

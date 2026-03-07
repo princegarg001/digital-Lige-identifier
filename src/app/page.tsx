@@ -25,6 +25,7 @@ import { useSessionManager } from "@/hooks/useSessionManager";
 import { useSessionTimer } from "@/hooks/useSessionTimer";
 import { useChatMessages } from "@/hooks/useChatMessages";
 
+
 // 3D Scene (lazy, no SSR)
 const Scene = dynamic(() => import("@/components/canvas/Scene"), {
   ssr: false,
@@ -82,11 +83,62 @@ function HomePage() {
   // UI State
   const [isChatOpen, setIsChatOpen] = useState(true);
   const [currentAnimation, setCurrentAnimation] = useState<string>("idle");
+  const [personaMode, setPersonaMode] = useState<"focus" | "casual" | "presentation">("casual");
 
   // Session management
-  const { onTranscript: onTranscriptRef, onToolCall: onToolCallRef, ...session } = useSessionManager(API_KEY);
+  const { onTranscript: onTranscriptRef, registerTool, ...session } = useSessionManager(API_KEY);
   const timer = useSessionTimer(session.isConnected);
   const chat = useChatMessages();
+
+  // animationTimeoutRef must be declared before the tool-registration useEffect below
+  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ── Register application-level tool handlers ──────────────────────────────
+  // These run ONCE on mount so they are available before the first connect().
+
+  useEffect(() => {
+    // trigger_animation — play a named gesture on the 3D avatar
+    registerTool("trigger_animation", (args) => {
+      const gesture = args.gesture_name as string;
+      const duration = (args.duration_ms as number | undefined) ?? 3000;
+
+      if (gesture) {
+        setCurrentAnimation(gesture);
+        if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current);
+        animationTimeoutRef.current = setTimeout(() => {
+          setCurrentAnimation("idle");
+        }, duration);
+      }
+
+      return { acknowledged: true, gesture_name: gesture, duration_ms: duration };
+    });
+
+    // set_persona_mode — switch interaction style
+    registerTool("set_persona_mode", (args) => {
+      const mode = args.mode as "focus" | "casual" | "presentation";
+      setPersonaMode(mode);
+      console.log(`[Page] Persona mode switched to: ${mode}`);
+      return { acknowledged: true, active_mode: mode };
+    });
+
+    // display_text — push content into the chat panel as an assistant message
+    registerTool("display_text", (args) => {
+      const content = args.content as string;
+      const format = (args.format as string) ?? "plain";
+      const lang = (args.language as string | undefined) ?? "";
+
+      // Wrap code blocks for markdown rendering
+      const displayContent =
+        format === "code" && lang
+          ? `\`\`\`${lang}\n${content}\n\`\`\``
+          : format === "code"
+          ? `\`\`\`\n${content}\n\`\`\``
+          : content;
+
+      chat.addAssistantMessage(displayContent);
+      return { acknowledged: true, characters_displayed: content.length };
+    });
+  }, [registerTool, chat]);
 
   // Wire up transcript handler
   useEffect(() => {
@@ -95,23 +147,7 @@ function HomePage() {
     };
   }, [onTranscriptRef, chat]);
 
-  // Wire up tool call handler
-  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    onToolCallRef.current = (tc) => {
-      console.log("[Page] Tool call:", tc.name, tc.args);
-      if (tc.name === "trigger_animation" && tc.args.gesture_name) {
-        setCurrentAnimation(tc.args.gesture_name);
-        
-        // Revert to idle after 3 seconds (approximate duration of most gestures)
-        if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current);
-        animationTimeoutRef.current = setTimeout(() => {
-          setCurrentAnimation("idle");
-        }, 3000);
-      }
-    };
-  }, [onToolCallRef]);
 
   // Send chat text
   const handleSendText = useCallback(
@@ -155,7 +191,7 @@ function HomePage() {
       }
     >
       {/* 3D Scene Background */}
-      <div className="absolute inset-0 scan-line z-0">
+      <div className="absolute inset-0 scan-line z-0" data-persona-mode={personaMode}>
         <Scene
           audioLevelRef={session.audioLevelRef}
           currentAnimation={currentAnimation}

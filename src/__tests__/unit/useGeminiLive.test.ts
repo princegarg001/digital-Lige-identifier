@@ -91,7 +91,7 @@ describe('useGeminiLive Hook', () => {
       });
     });
 
-    it('should pass correct model and config to SDK', async () => {
+    it('should pass correct model, config, and VAD config to SDK', async () => {
       const { result } = renderHook(() => useGeminiLive('test-api-key'));
       
       act(() => {
@@ -103,6 +103,9 @@ describe('useGeminiLive Hook', () => {
         const callArgs = __mockConnect.mock.calls[0][0];
         expect(callArgs.model).toBe('gemini-2.5-flash-native-audio-preview-12-2025');
         expect(callArgs.config.responseModalities).toEqual(['AUDIO']);
+        // VAD config should be present
+        expect(callArgs.config.realtimeInputConfig).toBeDefined();
+        expect(callArgs.config.realtimeInputConfig.voiceActivityDetection).toBeDefined();
         expect(callArgs.callbacks.onopen).toBeDefined();
         expect(callArgs.callbacks.onmessage).toBeDefined();
       });
@@ -277,11 +280,13 @@ describe('useGeminiLive Hook', () => {
       expect(transcriptCallback).toHaveBeenCalledWith('Hello, how can I help you?');
     });
 
-    it('should handle tool calls and send responses', async () => {
+    it('should use fallback { result: ok } when no handler is registered', async () => {
       const { result } = renderHook(() => useGeminiLive('test-api-key'));
-      
+
       const toolCallback = vi.fn();
       result.current.onToolCall.current = toolCallback;
+
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       act(() => {
         result.current.connect();
@@ -311,14 +316,70 @@ describe('useGeminiLive Hook', () => {
         id: 'call-123'
       });
 
-      expect(__mockSession.sendToolResponse).toHaveBeenCalledWith({
-        functionResponses: [
-          {
-            id: 'call-123',
-            name: 'trigger_animation',
-            response: { result: 'ok' },
-          },
-        ],
+      // No handler registered → fallback ok + warning
+      await vi.waitFor(() => {
+        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('No handler registered'));
+        expect(__mockSession.sendToolResponse).toHaveBeenCalledWith({
+          functionResponses: [
+            {
+              id: 'call-123',
+              name: 'trigger_animation',
+              response: { result: 'ok' },
+            },
+          ],
+        });
+      });
+
+      warnSpy.mockRestore();
+    });
+
+    it('should invoke registered tool handler and send its result', async () => {
+      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+
+      // Register a real handler before connecting
+      const handler = vi.fn().mockResolvedValue({ formatted: '10:00 AM', iso: '2026-03-07T10:00:00Z' });
+      act(() => {
+        result.current.registerTool('get_time_date', handler);
+      });
+
+      act(() => {
+        result.current.connect();
+      });
+
+      await vi.waitFor(() => {
+        expect(result.current.status).toBe('connected');
+      });
+
+      act(() => {
+        __capturedCallbacks.onmessage?.({
+          toolCall: {
+            functionCalls: [
+              {
+                id: 'call-time-1',
+                name: 'get_time_date',
+                args: {}
+              }
+            ]
+          }
+        });
+      });
+
+      // Handler should have been called with the (empty) args
+      await vi.waitFor(() => {
+        expect(handler).toHaveBeenCalledWith({});
+      });
+
+      // The handler's return value should be sent back
+      await vi.waitFor(() => {
+        expect(__mockSession.sendToolResponse).toHaveBeenCalledWith({
+          functionResponses: [
+            {
+              id: 'call-time-1',
+              name: 'get_time_date',
+              response: { formatted: '10:00 AM', iso: '2026-03-07T10:00:00Z' },
+            },
+          ],
+        });
       });
     });
 

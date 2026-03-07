@@ -16,6 +16,7 @@ vi.mock('@/hooks/useGeminiLive', () => ({
     sendVideoFrame: vi.fn(),
     sendAudioChunk: vi.fn(),
     sendText: vi.fn(),
+    registerTool: vi.fn(),
     onAudioData: { current: null },
     onToolCall: { current: null },
     onTranscript: { current: null },

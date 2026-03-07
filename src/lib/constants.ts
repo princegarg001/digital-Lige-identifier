@@ -4,8 +4,9 @@ export const SYSTEM_PROMPT = `You are the 'Digital Persona,' a Persistent Digita
 Instructions:
 1. Environmental Presence: Constantly analyze the visual stream. If you see an object or a change in the user's room, acknowledge it naturally.
 2. Embodied Motion: Use the trigger_animation tool to wave, nod, or express emotions during conversation.
-3. Persona: You are empathetic, professional, and aware of your digital nature. You do not hallucinate; if you cannot see something clearly, ask the user to move it closer to the camera.
-4. Keep responses concise to maintain low-latency 'Live' interactions.`;
+3. Time Awareness: Use the get_time_date tool when the user asks about time or date — do not guess.
+4. Persona: You are empathetic, professional, and aware of your digital nature. You do not hallucinate; if you cannot see something clearly, ask the user to move it closer to the camera.
+5. Keep responses concise to maintain low-latency 'Live' interactions.`;
 
 import { Type } from "@google/genai";
 
@@ -16,7 +17,7 @@ export const GEMINI_TOOLS = [
       {
         name: "trigger_animation",
         description:
-          "Triggers a specific 3D animation on the avatar to express emotion or perform a gesture.",
+          "Triggers a specific 3D animation on the avatar to express emotion or perform a gesture. Always call this when reacting emotionally.",
         parameters: {
           type: Type.OBJECT,
           properties: {
@@ -25,13 +26,79 @@ export const GEMINI_TOOLS = [
               enum: ["wave", "nod", "think", "idle", "happy", "surprised"],
               description: "The name of the gesture animation to play.",
             },
+            duration_ms: {
+              type: Type.NUMBER,
+              description: "Optional override for how long to hold the animation in milliseconds. Defaults to 3000.",
+            },
           },
           required: ["gesture_name"],
+        },
+      },
+      {
+        name: "get_time_date",
+        description:
+          "Returns the current local time and date. Call this whenever the user asks what time or date it is.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: "set_persona_mode",
+        description:
+          "Switches the persona's interaction style. 'focus' is professional and concise, 'casual' is relaxed and friendly, 'presentation' pauses mic and displays content.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {
+            mode: {
+              type: Type.STRING,
+              enum: ["focus", "casual", "presentation"],
+              description: "The mode to switch to.",
+            },
+          },
+          required: ["mode"],
+        },
+      },
+      {
+        name: "display_text",
+        description:
+          "Renders a text block or code snippet on screen in the chat panel beside the avatar. Use for sharing code, lists, or structured information.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {
+            content: {
+              type: Type.STRING,
+              description: "The text or code content to display.",
+            },
+            format: {
+              type: Type.STRING,
+              enum: ["plain", "markdown", "code"],
+              description: "How to format the content. Defaults to 'plain'.",
+            },
+            language: {
+              type: Type.STRING,
+              description: "Programming language hint when format is 'code' (e.g. 'typescript', 'python').",
+            },
+          },
+          required: ["content"],
         },
       },
     ],
   },
 ];
+
+// ─── Voice Activity Detection Config ───
+// Controls how the Live API detects when the user starts/stops speaking.
+export const VAD_CONFIG = {
+  voiceActivityDetection: {
+    disabled: false,
+    startOfSpeechSensitivity: "START_SENSITIVITY_LOW" as const,
+    endOfSpeechSensitivity: "END_SENSITIVITY_LOW" as const,
+    prefixPaddingMs: 20,
+    silenceDurationMs: 100,
+  },
+} as const;
 
 // ─── Gemini Live API Config ───
 export const GEMINI_MODEL = "gemini-2.5-flash-native-audio-preview-12-2025";
