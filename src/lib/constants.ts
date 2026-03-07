@@ -88,21 +88,10 @@ export const GEMINI_TOOLS = [
   },
 ];
 
-// ─── Voice Activity Detection Config ───
-// Controls how the Live API detects when the user starts/stops speaking.
-export const VAD_CONFIG = {
-  voiceActivityDetection: {
-    disabled: false,
-    startOfSpeechSensitivity: "START_SENSITIVITY_LOW" as const,
-    endOfSpeechSensitivity: "END_SENSITIVITY_LOW" as const,
-    prefixPaddingMs: 20,
-    silenceDurationMs: 100,
-  },
-} as const;
-
 // ─── Gemini Live API Config ───
+// Live API streaming requires a specifically supported model.
 export const GEMINI_MODEL = "gemini-2.5-flash-native-audio-preview-12-2025";
-
+// gemini-2.5-flash-native-audio-preview-09-2025
 
 // ─── Viseme Mapping (ARKit Blendshape names → audio energy thresholds) ───
 export const VISEME_BLENDSHAPES = {

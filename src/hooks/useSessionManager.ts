@@ -103,9 +103,7 @@ export function useSessionManager(apiKey: string) {
       audio.stopMic();
     } else {
       audio.startMic((chunk) => {
-        if (gemini.status === "connected") {
-          gemini.sendAudioChunk(chunk);
-        }
+        gemini.sendAudioChunk(chunk);
       });
     }
   }, [audio, gemini]);

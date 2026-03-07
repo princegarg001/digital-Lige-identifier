@@ -109,6 +109,7 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
       sessionRef.current.close();
       sessionRef.current = null;
     }
+    statusRef.current = "disconnected";
     setStatus("disconnected");
   }, []);
 
@@ -116,10 +117,12 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
     if (sessionRef.current) disconnect();
     if (!clientRef.current) {
       setErrorMessage("SDK client not initialized. Check API key.");
+      statusRef.current = "error";
       setStatus("error");
       return;
     }
 
+    statusRef.current = "connecting";
     setStatus("connecting");
     setErrorMessage(null);
 
@@ -236,6 +239,7 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
         callbacks: {
           onopen: () => {
             console.log("[GeminiLive] Connected via SDK.");
+            statusRef.current = "connected";
             setStatus("connected");
           },
           onmessage: handleMessage,
@@ -244,11 +248,13 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
             setErrorMessage(
               `Connection error: ${e.message || "Check API Key and network."}`
             );
+            statusRef.current = "error";
             setStatus("error");
           },
           onclose: (e: CloseEvent) => {
             console.log("[GeminiLive] Session closed:", e.code, e.reason);
             if (statusRef.current !== "disconnected") {
+              statusRef.current = "disconnected";
               setStatus("disconnected");
             }
           },
@@ -263,6 +269,7 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
         setErrorMessage(
           `Failed to connect: ${err instanceof Error ? err.message : String(err)}`
         );
+        statusRef.current = "error";
         setStatus("error");
       });
   }, [disconnect]);
