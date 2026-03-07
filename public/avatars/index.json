@@ -8,5 +8,10 @@
     "id": "male",
     "label": "Male",
     "file": "69aaa1126e4b038c0e57c672.glb"
+  },
+    {
+    "id": "female3",
+    "label": "Female3",
+    "file": "female3.glb"
   }
 ]

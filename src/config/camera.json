@@ -1,9 +1,9 @@
 {
   "camera": {
     "position": [
-      0.13176390575889277,
-      0.21543758555414175,
-      0.9379143372170442
+      0.18995756947184853,
+      0.37594711820591864,
+      1.4222849536753506
     ],
     "fov": 40,
     "target": [
@@ -56,10 +56,10 @@
     }
   },
   "features": {
-    "lipSync": true,
-    "breathing": true,
+    "lipSync": false,
+    "breathing": false,
     "gazeDrift": false,
-    "blinking": true,
-    "hoverEffect": true
+    "blinking": false,
+    "hoverEffect": false
   }
 }

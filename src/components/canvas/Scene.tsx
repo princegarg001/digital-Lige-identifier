@@ -1,6 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
+import * as THREE from "three";
 import {
   Environment,
   ContactShadows,
@@ -39,8 +40,14 @@ function SceneInner({
   return (
     <Canvas
       camera={{ position: config.camera.position as [number, number, number], fov: config.camera.fov }}
-      shadows
-      gl={{ antialias: true, alpha: true }}
+      shadows="soft"
+      dpr={[1, 1.5]}
+      gl={{ 
+        antialias: true, 
+        alpha: true,
+        toneMapping: THREE.ACESFilmicToneMapping,
+        toneMappingExposure: 1.2
+      }}
       style={{ background: "transparent" }}
     >
       {/* ── Base ambient fill ─────────────────────────────── */}

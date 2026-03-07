@@ -21,6 +21,7 @@ import {
 } from "@/lib/constants";
 import { SkinPreset } from "@/lib/skinConfig";
 import { useSkinTexture } from "@/hooks/useSkinTexture";
+import { normaliseFbxAnimations } from "@/lib/animationUtils";
 import { type FeatureToggles } from "@/hooks/SceneConfigContext";
 
 type GLTFResult = GLTF & {
@@ -88,13 +89,17 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, skinPreset 
   const skinMaterial = useSkinTexture(skinPreset);
 
   // Combine animations and bind them to the groupRef
-  const allAnimations = [
-    ...(avatarAnimations || []),
-    ...(idleAnimation || []).map(a => Object.assign(a, { name: 'idle' })),
-    ...(waveAnimation || []).map(a => Object.assign(a, { name: 'wave' }))
-  ];
+  // Apply Mixamo FBX normalization best practice from Visage
+  const normalizedAnimations = React.useMemo(() => {
+    const allAnimations = [
+      ...(avatarAnimations || []),
+      ...(idleAnimation || []).map(a => Object.assign(a, { name: 'idle' })),
+      ...(waveAnimation || []).map(a => Object.assign(a, { name: 'wave' }))
+    ];
+    return normaliseFbxAnimations(allAnimations);
+  }, [avatarAnimations, idleAnimation, waveAnimation]);
 
-  const { actions } = useAnimations(allAnimations, groupRef);
+  const { actions } = useAnimations(normalizedAnimations, groupRef);
 
   useEffect(() => {
     const actionName = currentAnimation && actions[currentAnimation]
@@ -242,37 +247,51 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, skinPreset 
     >
       <primitive object={nodes.Hips} />
       <skinnedMesh
+        castShadow
+        receiveShadow
         geometry={nodes.Wolf3D_Hair.geometry}
         material={materials.Wolf3D_Hair}
         skeleton={nodes.Wolf3D_Hair.skeleton}
       />
       <skinnedMesh
+        castShadow
+        receiveShadow
         geometry={nodes.Wolf3D_Glasses.geometry}
         material={materials.Wolf3D_Glasses}
         skeleton={nodes.Wolf3D_Glasses.skeleton}
       />
       <skinnedMesh
+        castShadow
+        receiveShadow
         geometry={nodes.Wolf3D_Outfit_Top.geometry}
         material={materials.Wolf3D_Outfit_Top}
         skeleton={nodes.Wolf3D_Outfit_Top.skeleton}
       />
       <skinnedMesh
+        castShadow
+        receiveShadow
         geometry={nodes.Wolf3D_Outfit_Bottom.geometry}
         material={materials.Wolf3D_Outfit_Bottom}
         skeleton={nodes.Wolf3D_Outfit_Bottom.skeleton}
       />
       <skinnedMesh
+        castShadow
+        receiveShadow
         geometry={nodes.Wolf3D_Outfit_Footwear.geometry}
         material={materials.Wolf3D_Outfit_Footwear}
         skeleton={nodes.Wolf3D_Outfit_Footwear.skeleton}
       />
       {/* Body — uses same PBR skin material for consistency */}
       <skinnedMesh
+        castShadow
+        receiveShadow
         geometry={nodes.Wolf3D_Body.geometry}
         material={skinMaterial || materials.Wolf3D_Body}
         skeleton={nodes.Wolf3D_Body.skeleton}
       />
       <skinnedMesh
+        castShadow
+        receiveShadow
         name="EyeLeft"
         geometry={nodes.EyeLeft.geometry}
         material={materials.Wolf3D_Eye}
@@ -281,6 +300,8 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, skinPreset 
         morphTargetInfluences={nodes.EyeLeft.morphTargetInfluences}
       />
       <skinnedMesh
+        castShadow
+        receiveShadow
         name="EyeRight"
         geometry={nodes.EyeRight.geometry}
         material={materials.Wolf3D_Eye}
@@ -290,6 +311,8 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, skinPreset 
       />
       {/* Head — receives the full PBR MeshPhysicalMaterial with SSS (if not raw) */}
       <skinnedMesh
+        castShadow
+        receiveShadow
         name="Wolf3D_Head"
         geometry={nodes.Wolf3D_Head.geometry}
         material={skinMaterial || materials.Wolf3D_Skin}
@@ -298,6 +321,8 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, skinPreset 
         morphTargetInfluences={nodes.Wolf3D_Head.morphTargetInfluences}
       />
       <skinnedMesh
+        castShadow
+        receiveShadow
         name="Wolf3D_Teeth"
         geometry={nodes.Wolf3D_Teeth.geometry}
         material={materials.Wolf3D_Teeth}
