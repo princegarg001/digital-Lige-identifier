@@ -140,7 +140,7 @@ function HomePage() {
           ? `\`\`\`\n${content}\n\`\`\``
           : content;
 
-      chat.addAssistantMessage(displayContent);
+      chat.appendAssistantMessage(displayContent);
       return { acknowledged: true, characters_displayed: content.length };
     });
   }, [registerTool, chat]);
@@ -148,7 +148,7 @@ function HomePage() {
   // Wire up transcript handler
   useEffect(() => {
     onTranscriptRef.current = (text) => {
-      chat.addAssistantMessage(text);
+      chat.appendAssistantMessage(text);
     };
   }, [onTranscriptRef, chat]);
 

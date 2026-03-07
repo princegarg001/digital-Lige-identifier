@@ -41,6 +41,29 @@ export function useChatMessages() {
     return message;
   }, []);
 
+  const appendAssistantMessage = useCallback((content: string) => {
+    setMessages((prev) => {
+      const lastMessage = prev[prev.length - 1];
+      if (lastMessage && lastMessage.role === "assistant") {
+        return [
+          ...prev.slice(0, -1),
+          { ...lastMessage, content: lastMessage.content + content },
+        ];
+      } else {
+        return [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content,
+            timestamp: new Date(),
+          },
+        ];
+      }
+    });
+    setIsTyping(false);
+  }, []);
+
   const clearMessages = useCallback(() => {
     setMessages([]);
     setIsTyping(false);
@@ -51,6 +74,7 @@ export function useChatMessages() {
     isTyping,
     addUserMessage,
     addAssistantMessage,
+    appendAssistantMessage,
     clearMessages,
     setIsTyping,
   };
