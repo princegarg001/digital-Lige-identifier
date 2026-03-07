@@ -10,7 +10,7 @@ try {
     const match = env.match(/NEXT_PUBLIC_AVATAR_GLB=(.*)/);
     if (match) avatarFile = match[1].trim();
   }
-} catch (e) {
+} catch {
   // Ignore
 }
 

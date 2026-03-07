@@ -1,6 +1,7 @@
 "use client";
 
 import { IconButton } from "@/components/shared/IconButton";
+import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { cn } from "@/lib/utils";
 import {
   Mic,
@@ -69,18 +70,18 @@ export function CallControls({
         />
 
         {/* Connect / Disconnect */}
-        <button
+        <LiquidButton
           onClick={onToggleConnection}
           className={cn(
-            "flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 shadow-lg ml-2",
+            "flex items-center justify-center size-14 rounded-full transition-all duration-300 shadow-lg ml-2 border-0",
             isConnected 
-              ? "bg-red-500 hover:bg-red-600 shadow-red-500/20" 
-              : "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20"
+              ? "bg-destructive hover:bg-destructive/90 shadow-destructive/20 text-destructive-foreground" 
+              : "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20 text-primary-foreground"
           )}
           title={isConnected ? "End session" : "Start session"}
         >
-          {isConnected ? <PhoneOff className="w-6 h-6 text-white" /> : <Phone className="w-6 h-6 text-white" />}
-        </button>
+          {isConnected ? <PhoneOff className="w-6 h-6" /> : <Phone className="w-6 h-6" />}
+        </LiquidButton>
 
       </div>
     </footer>

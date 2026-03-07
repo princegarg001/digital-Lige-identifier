@@ -26,7 +26,7 @@ const variantStyles = {
     active:
       "bg-white/5 hover:bg-white/10 text-white border-white/10",
     inactive:
-      "bg-white/5 hover:bg-white/10 text-zinc-500 border-white/5",
+      "bg-white/5 hover:bg-white/10 text-muted-foreground border-white/5",
   },
   danger: {
     active:
@@ -97,7 +97,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         </TooltipTrigger>
         <TooltipContent
           side="top"
-          className="bg-zinc-900 text-zinc-300 border-zinc-800 text-xs"
+          className="bg-card text-muted-foreground border-border text-xs"
         >
           {label}
         </TooltipContent>

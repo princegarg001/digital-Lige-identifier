@@ -16,11 +16,11 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(
   ) => {
     const variants = {
       light:
-        "bg-white/[0.03] backdrop-blur-xl border border-white/[0.06]",
+        "glass",
       heavy:
-        "bg-black/60 backdrop-blur-2xl border border-white/[0.08]",
+        "glass-heavy",
       solid:
-        "bg-zinc-900/90 backdrop-blur-xl border border-white/[0.08]",
+        "bg-card/90 backdrop-blur-xl border border-border",
     };
 
     const glows = {

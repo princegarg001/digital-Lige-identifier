@@ -25,14 +25,14 @@ export function ChatMessageList({
   }, [messages.length, isTyping]);
 
   return (
-    <ScrollArea className={cn("flex-1", className)}>
+    <ScrollArea className={cn("flex-1 min-h-0", className)}>
       <div className="px-4 py-3 space-y-4">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 gap-3">
-            <div className="w-12 h-12 rounded-full bg-white/5 border border-white/5 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center">
               <span className="text-2xl">💬</span>
             </div>
-            <p className="text-xs text-zinc-600 text-center font-mono leading-relaxed">
+            <p className="text-xs text-muted-foreground text-center font-mono leading-relaxed">
               Start a conversation with
               <br />
               your Digital Persona

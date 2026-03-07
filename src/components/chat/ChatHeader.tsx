@@ -29,13 +29,13 @@ export function ChatHeader({
           status={isConnected ? "online" : "offline"}
           size="sm"
         />
-        <h2 className="text-sm font-semibold text-zinc-200 tracking-wide">
+        <h2 className="text-sm font-semibold text-white tracking-wide">
           Group Chat
         </h2>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-white/5 rounded-lg p-1">
+      <div className="flex gap-1 bg-muted rounded-lg p-1">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -43,8 +43,8 @@ export function ChatHeader({
             className={cn(
               "flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
               activeTab === tab.key
-                ? "bg-cyan-500 text-black shadow-[0_0_12px_rgba(34,211,238,0.2)]"
-                : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
+                ? "bg-cyan-500 text-primary-foreground shadow-[0_0_12px_rgba(34,211,238,0.2)]"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent"
             )}
           >
             {tab.label}

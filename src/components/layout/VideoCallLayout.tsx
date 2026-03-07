@@ -20,7 +20,7 @@ export function VideoCallLayout({
   className,
 }: VideoCallLayoutProps) {
   return (
-    <div className={cn("h-screen w-screen flex overflow-hidden relative bg-zinc-950 p-4 gap-4", className)}>
+    <div className={cn("h-screen w-screen flex overflow-hidden relative bg-background p-4 gap-4", className)}>
       {/* Background effects */}
       <div className="absolute inset-0 grid-bg opacity-40 pointer-events-none" />
       <div className="absolute top-1/3 left-1/4 w-125 h-125 bg-cyan-500/4 rounded-full blur-[150px] pointer-events-none" />
@@ -28,7 +28,7 @@ export function VideoCallLayout({
       <div className="absolute top-0 right-0 w-75 h-75 bg-purple-500/2 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Main content area (Video Card) */}
-      <div className="flex-1 flex flex-col relative z-10 min-w-0 rounded-3xl border border-white/10 bg-black/40 shadow-2xl backdrop-blur-md">
+      <div className="flex-1 flex flex-col relative z-10 min-w-0 rounded-3xl border border-border bg-card/40 shadow-2xl backdrop-blur-md">
         {children}
       </div>
 

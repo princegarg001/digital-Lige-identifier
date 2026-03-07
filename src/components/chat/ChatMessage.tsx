@@ -59,14 +59,14 @@ export const ChatMessage = React.memo(function ChatMessage({
             "rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
             isUser
               ? "bg-emerald-500/10 text-emerald-50 border border-emerald-500/10 rounded-tr-sm"
-              : "bg-white/5 text-zinc-200 border border-white/5 rounded-tl-sm"
+              : "bg-muted text-foreground border border-border rounded-tl-sm"
           )}
         >
           {message.content}
         </div>
         <span
           className={cn(
-            "text-[10px] text-zinc-600 font-mono",
+            "text-[10px] text-muted-foreground font-mono",
             isUser ? "text-right" : "text-left"
           )}
         >

@@ -12,7 +12,7 @@ interface StatusDotProps {
 const statusColors = {
   online: "bg-emerald-400",
   connecting: "bg-amber-400",
-  offline: "bg-zinc-500",
+  offline: "bg-muted",
   error: "bg-red-400",
 };
 

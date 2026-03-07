@@ -27,19 +27,20 @@ export function CallHeader({ status, sessionTime }: CallHeaderProps) {
 
   return (
     <header className="flex items-center justify-between px-5 py-3">
-      {/* Logo + Title */}
       <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-linear-to-br from-cyan-400 to-emerald-400 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.2)]">
-          <Sparkles className="w-5 h-5 text-black" />
-        </div>
-        <div>
-          <h1 className="text-sm font-semibold tracking-wide">
-            DIGITAL PERSONA
-          </h1>
-          <p className="text-[10px] text-zinc-500 font-mono tracking-widest uppercase">
-            Substrate v1.0
-          </p>
-        </div>
+        <GlassPanel rounded="xl" className="px-3 py-1.5 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-linear-to-br from-cyan-400 to-emerald-400 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+            <Sparkles className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-sm font-semibold tracking-wide text-white">
+              DIGITAL PERSONA
+            </h1>
+            <p className="text-[10px] text-zinc-400 font-mono tracking-widest uppercase">
+              Substrate v1.0
+            </p>
+          </div>
+        </GlassPanel>
       </div>
 
       {/* Status Badges */}
@@ -54,7 +55,7 @@ export function CallHeader({ status, sessionTime }: CallHeaderProps) {
                 ? "text-amber-400"
                 : status === "error"
                 ? "text-red-400"
-                : "text-zinc-500"
+                : "text-muted-foreground"
             }`}
           >
             {statusLabel[status]}

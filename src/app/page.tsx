@@ -19,6 +19,8 @@ import { PersonaOverlay } from "@/components/call/PersonaOverlay";
 
 // Chat Components
 import { ChatPanel } from "@/components/chat/ChatPanel";
+import { LiquidButton } from "@/components/ui/liquid-glass-button";
+import { TextShimmer } from "@/components/ui/text-shimmer";
 
 // Hooks
 import { useSessionManager } from "@/hooks/useSessionManager";
@@ -57,21 +59,24 @@ const IdleScreen = memo(({ onStart }: { onStart: () => void }) => (
         <Sparkles className="w-8 h-8 text-cyan-400" />
       </div>
       <div className="text-center">
-        <h2 className="text-xl font-semibold tracking-wide mb-2">
+        <TextShimmer 
+          duration={2}
+          className="text-2xl font-semibold tracking-wide mb-2 [--base-color:var(--color-cyan-500)] [--base-gradient-color:var(--color-emerald-300)] dark:[--base-color:var(--color-cyan-500)] dark:[--base-gradient-color:var(--color-emerald-300)]"
+        >
           Digital Persona
-        </h2>
-        <p className="text-sm text-zinc-500 leading-relaxed">
+        </TextShimmer>
+        <p className="text-sm text-zinc-500 leading-relaxed mt-2">
           Start a session to activate your AI persona.
           <br />
           Grant camera & mic permissions for full interaction.
         </p>
       </div>
-      <button
+      <LiquidButton
         onClick={onStart}
-        className="px-8 py-3 rounded-full bg-linear-to-r from-cyan-500 to-emerald-500 text-black font-semibold text-sm tracking-wide hover:shadow-[0_0_30px_rgba(34,211,238,0.3)] transition-all duration-500 hover:scale-105"
+        className="px-8 py-6 rounded-full bg-linear-to-r from-cyan-500 to-emerald-500 text-primary-foreground font-semibold text-sm tracking-wide hover:shadow-[0_0_30px_rgba(34,211,238,0.3)] hover:opacity-100 transition-all duration-500 hover:scale-105 border-0 cursor-pointer"
       >
         INITIATE SESSION
-      </button>
+      </LiquidButton>
     </div>
   </motion.div>
 ));
@@ -167,10 +172,10 @@ function HomePage() {
           <h2 className="text-xl font-semibold mb-4 text-red-500">
             Connection Error
           </h2>
-          <p className="text-sm text-zinc-400 mb-4">{anyError}</p>
+          <p className="text-sm text-muted-foreground mb-4">{anyError}</p>
           <button
             onClick={() => window.location.reload()}
-            className="w-full px-4 py-2 bg-cyan-500 text-black rounded-lg font-medium hover:bg-cyan-400 transition-colors"
+            className="w-full px-4 py-2 bg-cyan-500 text-primary-foreground rounded-lg font-medium hover:bg-cyan-400 transition-colors"
           >
             Retry
           </button>

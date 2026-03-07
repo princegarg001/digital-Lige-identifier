@@ -114,7 +114,7 @@ function checkDependencies() {
     'framer-motion': '>=12.0.0',
   };
 
-  for (const [dep, version] of Object.entries(requiredDeps)) {
+  for (const [dep] of Object.entries(requiredDeps)) {
     if (packageJson.dependencies[dep]) {
       addCheck('Dependencies', dep, 'PASS', `Installed: ${packageJson.dependencies[dep]}`);
     } else {

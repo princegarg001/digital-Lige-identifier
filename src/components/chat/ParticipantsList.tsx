@@ -42,13 +42,13 @@ export function ParticipantsList({
   return (
     <ScrollArea className={cn("flex-1", className)}>
       <div className="px-4 py-3 space-y-1">
-        <p className="text-[10px] text-zinc-600 font-mono uppercase tracking-widest mb-3 px-1">
+        <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mb-3 px-1">
           In this session — {participants.length}
         </p>
         {participants.map((p) => (
           <div
             key={p.id}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent transition-colors"
           >
             {/* Avatar */}
             <div
@@ -71,18 +71,18 @@ export function ParticipantsList({
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-zinc-200 truncate">
+              <p className="text-sm font-medium text-foreground truncate">
                 {p.name}
               </p>
-              <p className="text-[10px] text-zinc-500 capitalize">
+              <p className="text-[10px] text-muted-foreground capitalize">
                 {p.role === "ai" ? "Digital Persona" : "Participant"}
               </p>
             </div>
 
             {/* Media indicators */}
             <div className="flex items-center gap-1.5">
-              <Mic className="w-3.5 h-3.5 text-zinc-600" />
-              <Video className="w-3.5 h-3.5 text-zinc-600" />
+              <Mic className="w-3.5 h-3.5 text-muted-foreground" />
+              <Video className="w-3.5 h-3.5 text-muted-foreground" />
             </div>
           </div>
         ))}

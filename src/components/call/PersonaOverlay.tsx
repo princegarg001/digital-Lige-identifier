@@ -27,7 +27,7 @@ export const PersonaOverlay = React.memo(function PersonaOverlay({
             isActive={isConnected}
           />
           <div>
-            <p className="text-sm font-medium text-white">AI Persona</p>
+            <p className="text-sm font-medium text-foreground">AI Persona</p>
             <SpeakingStatus audioLevelRef={audioLevelRef} />
           </div>
         </div>
@@ -56,7 +56,7 @@ function SpeakingStatus({ audioLevelRef }: { audioLevelRef: React.RefObject<numb
   return (
     <p
       ref={textRef}
-      className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest"
+      className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest"
     >
       Listening
     </p>

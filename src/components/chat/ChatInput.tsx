@@ -54,7 +54,7 @@ export function ChatInput({
       <Button
         onClick={handleSend}
         disabled={disabled || !value.trim()}
-        className="w-10 h-10 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black shrink-0 disabled:opacity-30 transition-all duration-200 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
+        className="size-10 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-primary-foreground shrink-0 transition-all duration-200 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
         size="icon"
       >
         <Send className="w-4 h-4" />

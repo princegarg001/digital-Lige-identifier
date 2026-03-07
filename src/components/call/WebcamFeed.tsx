@@ -10,7 +10,7 @@ interface WebcamFeedProps {
 
 export function WebcamFeed({ videoRef, isActive }: WebcamFeedProps) {
   return (
-    <div className="relative w-full h-full rounded-xl overflow-hidden border border-white/10 bg-black/60">
+    <div className="relative w-full h-full rounded-xl overflow-hidden border border-border bg-card">
       <video
         ref={videoRef}
         autoPlay
@@ -32,7 +32,7 @@ export function WebcamFeed({ videoRef, isActive }: WebcamFeedProps) {
       <div className="absolute bottom-2 left-2">
         <Badge
           variant="outline"
-          className="bg-black/60 text-[10px] tracking-widest uppercase font-mono border-white/10 text-zinc-400"
+          className="bg-card text-[10px] tracking-widest uppercase font-mono border-border text-muted-foreground"
         >
           {isActive ? (
             <Camera className="w-3 h-3 mr-1 text-cyan-400" />

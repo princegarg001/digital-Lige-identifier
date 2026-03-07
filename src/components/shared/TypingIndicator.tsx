@@ -10,7 +10,7 @@ interface TypingIndicatorProps {
 export function TypingIndicator({ name = "AI", className }: TypingIndicatorProps) {
   return (
     <div className={cn("flex items-center gap-2 px-1", className)}>
-      <span className="text-xs text-zinc-500">{name} is typing</span>
+      <span className="text-xs text-muted-foreground">{name} is typing</span>
       <div className="flex gap-1">
         {[0, 1, 2].map((i) => (
           <span
