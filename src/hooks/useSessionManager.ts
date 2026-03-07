@@ -18,7 +18,7 @@ import { useWebcam } from "./useWebcam";
  * `registerTool` function BEFORE calling `toggleSession`.
  */
 export function useSessionManager(apiKey: string) {
-  const { onAudioData: onAudioDataRef, registerTool, ...gemini } = useGeminiLive(apiKey);
+  const { onAudioData: onAudioDataRef, onInterrupted: onInterruptedRef, registerTool, ...gemini } = useGeminiLive(apiKey);
   const audio = useAudioProcessor();
   const { onFrameRef, ...webcam } = useWebcam();
 
@@ -47,6 +47,15 @@ export function useSessionManager(apiKey: string) {
       audio.playAudioChunk(b64);
     };
   }, [onAudioDataRef, audio, isInitialized]);
+
+  // ── Wire Gemini interruption → stop playback immediately ────────────────
+  // Official docs: "stop and empty the current playback queue"
+  useEffect(() => {
+    if (!isInitialized) return;
+    onInterruptedRef.current = () => {
+      audio.stopPlayback();
+    };
+  }, [onInterruptedRef, audio, isInitialized]);
 
   // ── Wire webcam frames → Gemini ───────────────────────────────────────────
   useEffect(() => {
@@ -85,6 +94,7 @@ export function useSessionManager(apiKey: string) {
 
   const stopSession = useCallback(() => {
     gemini.disconnect();
+    audio.stopPlayback();
     audio.stopMic();
     webcam.stop();
     setIsInitialized(false);

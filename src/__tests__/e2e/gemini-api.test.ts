@@ -8,6 +8,15 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 
+/** Returns true if the key looks like a placeholder / is not a real key. */
+function isPlaceholderKey(key: string | undefined): boolean {
+  if (!key || key === '') return true;
+  if (key.includes('your_')) return true;
+  // Reject short or obviously invalid keys
+  if (!/^AIza[A-Za-z0-9_-]{35}$/.test(key)) return true;
+  return false;
+}
+
 describe('Gemini Live API Integration', () => {
   let API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
@@ -25,7 +34,7 @@ describe('Gemini Live API Integration', () => {
       console.warn('Could not load .env.local');
     }
 
-    if (!API_KEY || API_KEY === 'your_api_key_here' || API_KEY === 'AIzaSyCejetZLubj4KLpsIwaIoXW-M4WD0Z3tnc') {
+    if (isPlaceholderKey(API_KEY)) {
       console.warn('⚠️  Skipping E2E tests: No valid real API key configured');
     }
   });
@@ -44,7 +53,7 @@ describe('Gemini Live API Integration', () => {
   });
 
   describe('SDK Connection', () => {
-    const shouldSkip = !API_KEY || API_KEY.includes('your_') || API_KEY === 'AIzaSyCejetZLubj4KLpsIwaIoXW-M4WD0Z3tnc' || API_KEY === '';
+    const shouldSkip = isPlaceholderKey(API_KEY);
 
     it.skipIf(shouldSkip)(
       'should connect via @google/genai SDK',
@@ -81,7 +90,7 @@ describe('Gemini Live API Integration', () => {
       15000
     );
 
-    it.skip(
+    it.skipIf(shouldSkip)(
       'should receive audio response for text input',
       async () => {
         const { GoogleGenAI, Modality } = await import('@google/genai');
@@ -135,7 +144,9 @@ describe('Gemini Live API Integration', () => {
   });
 
   describe('Tool Calling', () => {
-    it.skip(
+    const shouldSkip = isPlaceholderKey(API_KEY);
+
+    it.skipIf(shouldSkip)(
       'should support trigger_animation tool via SDK',
       async () => {
         const { GoogleGenAI, Modality, Type } = await import('@google/genai');

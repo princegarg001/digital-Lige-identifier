@@ -20,6 +20,9 @@ vi.mock('@/hooks/useGeminiLive', () => ({
     onAudioData: { current: null },
     onToolCall: { current: null },
     onTranscript: { current: null },
+    onInterrupted: { current: null },
+    onToolCallCancellation: { current: null },
+    lastSessionHandle: { current: null },
     errorMessage: null,
   })),
 }));
@@ -31,6 +34,7 @@ vi.mock('@/hooks/useAudioProcessor', () => ({
     startMic: vi.fn(),
     stopMic: vi.fn(),
     playAudioChunk: vi.fn(),
+    stopPlayback: vi.fn(),
   })),
 }));
 

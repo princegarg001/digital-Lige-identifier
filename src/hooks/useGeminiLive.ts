@@ -8,6 +8,9 @@ import {
   SYSTEM_PROMPT,
 } from "@/lib/constants";
 
+/** Maximum time (ms) to wait for a tool handler before returning a timeout error. */
+const TOOL_HANDLER_TIMEOUT_MS = 10_000;
+
 export type GeminiStatus = "disconnected" | "connecting" | "connected" | "error";
 
 export interface ToolCallPayload {
@@ -48,6 +51,12 @@ export interface UseGeminiLiveReturn {
   onAudioData: React.RefObject<((b64: string) => void) | null>;
   onToolCall: React.RefObject<((tc: ToolCallPayload) => void) | null>;
   onTranscript: React.RefObject<((text: string) => void) | null>;
+  /** Fires when the server interrupts the current generation (user started speaking). */
+  onInterrupted: React.RefObject<(() => void) | null>;
+  /** Fires when the server cancels previously-issued tool calls (due to interruption). */
+  onToolCallCancellation: React.RefObject<((ids: string[]) => void) | null>;
+  /** The last session resumption handle (can be persisted for reconnection within 2 hrs). */
+  lastSessionHandle: React.RefObject<string | null>;
   errorMessage: string | null;
 }
 
@@ -89,6 +98,8 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
   const onAudioData = useRef<((b64: string) => void) | null>(null);
   const onToolCall = useRef<((tc: ToolCallPayload) => void) | null>(null);
   const onTranscript = useRef<((text: string) => void) | null>(null);
+  const onInterrupted = useRef<(() => void) | null>(null);
+  const onToolCallCancellation = useRef<((ids: string[]) => void) | null>(null);
 
   // ── Function tool registry ────────────────────────────────────────────────
   // Stores handlers registered by the application for each declared tool.
@@ -97,6 +108,10 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
   const registerTool = useCallback((name: string, handler: ToolHandler) => {
     toolRegistryRef.current.set(name, handler);
   }, []);
+
+  // ── Session resumption ──────────────────────────────────────────────────
+  // Stores the latest session handle so reconnect can resume context.
+  const sessionHandleRef = useRef<string | null>(null);
 
   // ── SDK client — initialized once per apiKey ──────────────────────────────
   const clientRef = useRef<GoogleGenAI | null>(null);
@@ -131,12 +146,45 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
     // ── Incoming message handler ──────────────────────────────────────────
     const handleMessage = (message: LiveServerMessage) => {
       try {
+        // Setup complete acknowledgement
+        if (message.setupComplete) {
+          console.log("[GeminiLive] Setup complete.");
+          return;
+        }
+
+        // Session resumption — capture handle for reconnection
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const resumption = (message as any).sessionResumptionUpdate;
+        if (resumption?.handle) {
+          sessionHandleRef.current = resumption.handle as string;
+          console.log("[GeminiLive] Session resumption handle updated.");
+        }
+
+        // Tool call cancellation (interruption cancelled pending tool calls)
+        if (message.toolCallCancellation) {
+          const cancelledIds = message.toolCallCancellation.ids ?? [];
+          console.log("[GeminiLive] Tool calls cancelled:", cancelledIds);
+          onToolCallCancellation.current?.(cancelledIds);
+          return;
+        }
+
         // Server content: audio response and/or text transcript
         if (message.serverContent) {
-          // Interruption — caller should clear any pending audio playback
+          // Interruption — stop and empty playback queue
           if (message.serverContent.interrupted) {
-            console.log("[GeminiLive] Interrupted by user speech.");
+            console.log("[GeminiLive] Interrupted by user speech — stopping playback.");
+            onInterrupted.current?.();
             return;
+          }
+
+          // Turn complete
+          if (message.serverContent.turnComplete) {
+            console.log("[GeminiLive] Turn complete.");
+          }
+
+          // Transcription events (input or output)
+          if (message.serverContent.outputTranscription?.text) {
+            onTranscript.current?.(message.serverContent.outputTranscription.text);
           }
 
           const parts = message.serverContent.modelTurn?.parts;
@@ -175,7 +223,18 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
 
               if (handler) {
                 try {
-                  result = await Promise.resolve(handler(callArgs));
+                  // Race the handler against a timeout so a stuck handler
+                  // doesn't block the model indefinitely.
+                  const timeoutPromise = new Promise<never>((_, reject) =>
+                    setTimeout(
+                      () => reject(new Error(`Tool handler "${callName}" timed out after ${TOOL_HANDLER_TIMEOUT_MS}ms`)),
+                      TOOL_HANDLER_TIMEOUT_MS
+                    )
+                  );
+                  result = await Promise.race([
+                    Promise.resolve(handler(callArgs)),
+                    timeoutPromise,
+                  ]);
                 } catch (handlerErr) {
                   console.error(
                     `[GeminiLive] Handler for "${callName}" threw:`,
@@ -235,6 +294,21 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
           systemInstruction: SYSTEM_PROMPT,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           tools: GEMINI_TOOLS as any,
+          // VAD configuration — uses server-side automatic activity detection
+          realtimeInputConfig: {
+            automaticActivityDetection: {
+              // Use defaults: server-side VAD with HIGH sensitivity
+            },
+          },
+          // Enable output transcription for transcript events
+          outputAudioTranscription: {},
+          // Session resumption — reconnect with prior context if a handle exists
+          ...(sessionHandleRef.current
+            ? {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                sessionResumption: { handle: sessionHandleRef.current } as any,
+              }
+            : {}),
         },
         callbacks: {
           onopen: () => {
@@ -337,6 +411,9 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
     onAudioData,
     onToolCall,
     onTranscript,
+    onInterrupted,
+    onToolCallCancellation,
+    lastSessionHandle: sessionHandleRef,
     errorMessage,
   };
 }

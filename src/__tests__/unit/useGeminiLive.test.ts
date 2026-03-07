@@ -105,7 +105,7 @@ describe('useGeminiLive Hook', () => {
         expect(callArgs.config.responseModalities).toEqual(['AUDIO']);
         // VAD config should be present
         expect(callArgs.config.realtimeInputConfig).toBeDefined();
-        expect(callArgs.config.realtimeInputConfig.voiceActivityDetection).toBeDefined();
+        expect(callArgs.config.realtimeInputConfig.automaticActivityDetection).toBeDefined();
         expect(callArgs.callbacks.onopen).toBeDefined();
         expect(callArgs.callbacks.onmessage).toBeDefined();
       });
@@ -446,6 +446,131 @@ describe('useGeminiLive Hook', () => {
         expect(result.current.status).toBe('error');
         expect(result.current.errorMessage).toContain('WebSocket failed');
       });
+    });
+  });
+
+  describe('Session Resumption', () => {
+    it('should capture sessionResumptionUpdate handle from server', async () => {
+      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+
+      act(() => {
+        result.current.connect();
+      });
+
+      await vi.waitFor(() => {
+        expect(result.current.status).toBe('connected');
+      });
+
+      // Simulate server sending a session resumption update
+      act(() => {
+        __capturedCallbacks.onmessage?.({
+          sessionResumptionUpdate: {
+            handle: 'test-session-handle-abc123',
+          },
+        });
+      });
+
+      expect(result.current.lastSessionHandle.current).toBe('test-session-handle-abc123');
+    });
+
+    it('should pass stored handle to SDK config on reconnect', async () => {
+      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+
+      // First connection
+      act(() => {
+        result.current.connect();
+      });
+
+      await vi.waitFor(() => {
+        expect(result.current.status).toBe('connected');
+      });
+
+      // Receive session handle
+      act(() => {
+        __capturedCallbacks.onmessage?.({
+          sessionResumptionUpdate: {
+            handle: 'resume-handle-xyz',
+          },
+        });
+      });
+
+      // Disconnect
+      act(() => {
+        result.current.disconnect();
+      });
+
+      // Reconnect — should pass the saved handle
+      act(() => {
+        result.current.connect();
+      });
+
+      await vi.waitFor(() => {
+        const secondCallArgs = __mockConnect.mock.calls[1][0];
+        expect(secondCallArgs.config.sessionResumption).toEqual({
+          handle: 'resume-handle-xyz',
+        });
+      });
+    });
+  });
+
+  describe('Tool Handler Timeout', () => {
+    it('should return timeout error when handler exceeds 10s', async () => {
+      vi.useFakeTimers();
+
+      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+
+      // Register a handler that never resolves
+      const neverResolve = () => new Promise<Record<string, unknown>>(() => {});
+      act(() => {
+        result.current.registerTool('slow_tool', neverResolve);
+      });
+
+      act(() => {
+        result.current.connect();
+      });
+
+      // Manually trigger onopen since fake timers prevent setTimeout
+      await act(async () => {
+        __capturedCallbacks.onopen?.();
+      });
+
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      act(() => {
+        __capturedCallbacks.onmessage?.({
+          toolCall: {
+            functionCalls: [
+              {
+                id: 'call-slow-1',
+                name: 'slow_tool',
+                args: {},
+              },
+            ],
+          },
+        });
+      });
+
+      // Advance past the 10s timeout
+      await act(async () => {
+        vi.advanceTimersByTime(11_000);
+      });
+
+      await vi.waitFor(() => {
+        expect(__mockSession.sendToolResponse).toHaveBeenCalledWith({
+          functionResponses: [
+            {
+              id: 'call-slow-1',
+              name: 'slow_tool',
+              response: expect.objectContaining({
+                error: expect.stringContaining('timed out'),
+              }),
+            },
+          ],
+        });
+      });
+
+      errorSpy.mockRestore();
+      vi.useRealTimers();
     });
   });
 });
