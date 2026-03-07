@@ -167,7 +167,7 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
     <group
       ref={groupRef}
       dispose={null}
-      position={[0, -0.6, 0]}
+      position={[0, 0, 0]}
       onPointerOver={(e) => {
         e.stopPropagation();
         setHovered(true);

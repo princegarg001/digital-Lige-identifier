@@ -25,12 +25,12 @@ export default function Scene({
 }: SceneProps) {
   return (
     <Canvas
-      camera={{ position: [0, 1.0, 1.2], fov: 45 }}
+      camera={{ position: [0, 1.2, 2.0], fov: 50 }}
       shadows
       gl={{ antialias: true, alpha: true }}
       style={{ background: "transparent" }}
     >
-      <ambientLight intensity={0.4} />
+      <ambientLight intensity={0.5} />
       <spotLight
         position={[5, 10, 5]}
         angle={0.15}
@@ -54,7 +54,7 @@ export default function Scene({
           speed={1}
           rotationIntensity={0.1}
           floatIntensity={0.2}
-          floatingRange={[-0.02, 0.02]}
+          floatingRange={[-0.01, 0.01]}
         >
           <Avatar audioLevelRef={audioLevelRef} currentAnimation={currentAnimation} />
         </Float>
@@ -66,7 +66,7 @@ export default function Scene({
         scale={10}
         blur={2.4}
         far={0.8}
-        position={[0, -0.01, 0]}
+        position={[0, 0, 0]}
         color="#22d3ee"
       />
 
@@ -76,9 +76,7 @@ export default function Scene({
         dampingFactor={0.05}
         enableZoom={true}
         enablePan={true}
-        minPolarAngle={Math.PI / 2.5}
-        maxPolarAngle={Math.PI / 2}
-        target={[0, 0.4, 0]}
+        target={[0, 1.2, 0]}
       />
     </Canvas>
   );
