@@ -1,7 +1,10 @@
 /*
   Avatar Component — loads the Ready Player Me GLB model
   and drives lip-sync via morph targets based on audio level.
-  Auto-generated mesh structure from gltfjsx, enhanced with animation support.
+  Auto-generated mesh structure from gltfjsx, enhanced with:
+  - MeshPhysicalMaterial + subsurface scattering for photorealistic skin
+  - SkinPreset system for hot-swappable skin tones
+  - Gaze drift (realistic look-around when listening)
 */
 
 import * as THREE from "three";
@@ -16,6 +19,8 @@ import {
   BREATHING_SPEED,
   BREATHING_AMPLITUDE,
 } from "@/lib/constants";
+import { SkinPreset } from "@/lib/skinConfig";
+import { useSkinTexture } from "@/hooks/useSkinTexture";
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -48,25 +53,29 @@ type GLTFResult = GLTF & {
 interface AvatarProps {
   audioLevelRef: React.RefObject<number>;
   currentAnimation?: string;
+  skinPreset?: SkinPreset | null;
 }
 
 /**
- * Wolf3D avatar with real-time lip-sync and idle breathing.
- * Reads `audioLevelRef.current` inside `useFrame` (60fps) without causing re-renders.
+ * Wolf3D avatar with real-time lip-sync, idle breathing,
+ * MeshPhysicalMaterial skin with SSS, and gaze drift.
  */
-export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
+export function Avatar({ audioLevelRef, currentAnimation, skinPreset = null }: AvatarProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
   const avatarUrl = process.env.NEXT_PUBLIC_AVATAR_GLB ? `/${process.env.NEXT_PUBLIC_AVATAR_GLB}` : "/avatar-transformed.glb";
   const { scene, animations: avatarAnimations } = useGLTF(avatarUrl);
-  
+
   // Load official animations
   const { animations: idleAnimation } = useGLTF("/animations/idle.glb");
   const { animations: waveAnimation } = useGLTF("/animations/wave.glb");
-  
+
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const { nodes, materials } = useGraph(clone) as unknown as GLTFResult;
+
+  // Get the PBR skin material with SSS
+  const skinMaterial = useSkinTexture(skinPreset);
 
   // Combine animations and bind them to the groupRef
   const allAnimations = [
@@ -74,11 +83,10 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
     ...(idleAnimation || []).map(a => Object.assign(a, { name: 'idle' })),
     ...(waveAnimation || []).map(a => Object.assign(a, { name: 'wave' }))
   ];
-  
+
   const { actions } = useAnimations(allAnimations, groupRef);
 
   useEffect(() => {
-    // Play the requested animation or fallback to 'idle'
     const actionName = currentAnimation && actions[currentAnimation]
       ? currentAnimation
       : (actions["idle"] ? "idle" : undefined);
@@ -86,10 +94,6 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
     if (!actionName || !actions[actionName]) return;
 
     actions[actionName].reset().fadeIn(0.5).play();
-    
-    // Optional: clamp if it's not a looping animation (like wave)
-    // actions[actionName].setLoop(THREE.LoopOnce, 1);
-    // actions[actionName].clampWhenFinished = true;
 
     return () => {
       actions[actionName]?.fadeOut(0.5);
@@ -98,8 +102,10 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
 
   // Smoothed value for lip-sync
   const smoothedLevel = useRef(0);
+  // Gaze drift accumulators
+  const gazePhaseRef = useRef(1.57); // π/2 — fixed initial phase avoids impure Math.random
 
-  useFrame(({ camera }) => {
+  useFrame(({ camera, clock }) => {
     const rawLevel = audioLevelRef.current ?? 0;
 
     // Smooth the audio level to avoid jitter
@@ -142,7 +148,6 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
       const targetSmile = hovered ? 0.8 : 0;
       const targetCheek = hovered ? 0.3 : 0;
 
-      // Smoothly interpolate towards the target smile value
       if (smileLeftIdx !== undefined) {
         head.morphTargetInfluences[smileLeftIdx] += (targetSmile - head.morphTargetInfluences[smileLeftIdx]) * 0.1;
       }
@@ -163,10 +168,39 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
         Math.sin(Date.now() * BREATHING_SPEED) * BREATHING_AMPLITUDE;
     }
 
-    // Make avatar look at the camera
+    // ── Gaze behavior: look at camera when speaking, drift when listening ───
     const headNode = nodes.Head || scene.getObjectByName("Head");
     if (headNode) {
-      headNode.lookAt(camera.position.x, camera.position.y, camera.position.z);
+      if (level > 0.05) {
+        // Speaking → look straight at camera
+        headNode.lookAt(camera.position.x, camera.position.y, camera.position.z);
+      } else {
+        // Listening → subtle Lissajou gaze drift (feels alive, not robotic)
+        gazePhaseRef.current += 0.003;
+        const t = gazePhaseRef.current;
+        const driftX = Math.sin(t * 1.3) * 0.04;
+        const driftY = Math.sin(t * 0.9) * 0.025;
+        headNode.lookAt(
+          camera.position.x + driftX,
+          camera.position.y + driftY,
+          camera.position.z
+        );
+      }
+    }
+
+    // ── Blink (every ~4 seconds, slight randomness) ──────────────────────────
+    if (head?.morphTargetDictionary && head?.morphTargetInfluences) {
+      const blinkLeftIdx = head.morphTargetDictionary["eyeBlinkLeft"];
+      const blinkRightIdx = head.morphTargetDictionary["eyeBlinkRight"];
+      const blinkCycle = Math.abs(Math.sin(clock.elapsedTime * 0.8 + 1.2));
+      const blinkValue = blinkCycle > 0.98 ? 1 : 0;
+
+      if (blinkLeftIdx !== undefined) {
+        head.morphTargetInfluences[blinkLeftIdx] += (blinkValue - head.morphTargetInfluences[blinkLeftIdx]) * 0.4;
+      }
+      if (blinkRightIdx !== undefined) {
+        head.morphTargetInfluences[blinkRightIdx] += (blinkValue - head.morphTargetInfluences[blinkRightIdx]) * 0.4;
+      }
     }
   });
 
@@ -186,7 +220,6 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
       }}
       onClick={(e) => {
         e.stopPropagation();
-        // Fallback interactivity if clicked
         if (actions && actions["wave"]) {
           actions["wave"].reset().fadeIn(0.5).play();
           setTimeout(() => actions["wave"]?.fadeOut(0.5), 2000);
@@ -220,9 +253,10 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
         material={materials.Wolf3D_Outfit_Footwear}
         skeleton={nodes.Wolf3D_Outfit_Footwear.skeleton}
       />
+      {/* Body — uses same PBR skin material for consistency */}
       <skinnedMesh
         geometry={nodes.Wolf3D_Body.geometry}
-        material={materials.Wolf3D_Body}
+        material={skinMaterial}
         skeleton={nodes.Wolf3D_Body.skeleton}
       />
       <skinnedMesh
@@ -241,10 +275,11 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
         morphTargetDictionary={nodes.EyeRight.morphTargetDictionary}
         morphTargetInfluences={nodes.EyeRight.morphTargetInfluences}
       />
+      {/* Head — receives the full PBR MeshPhysicalMaterial with SSS */}
       <skinnedMesh
         name="Wolf3D_Head"
         geometry={nodes.Wolf3D_Head.geometry}
-        material={materials.Wolf3D_Skin}
+        material={skinMaterial}
         skeleton={nodes.Wolf3D_Head.skeleton}
         morphTargetDictionary={nodes.Wolf3D_Head.morphTargetDictionary}
         morphTargetInfluences={nodes.Wolf3D_Head.morphTargetInfluences}

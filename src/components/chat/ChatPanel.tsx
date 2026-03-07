@@ -6,9 +6,11 @@ import { ChatHeader, type ChatTab } from "./ChatHeader";
 import { ChatMessageList } from "./ChatMessageList";
 import { ChatInput } from "./ChatInput";
 import { ParticipantsList } from "./ParticipantsList";
+import { SkinSelector } from "./SkinSelector";
 import { Separator } from "@/components/ui/separator";
 import { type ChatMessageData } from "./ChatMessage";
 import { cn } from "@/lib/utils";
+import { SkinPreset } from "@/lib/skinConfig";
 
 interface ChatPanelProps {
   messages: ChatMessageData[];
@@ -16,6 +18,8 @@ interface ChatPanelProps {
   isConnected: boolean;
   isTyping?: boolean;
   className?: string;
+  selectedSkinId: string | null;
+  onSkinChange: (preset: SkinPreset) => void;
 }
 
 export function ChatPanel({
@@ -24,6 +28,8 @@ export function ChatPanel({
   isConnected,
   isTyping = false,
   className,
+  selectedSkinId,
+  onSkinChange,
 }: ChatPanelProps) {
   const [activeTab, setActiveTab] = useState<ChatTab>("messages");
 
@@ -65,10 +71,14 @@ export function ChatPanel({
             />
           </div>
         </>
+      ) : activeTab === "skins" ? (
+        <SkinSelector
+          selectedSkinId={selectedSkinId}
+          onSkinChange={onSkinChange}
+        />
       ) : (
         <ParticipantsList isConnected={isConnected} />
       )}
     </GlassPanel>
   );
 }
-

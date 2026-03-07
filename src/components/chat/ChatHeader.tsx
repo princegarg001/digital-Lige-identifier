@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { StatusDot } from "@/components/shared/StatusDot";
 
-export type ChatTab = "messages" | "participants";
+export type ChatTab = "messages" | "participants" | "skins";
 
 interface ChatHeaderProps {
   activeTab: ChatTab;
@@ -18,7 +18,8 @@ export function ChatHeader({
 }: ChatHeaderProps) {
   const tabs: { key: ChatTab; label: string }[] = [
     { key: "messages", label: "Messages" },
-    { key: "participants", label: "Participants" },
+    { key: "participants", label: "People" },
+    { key: "skins", label: "🎨 Skins" },
   ];
 
   return (
@@ -41,7 +42,7 @@ export function ChatHeader({
             key={tab.key}
             onClick={() => onTabChange(tab.key)}
             className={cn(
-              "flex-1 px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300",
+              "flex-1 px-2 py-2 text-xs font-semibold rounded-xl transition-all duration-300",
               activeTab === tab.key
                 ? "bg-primary text-primary-foreground shadow-[0_4px_15px_rgba(var(--primary-rgb),0.25)] ring-1 ring-white/10"
                 : "text-muted-foreground hover:text-foreground hover:bg-white/10"
