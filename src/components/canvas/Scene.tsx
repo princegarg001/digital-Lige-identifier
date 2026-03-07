@@ -5,11 +5,11 @@ import {
   Environment,
   ContactShadows,
   OrbitControls,
-  Center,
 } from "@react-three/drei";
 import React, { Suspense, lazy } from "react";
 import { Avatar } from "./Avatar";
 import { SkinPreset } from "@/lib/skinConfig";
+import cameraConfig from "@/config/camera.json";
 
 const DebugCameraPanel = lazy(() => import("./DebugCameraPanel"));
 
@@ -36,7 +36,7 @@ export default function Scene({
 }: SceneProps) {
   return (
     <Canvas
-      camera={{ position: [0, -0.4, 0.8], fov: 38 }}
+      camera={{ position: cameraConfig.camera.position as [number, number, number], fov: cameraConfig.camera.fov }}
       shadows
       gl={{ antialias: true, alpha: true }}
       style={{ background: "transparent" }}
@@ -46,39 +46,43 @@ export default function Scene({
 
       {/* ── Key light: main face illumination (warm white) ── */}
       <spotLight
-        position={[1, 1.2, 1]}
+        position={cameraConfig.lighting.keyLight.position as [number, number, number]}
         angle={0.25}
         penumbra={0.8}
-        intensity={1.8}
+        intensity={cameraConfig.lighting.keyLight.intensity}
         castShadow
         shadow-mapSize={1024}
-        color="#fff5e0"
+        color={cameraConfig.lighting.keyLight.color}
       />
 
       {/* ── Fill light: soft left bounce (cool white) ──────── */}
       <spotLight
-        position={[-1, 0.5, 1]}
+        position={cameraConfig.lighting.fillLight.position as [number, number, number]}
         angle={0.35}
         penumbra={1}
-        intensity={0.7}
-        color="#d0e8ff"
+        intensity={cameraConfig.lighting.fillLight.intensity}
+        color={cameraConfig.lighting.fillLight.color}
       />
 
       {/* ── Rim light: hair/edge separation (neutral white) ── */}
       <pointLight
-        position={[0, 1.2, -1]}
-        intensity={0.9}
-        color="#ffffff"
+        position={cameraConfig.lighting.rimLight.position as [number, number, number]}
+        intensity={cameraConfig.lighting.rimLight.intensity}
+        color={cameraConfig.lighting.rimLight.color}
       />
 
       <Suspense fallback={null}>
-        <Center top>
+        <group
+          position={cameraConfig.avatar.position as [number, number, number]}
+          rotation={cameraConfig.avatar.rotation as [number, number, number]}
+          scale={cameraConfig.avatar.scale}
+        >
           <Avatar
             audioLevelRef={audioLevelRef}
             currentAnimation={currentAnimation}
             skinPreset={skinPreset}
           />
-        </Center>
+        </group>
         {/* Studio preset: neutral grey background IBL — best for skin tones */}
         <Environment preset="studio" />
       </Suspense>
@@ -101,7 +105,7 @@ export default function Scene({
             dampingFactor={0.05}
             enableZoom={true}
             enablePan={true}
-            target={[0, -0.4, 0]}
+            target={cameraConfig.camera.target as [number, number, number]}
           />
           <Suspense fallback={null}>
             <DebugCameraPanel />

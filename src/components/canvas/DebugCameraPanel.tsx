@@ -91,30 +91,45 @@ export default function DebugCameraPanel() {
     });
   }, [reading, buildSnippet]);
 
-  const handleSet = useCallback(() => {
+  const handleSet = useCallback(async () => {
     const payload = {
-      position: [reading.px, reading.py, reading.pz],
-      fov: Math.round(reading.fov),
-      target: [reading.tx, reading.ty, reading.tz],
+      camera: {
+        position: [reading.px, reading.py, reading.pz],
+        fov: Math.round(reading.fov),
+        target: [reading.tx, reading.ty, reading.tz],
+      }
     };
+    
+    // We only update the camera in local state, real merge happens on API!
     localStorage.setItem("scene_camera_debug", JSON.stringify(payload));
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+
+    try {
+      await fetch("/api/camera", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch (e) {
+      console.error("Failed to save camera config via API:", e);
+    }
   }, [reading]);
 
   return (
     <Html
       wrapperClass="debug-camera-panel-wrapper"
       style={{ pointerEvents: "none" }}
-      /* Position at bottom-left of canvas */
+      /* Position bottom-right of the canvas */
       position={[0, 0, 0]}
-      calculatePosition={() => [8, size.height - 8, 0]}
+      calculatePosition={() => [size.width - 20, size.height - 20, 0]}
       zIndexRange={[200, 210]}
     >
       <div
         style={{
           pointerEvents: "auto",
-          transform: "translateY(-100%)",
+          /* Anchor to the bottom-right corner of the calculatePosition point */
+          transform: "translate(-100%, -100%)",
           fontFamily:
             "'JetBrains Mono', 'Fira Mono', 'Cascadia Code', ui-monospace, monospace",
           fontSize: "11px",

@@ -16,6 +16,7 @@ import { CallHeader } from "@/components/call/CallHeader";
 import { CallControls } from "@/components/call/CallControls";
 import { WebcamFeed } from "@/components/call/WebcamFeed";
 import { PersonaOverlay } from "@/components/call/PersonaOverlay";
+import { DebugToggle } from "@/components/call/DebugToggle";
 
 // Chat Components
 import { ChatPanel } from "@/components/chat/ChatPanel";
@@ -227,7 +228,7 @@ function HomePage() {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.3 }}
-        className="absolute top-6 right-6 w-48 h-64 rounded-2xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10 z-10"
+        className="absolute top-6 right-6 w-36 h-48 rounded-2xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10 z-10"
       >
         <WebcamFeed
           videoRef={session.videoRef}
@@ -236,36 +237,7 @@ function HomePage() {
       </motion.div>
 
       {/* Debug mode toggle — positioned below the PiP webcam */}
-      <button
-        id="debug-mode-toggle"
-        onClick={() => setDebugMode((v) => !v)}
-        title={debugMode ? "Disable camera debug mode" : "Enable camera debug mode"}
-        style={{
-          position: "absolute",
-          top: "calc(1.5rem + 16rem + 8px)", // below the 64-height PiP cam
-          right: "1.5rem",
-          zIndex: 20,
-          padding: "5px 10px",
-          background: debugMode
-            ? "rgba(34,211,238,0.18)"
-            : "rgba(255,255,255,0.06)",
-          backdropFilter: "blur(12px)",
-          border: `1px solid ${debugMode ? "rgba(34,211,238,0.5)" : "rgba(255,255,255,0.12)"}`,
-          borderRadius: "8px",
-          color: debugMode ? "#22d3ee" : "#94a3b8",
-          fontSize: "11px",
-          fontFamily: "ui-monospace, monospace",
-          fontWeight: 600,
-          letterSpacing: "0.05em",
-          cursor: "pointer",
-          transition: "all 0.2s ease",
-          display: "flex",
-          alignItems: "center",
-          gap: "5px",
-        }}
-      >
-        🛠 {debugMode ? "Debug ON" : "Debug"}
-      </button>
+      <DebugToggle debugMode={debugMode} setDebugMode={setDebugMode} />
 
       {/* Persona overlay (Waveform) */}
       <div className="absolute bottom-24 left-6 z-10 pointer-events-none">
