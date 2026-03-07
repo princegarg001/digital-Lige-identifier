@@ -56,7 +56,10 @@ export function CallControls({
           active={isMicActive}
           variant="ghost"
           onClick={onToggleMic}
-          className={cn("rounded-full", !isMicActive && "bg-red-500/20 text-red-400 hover:bg-red-500/30")}
+          className={cn(
+            "rounded-full transition-all duration-300", 
+            !isMicActive && "bg-destructive/20 text-destructive hover:bg-destructive/30"
+          )}
         />
 
         {/* Camera */}
@@ -66,20 +69,24 @@ export function CallControls({
           active={isCameraActive}
           variant="ghost"
           onClick={onToggleCamera}
-          className={cn("rounded-full", !isCameraActive && "bg-red-500/20 text-red-400 hover:bg-red-500/30")}
+          className={cn(
+            "rounded-full transition-all duration-300", 
+            !isCameraActive && "bg-destructive/20 text-destructive hover:bg-destructive/30"
+          )}
         />
 
         {/* Connect / Disconnect */}
         <LiquidButton
           onClick={onToggleConnection}
           className={cn(
-            "flex items-center justify-center size-14 rounded-full transition-all duration-300 shadow-lg ml-2 border-0",
+            "flex items-center justify-center size-14 rounded-full transition-all duration-500 shadow-xl ml-2 border-0 active:scale-90",
             isConnected 
               ? "bg-destructive hover:bg-destructive/90 shadow-destructive/20 text-destructive-foreground" 
-              : "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20 text-primary-foreground"
+              : "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20 text-primary-foreground"
           )}
           title={isConnected ? "End session" : "Start session"}
         >
+
           {isConnected ? <PhoneOff className="w-6 h-6" /> : <Phone className="w-6 h-6" />}
         </LiquidButton>
 

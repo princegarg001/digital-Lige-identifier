@@ -10,11 +10,12 @@ interface StatusDotProps {
 }
 
 const statusColors = {
-  online: "bg-emerald-400",
-  connecting: "bg-amber-400",
-  offline: "bg-muted",
-  error: "bg-red-400",
+  online: "bg-emerald-500",
+  connecting: "bg-amber-500",
+  offline: "bg-muted-foreground/30",
+  error: "bg-destructive",
 };
+
 
 const sizeMap = {
   sm: "h-1.5 w-1.5",

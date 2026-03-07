@@ -45,39 +45,40 @@ export function ParticipantsList({
         <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mb-3 px-1">
           In this session — {participants.length}
         </p>
-        {participants.map((p) => (
+         {participants.map((p) => (
           <div
             key={p.id}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent transition-colors"
+            className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-white/5 transition-all duration-300 group"
           >
             {/* Avatar */}
             <div
               className={cn(
-                "w-9 h-9 rounded-full flex items-center justify-center relative",
+                "w-10 h-10 rounded-full flex items-center justify-center relative transition-transform duration-300 group-hover:scale-105",
                 p.role === "ai"
-                  ? "bg-cyan-500/15 border border-cyan-500/20"
-                  : "bg-emerald-500/15 border border-emerald-500/20"
+                  ? "bg-primary/10 border border-primary/20"
+                  : "bg-secondary/10 border border-secondary/20"
               )}
             >
               {p.role === "ai" ? (
-                <Bot className="w-4 h-4 text-cyan-400" />
+                <Bot className="w-5 h-5 text-primary" />
               ) : (
-                <User className="w-4 h-4 text-emerald-400" />
+                <User className="w-5 h-5 text-muted-foreground" />
               )}
-              <div className="absolute -bottom-0.5 -right-0.5">
+              <div className="absolute -bottom-0.5 -right-0.5 outline outline-background rounded-full">
                 <StatusDot status={p.status} size="sm" />
               </div>
             </div>
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
+              <p className="text-sm font-semibold text-foreground truncate">
                 {p.name}
               </p>
-              <p className="text-[10px] text-muted-foreground capitalize">
+              <p className="text-[11px] text-muted-foreground/70 font-medium">
                 {p.role === "ai" ? "Digital Persona" : "Participant"}
               </p>
             </div>
+
 
             {/* Media indicators */}
             <div className="flex items-center gap-1.5">

@@ -240,7 +240,7 @@ function HomePage() {
       </AnimatePresence>
 
       {/* Floating Bottom Controls */}
-      <div className="absolute bottom-6 left-0 right-0 z-10 flex justify-center pointer-events-none">
+      <div className="absolute bottom-8 left-0 right-0 z-10 flex justify-center pointer-events-none">
         <div className="pointer-events-auto">
           <CallControls
             isConnected={session.isConnected}
@@ -257,6 +257,7 @@ function HomePage() {
     </VideoCallLayout>
   );
 }
+
 
 // Export with error boundary
 export default function Home() {

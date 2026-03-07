@@ -41,38 +41,39 @@ export const ChatMessage = React.memo(function ChatMessage({
         className={cn(
           "w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5",
           isUser
-            ? "bg-emerald-500/15 border border-emerald-500/20"
-            : "bg-cyan-500/15 border border-cyan-500/20"
+            ? "bg-secondary/10 border border-secondary/10"
+            : "bg-primary/10 border border-primary/10"
         )}
       >
         {isUser ? (
           <User className="w-4 h-4 text-emerald-400" />
         ) : (
-          <Bot className="w-4 h-4 text-cyan-400" />
+          <Bot className="w-4 h-4 text-primary" />
         )}
       </div>
 
       {/* Bubble */}
-      <div className="flex flex-col gap-1 max-w-[75%]">
+      <div className="flex flex-col gap-1.5 max-w-[80%]">
         <div
           className={cn(
-            "rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
+            "rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm",
             isUser
-              ? "bg-emerald-500/10 text-emerald-50 border border-emerald-500/10 rounded-tr-sm"
-              : "bg-muted text-foreground border border-border rounded-tl-sm"
+              ? "bg-primary text-primary-foreground border-primary/20 rounded-tr-sm"
+              : "bg-muted/50 text-foreground border border-white/5 backdrop-blur-sm rounded-tl-sm"
           )}
         >
           {message.content}
         </div>
         <span
           className={cn(
-            "text-[10px] text-muted-foreground font-mono",
+            "text-[10px] text-muted-foreground font-medium opacity-60",
             isUser ? "text-right" : "text-left"
           )}
         >
           {formatTime(message.timestamp)}
         </span>
       </div>
+
     </div>
   );
 });

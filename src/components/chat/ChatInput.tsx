@@ -30,8 +30,8 @@ export function ChatInput({
   };
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <div className="flex-1 flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 focus-within:border-cyan-500/30 transition-colors">
+    <div className={cn("flex items-center gap-3", className)}>
+      <div className="flex-1 flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 focus-within:border-primary/40 focus-within:ring-1 focus-within:ring-primary/20 transition-all duration-300">
         <input
           ref={inputRef}
           type="text"
@@ -40,25 +40,26 @@ export function ChatInput({
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
           placeholder={placeholder}
           disabled={disabled}
-          className="flex-1 bg-transparent text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none disabled:opacity-50"
+          className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none disabled:opacity-50"
         />
         <Button
           variant="ghost"
           size="icon"
-          className="w-7 h-7 text-zinc-500 hover:text-zinc-300 shrink-0"
+          className="w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-white/5 shrink-0 rounded-lg transition-colors"
           disabled={disabled}
         >
-          <Paperclip className="w-3.5 h-3.5" />
+          <Paperclip className="w-4 h-4" />
         </Button>
       </div>
       <Button
         onClick={handleSend}
         disabled={disabled || !value.trim()}
-        className="size-10 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-primary-foreground shrink-0 transition-all duration-200 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
+        className="size-11 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 transition-all duration-300 shadow-[0_0_20px_rgba(var(--primary-rgb),0.2)] active:scale-95 flex items-center justify-center p-0"
         size="icon"
       >
-        <Send className="w-4 h-4" />
+        <Send className="w-5 h-5 ml-0.5" />
       </Button>
     </div>
   );
 }
+

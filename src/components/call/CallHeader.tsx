@@ -3,7 +3,9 @@
 import { GlassPanel } from "@/components/shared/GlassPanel";
 import { StatusDot } from "@/components/shared/StatusDot";
 import { Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { GeminiStatus } from "@/hooks/useGeminiLive";
+
 
 interface CallHeaderProps {
   status: GeminiStatus;
@@ -28,15 +30,15 @@ export function CallHeader({ status, sessionTime }: CallHeaderProps) {
   return (
     <header className="flex items-center justify-between px-5 py-3">
       <div className="flex items-center gap-3">
-        <GlassPanel rounded="xl" className="px-3 py-1.5 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-linear-to-br from-cyan-400 to-emerald-400 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+        <GlassPanel rounded="xl" className="px-3.5 py-2 flex items-center gap-3 bg-white/5 border-white/5 shadow-xl">
+          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]">
             <Sparkles className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-sm font-semibold tracking-wide text-white">
+            <h1 className="text-[13px] font-bold tracking-wider text-foreground">
               DIGITAL PERSONA
             </h1>
-            <p className="text-[10px] text-zinc-400 font-mono tracking-widest uppercase">
+            <p className="text-[9px] text-muted-foreground font-mono tracking-[0.2em] uppercase opacity-70">
               Substrate v1.0
             </p>
           </div>
@@ -44,33 +46,35 @@ export function CallHeader({ status, sessionTime }: CallHeaderProps) {
       </div>
 
       {/* Status Badges */}
-      <div className="flex items-center gap-3">
-        <GlassPanel rounded="xl" className="px-3 py-1.5 flex items-center gap-2">
-          <StatusDot status={statusMap[status]} />
+      <div className="flex items-center gap-4">
+        <GlassPanel rounded="xl" className="px-3.5 py-2 flex items-center gap-2.5 bg-white/5 border-white/5">
+          <StatusDot status={statusMap[status]} pulse={status === "connected"} />
           <span
-            className={`text-xs font-mono ${
+            className={cn(
+              "text-[11px] font-bold tracking-wide uppercase",
               status === "connected"
-                ? "text-emerald-400"
+                ? "text-emerald-500"
                 : status === "connecting"
-                ? "text-amber-400"
+                ? "text-amber-500"
                 : status === "error"
-                ? "text-red-400"
+                ? "text-destructive"
                 : "text-muted-foreground"
-            }`}
+            )}
           >
             {statusLabel[status]}
           </span>
         </GlassPanel>
 
         {sessionTime && status === "connected" && (
-          <GlassPanel rounded="xl" className="px-3 py-1.5">
-            <span className="text-xs font-mono text-cyan-400 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+          <GlassPanel rounded="xl" className="px-3.5 py-2 bg-white/5 border-white/5">
+            <span className="text-[11px] font-mono font-bold text-primary flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
               {sessionTime}
             </span>
           </GlassPanel>
         )}
       </div>
+
     </header>
   );
 }

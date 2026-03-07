@@ -197,48 +197,49 @@ const colorVariants: Record<
   }
 > = {
   default: {
-    outer: "bg-gradient-to-b from-[#000] to-[#A0A0A0]",
-    inner: "bg-gradient-to-b from-[#FAFAFA] via-[#3E3E3E] to-[#E5E5E5]",
-    button: "bg-gradient-to-b from-[#B9B9B9] to-[#969696]",
+    outer: "bg-gradient-to-b from-zinc-950 to-zinc-400",
+    inner: "bg-gradient-to-b from-zinc-50 via-zinc-800 to-zinc-200",
+    button: "bg-gradient-to-b from-zinc-300 to-zinc-500",
     textColor: "text-white",
-    textShadow: "[text-shadow:_0_-1px_0_rgb(80_80_80_/_100%)]",
+    textShadow: "[text-shadow:_0_-1px_0_rgba(0,0,0,0.5)]",
   },
   primary: {
-    outer: "bg-gradient-to-b from-[#000] to-[#A0A0A0]",
-    inner: "bg-gradient-to-b from-primary via-secondary to-muted",
-    button: "bg-gradient-to-b from-primary to-primary/40",
-    textColor: "text-white",
-    textShadow: "[text-shadow:_0_-1px_0_rgb(30_58_138_/_100%)]",
+    outer: "bg-gradient-to-b from-zinc-950 to-primary/40",
+    inner: "bg-gradient-to-b from-primary via-primary/20 to-primary/10",
+    button: "bg-gradient-to-b from-primary to-primary-foreground/10",
+    textColor: "text-primary-foreground",
+    textShadow: "[text-shadow:_0_-1px_0_rgba(var(--primary-rgb),0.5)]",
   },
   success: {
     outer: "bg-gradient-to-b from-[#005A43] to-[#7CCB9B]",
     inner: "bg-gradient-to-b from-[#E5F8F0] via-[#00352F] to-[#D1F0E6]",
     button: "bg-gradient-to-b from-[#9ADBC8] to-[#3E8F7C]",
     textColor: "text-[#FFF7F0]",
-    textShadow: "[text-shadow:_0_-1px_0_rgb(6_78_59_/_100%)]",
+    textShadow: "[text-shadow:_0_-1px_0_rgba(6,78,59,0.5)]",
   },
   error: {
-    outer: "bg-gradient-to-b from-[#5A0000] to-[#FFAEB0]",
-    inner: "bg-gradient-to-b from-[#FFDEDE] via-[#680002] to-[#FFE9E9]",
-    button: "bg-gradient-to-b from-[#F08D8F] to-[#A45253]",
-    textColor: "text-[#FFF7F0]",
-    textShadow: "[text-shadow:_0_-1px_0_rgb(146_64_14_/_100%)]",
+    outer: "bg-gradient-to-b from-destructive/80 to-destructive/20",
+    inner: "bg-gradient-to-b from-destructive/10 via-destructive/60 to-destructive/20",
+    button: "bg-gradient-to-b from-destructive/40 to-destructive/80",
+    textColor: "text-destructive-foreground",
+    textShadow: "[text-shadow:_0_-1px_0_rgba(0,0,0,0.3)]",
   },
   gold: {
     outer: "bg-gradient-to-b from-[#917100] to-[#EAD98F]",
     inner: "bg-gradient-to-b from-[#FFFDDD] via-[#856807] to-[#FFF1B3]",
     button: "bg-gradient-to-b from-[#FFEBA1] to-[#9B873F]",
     textColor: "text-[#FFFDE5]",
-    textShadow: "[text-shadow:_0_-1px_0_rgb(178_140_2_/_100%)]",
+    textShadow: "[text-shadow:_0_-1px_0_rgba(178,140,2,0.5)]",
   },
   bronze: {
     outer: "bg-gradient-to-b from-[#864813] to-[#E9B486]",
     inner: "bg-gradient-to-b from-[#EDC5A1] via-[#5F2D01] to-[#FFDEC1]",
     button: "bg-gradient-to-b from-[#FFE3C9] to-[#A36F3D]",
     textColor: "text-[#FFF7F0]",
-    textShadow: "[text-shadow:_0_-1px_0_rgb(124_45_18_/_100%)]",
+    textShadow: "[text-shadow:_0_-1px_0_rgba(124,45,18,0.5)]",
   },
 };
+
  
 const metalButtonVariants = (
   variant: ColorVariant = "default",

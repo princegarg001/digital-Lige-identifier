@@ -22,29 +22,29 @@ export function ChatHeader({
   ];
 
   return (
-    <div className="px-5 pt-4 pb-0">
+    <div className="px-6 pt-5 pb-0">
       {/* Title row */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2.5 mb-5">
         <StatusDot
           status={isConnected ? "online" : "offline"}
           size="sm"
         />
-        <h2 className="text-sm font-semibold text-white tracking-wide">
+        <h2 className="text-sm font-semibold text-foreground tracking-wide opacity-90">
           Group Chat
         </h2>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-muted rounded-lg p-1">
+      <div className="flex gap-1.5 bg-white/5 border border-white/5 rounded-[14px] p-1.5 backdrop-blur-sm">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => onTabChange(tab.key)}
             className={cn(
-              "flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
+              "flex-1 px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-300",
               activeTab === tab.key
-                ? "bg-cyan-500 text-primary-foreground shadow-[0_0_12px_rgba(34,211,238,0.2)]"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                ? "bg-primary text-primary-foreground shadow-[0_4px_15px_rgba(var(--primary-rgb),0.25)] ring-1 ring-white/10"
+                : "text-muted-foreground hover:text-foreground hover:bg-white/10"
             )}
           >
             {tab.label}

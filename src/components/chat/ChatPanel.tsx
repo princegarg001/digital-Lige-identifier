@@ -31,7 +31,10 @@ export function ChatPanel({
     <GlassPanel
       variant="heavy"
       rounded="3xl"
-      className={cn("h-full flex flex-col min-h-0 overflow-hidden shadow-2xl backdrop-blur-md bg-black/40 border border-white/10", className)}
+      className={cn(
+        "h-full flex flex-col min-h-0 overflow-hidden shadow-2xl backdrop-blur-xl bg-black/50 border-white/5",
+        className
+      )}
     >
       {/* Header with Tabs */}
       <ChatHeader
@@ -40,7 +43,7 @@ export function ChatPanel({
         isConnected={isConnected}
       />
 
-      <Separator className="bg-white/5 mt-3" />
+      <Separator className="bg-white/5 mt-4" />
 
       {/* Content based on active tab */}
       {activeTab === "messages" ? (
@@ -50,7 +53,7 @@ export function ChatPanel({
             isTyping={isTyping}
           />
           <Separator className="bg-white/5" />
-          <div className="p-3">
+          <div className="p-4 bg-white/5">
             <ChatInput
               onSend={onSendText}
               disabled={!isConnected}
@@ -68,3 +71,4 @@ export function ChatPanel({
     </GlassPanel>
   );
 }
+

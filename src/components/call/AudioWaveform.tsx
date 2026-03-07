@@ -59,7 +59,8 @@ export const AudioWaveform = React.memo(function AudioWaveform({
         <div
           key={i}
           ref={(el) => { barsRef.current[i] = el; }}
-          className="w-0.75 rounded-full bg-cyan-400 transition-colors"
+          className="w-0.75 rounded-full bg-primary transition-colors opacity-80"
+
           style={{ height: "15%" }}
         />
       ))}
