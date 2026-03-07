@@ -39,14 +39,15 @@ function SceneInner({
 
   return (
     <Canvas
-      camera={{ position: config.camera.position as [number, number, number], fov: config.camera.fov }}
+      camera={{ position: config.camera.position as [number, number, number], fov: config.camera.fov || 50 }}
       shadows="soft"
       dpr={[1, 1.5]}
       gl={{ 
         antialias: true, 
         alpha: true,
+        preserveDrawingBuffer: true,
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.2
+        toneMappingExposure: 1.8
       }}
       style={{ background: "transparent" }}
     >
