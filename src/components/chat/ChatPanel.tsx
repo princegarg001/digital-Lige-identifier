@@ -7,6 +7,7 @@ import { ChatMessageList } from "./ChatMessageList";
 import { ChatInput } from "./ChatInput";
 import { ParticipantsList } from "./ParticipantsList";
 import { SkinSelector } from "./SkinSelector";
+import { ConfigPanel } from "./ConfigPanel";
 import { Separator } from "@/components/ui/separator";
 import { type ChatMessageData } from "./ChatMessage";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,7 @@ interface ChatPanelProps {
   className?: string;
   selectedSkinId: string | null;
   onSkinChange: (preset: SkinPreset) => void;
+  debugMode?: boolean;
 }
 
 export function ChatPanel({
@@ -30,6 +32,7 @@ export function ChatPanel({
   className,
   selectedSkinId,
   onSkinChange,
+  debugMode = false,
 }: ChatPanelProps) {
   const [activeTab, setActiveTab] = useState<ChatTab>("messages");
 
@@ -47,6 +50,7 @@ export function ChatPanel({
         activeTab={activeTab}
         onTabChange={setActiveTab}
         isConnected={isConnected}
+        showConfigTab={debugMode}
       />
 
       <Separator className="bg-white/5 mt-4" />
@@ -76,6 +80,8 @@ export function ChatPanel({
           selectedSkinId={selectedSkinId}
           onSkinChange={onSkinChange}
         />
+      ) : activeTab === "config" ? (
+        <ConfigPanel />
       ) : (
         <ParticipantsList isConnected={isConnected} />
       )}

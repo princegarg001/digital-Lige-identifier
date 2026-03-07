@@ -9,7 +9,7 @@ import {
 import React, { Suspense, lazy } from "react";
 import { Avatar } from "./Avatar";
 import { SkinPreset } from "@/lib/skinConfig";
-import cameraConfig from "@/config/camera.json";
+import { useSceneConfig } from "@/hooks/SceneConfigContext";
 
 const DebugCameraPanel = lazy(() => import("./DebugCameraPanel"));
 
@@ -23,20 +23,19 @@ interface SceneProps {
 
 /**
  * 3D canvas — video-call style 3-point lighting rig.
- * Cinematic but real-time fast; no orbit/float for video-call realism.
- *
- * Pass `debug={true}` to enable OrbitControls and the live camera debug panel.
- * Run `localStorage.getItem('scene_camera_debug')` to see persisted position.
+ * Reads all settings from SceneConfigContext for live reactivity.
  */
-export default function Scene({
+function SceneInner({
   audioLevelRef,
   currentAnimation,
   skinPreset,
   debug = false,
 }: SceneProps) {
+  const { config, features } = useSceneConfig();
+
   return (
     <Canvas
-      camera={{ position: cameraConfig.camera.position as [number, number, number], fov: cameraConfig.camera.fov }}
+      camera={{ position: config.camera.position as [number, number, number], fov: config.camera.fov }}
       shadows
       gl={{ antialias: true, alpha: true }}
       style={{ background: "transparent" }}
@@ -44,46 +43,46 @@ export default function Scene({
       {/* ── Base ambient fill ─────────────────────────────── */}
       <ambientLight intensity={0.3} />
 
-      {/* ── Key light: main face illumination (warm white) ── */}
+      {/* ── Key light ── */}
       <spotLight
-        position={cameraConfig.lighting.keyLight.position as [number, number, number]}
+        position={config.lighting.keyLight.position as [number, number, number]}
         angle={0.25}
         penumbra={0.8}
-        intensity={cameraConfig.lighting.keyLight.intensity}
+        intensity={config.lighting.keyLight.intensity}
         castShadow
         shadow-mapSize={1024}
-        color={cameraConfig.lighting.keyLight.color}
+        color={config.lighting.keyLight.color}
       />
 
-      {/* ── Fill light: soft left bounce (cool white) ──────── */}
+      {/* ── Fill light ── */}
       <spotLight
-        position={cameraConfig.lighting.fillLight.position as [number, number, number]}
+        position={config.lighting.fillLight.position as [number, number, number]}
         angle={0.35}
         penumbra={1}
-        intensity={cameraConfig.lighting.fillLight.intensity}
-        color={cameraConfig.lighting.fillLight.color}
+        intensity={config.lighting.fillLight.intensity}
+        color={config.lighting.fillLight.color}
       />
 
-      {/* ── Rim light: hair/edge separation (neutral white) ── */}
+      {/* ── Rim light ── */}
       <pointLight
-        position={cameraConfig.lighting.rimLight.position as [number, number, number]}
-        intensity={cameraConfig.lighting.rimLight.intensity}
-        color={cameraConfig.lighting.rimLight.color}
+        position={config.lighting.rimLight.position as [number, number, number]}
+        intensity={config.lighting.rimLight.intensity}
+        color={config.lighting.rimLight.color}
       />
 
       <Suspense fallback={null}>
         <group
-          position={cameraConfig.avatar.position as [number, number, number]}
-          rotation={cameraConfig.avatar.rotation as [number, number, number]}
-          scale={cameraConfig.avatar.scale}
+          position={config.avatar.position as [number, number, number]}
+          rotation={config.avatar.rotation as [number, number, number]}
+          scale={config.avatar.scale}
         >
           <Avatar
             audioLevelRef={audioLevelRef}
             currentAnimation={currentAnimation}
             skinPreset={skinPreset}
+            featureToggles={features}
           />
         </group>
-        {/* Studio preset: neutral grey background IBL — best for skin tones */}
         <Environment preset="studio" />
       </Suspense>
 
@@ -105,7 +104,7 @@ export default function Scene({
             dampingFactor={0.05}
             enableZoom={true}
             enablePan={true}
-            target={cameraConfig.camera.target as [number, number, number]}
+            target={config.camera.target as [number, number, number]}
           />
           <Suspense fallback={null}>
             <DebugCameraPanel />
@@ -114,4 +113,9 @@ export default function Scene({
       )}
     </Canvas>
   );
+}
+
+// Re-export as default — SceneInner already reads from context
+export default function Scene(props: SceneProps) {
+  return <SceneInner {...props} />;
 }

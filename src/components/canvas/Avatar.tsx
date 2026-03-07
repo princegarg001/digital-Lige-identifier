@@ -21,6 +21,7 @@ import {
 } from "@/lib/constants";
 import { SkinPreset } from "@/lib/skinConfig";
 import { useSkinTexture } from "@/hooks/useSkinTexture";
+import { type FeatureToggles } from "@/hooks/SceneConfigContext";
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -54,13 +55,22 @@ interface AvatarProps {
   audioLevelRef: React.RefObject<number>;
   currentAnimation?: string;
   skinPreset?: SkinPreset | null;
+  featureToggles?: FeatureToggles;
 }
+
+const DEFAULT_FEATURES: FeatureToggles = {
+  lipSync: true,
+  breathing: true,
+  gazeDrift: true,
+  blinking: true,
+  hoverSmile: true,
+};
 
 /**
  * Wolf3D avatar with real-time lip-sync, idle breathing,
  * MeshPhysicalMaterial skin with SSS, and gaze drift.
  */
-export function Avatar({ audioLevelRef, currentAnimation, skinPreset = null }: AvatarProps) {
+export function Avatar({ audioLevelRef, currentAnimation, skinPreset = null, featureToggles = DEFAULT_FEATURES }: AvatarProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -117,7 +127,7 @@ export function Avatar({ audioLevelRef, currentAnimation, skinPreset = null }: A
     const head = nodes.Wolf3D_Head;
     const teeth = nodes.Wolf3D_Teeth;
 
-    if (head?.morphTargetDictionary && head?.morphTargetInfluences) {
+    if (featureToggles.lipSync && head?.morphTargetDictionary && head?.morphTargetInfluences) {
       const jawIdx = head.morphTargetDictionary["jawOpen"];
       const mouthIdx = head.morphTargetDictionary["mouthOpen"];
 
@@ -131,7 +141,7 @@ export function Avatar({ audioLevelRef, currentAnimation, skinPreset = null }: A
     }
 
     // Teeth follow the jaw
-    if (teeth?.morphTargetDictionary && teeth?.morphTargetInfluences) {
+    if (featureToggles.lipSync && teeth?.morphTargetDictionary && teeth?.morphTargetInfluences) {
       const jawIdx = teeth.morphTargetDictionary["jawOpen"];
       if (jawIdx !== undefined) {
         teeth.morphTargetInfluences[jawIdx] = Math.min(1, level * LIP_SYNC_JAW_MULTIPLIER);
@@ -139,7 +149,7 @@ export function Avatar({ audioLevelRef, currentAnimation, skinPreset = null }: A
     }
 
     // ARKit Hover Smile Effect
-    if (head?.morphTargetDictionary && head?.morphTargetInfluences) {
+    if (featureToggles.hoverSmile && head?.morphTargetDictionary && head?.morphTargetInfluences) {
       const smileLeftIdx = head.morphTargetDictionary["mouthSmileLeft"];
       const smileRightIdx = head.morphTargetDictionary["mouthSmileRight"];
       const cheekLeftIdx = head.morphTargetDictionary["cheekSquintLeft"];
@@ -163,33 +173,34 @@ export function Avatar({ audioLevelRef, currentAnimation, skinPreset = null }: A
     }
 
     // Subtle idle breathing — small Y oscillation on Hips
-    if (nodes.Hips) {
+    if (featureToggles.breathing && nodes.Hips) {
       nodes.Hips.position.y =
         Math.sin(Date.now() * BREATHING_SPEED) * BREATHING_AMPLITUDE;
     }
 
     // ── Gaze behavior: look at camera when speaking, drift when listening ───
-    const headNode = nodes.Head || scene.getObjectByName("Head");
-    if (headNode) {
-      if (level > 0.05) {
-        // Speaking → look straight at camera
-        headNode.lookAt(camera.position.x, camera.position.y, camera.position.z);
-      } else {
-        // Listening → subtle Lissajou gaze drift (feels alive, not robotic)
-        gazePhaseRef.current += 0.003;
-        const t = gazePhaseRef.current;
-        const driftX = Math.sin(t * 1.3) * 0.04;
-        const driftY = Math.sin(t * 0.9) * 0.025;
-        headNode.lookAt(
-          camera.position.x + driftX,
-          camera.position.y + driftY,
-          camera.position.z
-        );
+    if (featureToggles.gazeDrift) {
+      const headNode = nodes.Head || scene.getObjectByName("Head");
+      if (headNode) {
+        if (level > 0.05) {
+          headNode.lookAt(camera.position.x, camera.position.y, camera.position.z);
+        } else {
+          gazePhaseRef.current += 0.003;
+          const t = gazePhaseRef.current;
+          const driftX = Math.sin(t * 1.3) * 0.04;
+          const driftY = Math.sin(t * 0.9) * 0.025;
+          headNode.lookAt(
+            camera.position.x + driftX,
+            camera.position.y + driftY,
+            camera.position.z
+          );
+        }
       }
     }
 
+
     // ── Blink (every ~4 seconds, slight randomness) ──────────────────────────
-    if (head?.morphTargetDictionary && head?.morphTargetInfluences) {
+    if (featureToggles.blinking && head?.morphTargetDictionary && head?.morphTargetInfluences) {
       const blinkLeftIdx = head.morphTargetDictionary["eyeBlinkLeft"];
       const blinkRightIdx = head.morphTargetDictionary["eyeBlinkRight"];
       const blinkCycle = Math.abs(Math.sin(clock.elapsedTime * 0.8 + 1.2));

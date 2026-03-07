@@ -31,6 +31,9 @@ import { useChatMessages } from "@/hooks/useChatMessages";
 // Skin
 import { SkinPreset, SKIN_PRESETS } from "@/lib/skinConfig";
 
+// Scene Config
+import { SceneConfigProvider } from "@/hooks/SceneConfigContext";
+
 
 // 3D Scene (lazy, no SSR)
 const Scene = dynamic(() => import("@/components/canvas/Scene"), {
@@ -193,6 +196,7 @@ function HomePage() {
   }
 
   return (
+    <SceneConfigProvider>
     <VideoCallLayout
       isChatOpen={isChatOpen}
       chatPanel={
@@ -203,17 +207,17 @@ function HomePage() {
           isTyping={chat.isTyping}
           selectedSkinId={selectedSkin?.id ?? null}
           onSkinChange={setSelectedSkin}
+          debugMode={debugMode}
         />
       }
     >
-      {/* 3D Scene Background */}
       <div className="absolute inset-0 scan-line z-0" data-persona-mode={personaMode}>
-        <Scene
-          audioLevelRef={session.audioLevelRef}
-          currentAnimation={currentAnimation}
-          skinPreset={selectedSkin}
-          debug={debugMode}
-        />
+          <Scene
+            audioLevelRef={session.audioLevelRef}
+            currentAnimation={currentAnimation}
+            skinPreset={selectedSkin}
+            debug={debugMode}
+          />
       </div>
 
       {/* Floating Header */}
@@ -247,9 +251,9 @@ function HomePage() {
         />
       </div>
 
-      {/* Idle Screen */}
+      {/* Idle Screen — hidden when config/debug mode is active */}
       <AnimatePresence>
-        {!session.isConnected && session.status !== "connecting" && (
+        {!debugMode && !session.isConnected && session.status !== "connecting" && (
           <IdleScreen onStart={session.toggleSession} />
         )}
       </AnimatePresence>
@@ -270,6 +274,7 @@ function HomePage() {
         </div>
       </div>
     </VideoCallLayout>
+    </SceneConfigProvider>
   );
 }
 

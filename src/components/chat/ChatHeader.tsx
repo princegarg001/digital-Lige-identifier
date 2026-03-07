@@ -3,23 +3,26 @@
 import { cn } from "@/lib/utils";
 import { StatusDot } from "@/components/shared/StatusDot";
 
-export type ChatTab = "messages" | "participants" | "skins";
+export type ChatTab = "messages" | "participants" | "skins" | "config";
 
 interface ChatHeaderProps {
   activeTab: ChatTab;
   onTabChange: (tab: ChatTab) => void;
   isConnected: boolean;
+  showConfigTab?: boolean;
 }
 
 export function ChatHeader({
   activeTab,
   onTabChange,
   isConnected,
+  showConfigTab = false,
 }: ChatHeaderProps) {
   const tabs: { key: ChatTab; label: string }[] = [
     { key: "messages", label: "Messages" },
     { key: "participants", label: "People" },
     { key: "skins", label: "🎨 Skins" },
+    ...(showConfigTab ? [{ key: "config" as ChatTab, label: "⚙ Config" }] : []),
   ];
 
   return (

@@ -38,7 +38,7 @@ export function DebugToggle({
         gap: "5px",
       }}
     >
-      🛠 {debugMode ? "Debug ON" : "Debug"}
+      ⚙ {debugMode ? "Config ON" : "Config"}
     </button>
   );
 }
