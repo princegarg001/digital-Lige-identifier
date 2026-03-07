@@ -28,13 +28,13 @@ export function CallHeader({ status, sessionTime }: CallHeaderProps) {
   };
 
   return (
-    <header className="flex items-center justify-between px-5 py-3">
+    <header className="flex flex-col gap-3">
       <div className="flex items-center gap-3">
-        <GlassPanel rounded="xl" className="px-3.5 py-2 flex items-center gap-3 bg-white/5 border-white/5 shadow-xl">
-          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]">
+        <GlassPanel rounded="xl" className="px-3.5 py-3 flex items-center gap-3 bg-white/5 border-white/5 shadow-xl">
+          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)] shrink-0">
             <Sparkles className="w-5 h-5 text-primary-foreground" />
           </div>
-          <div>
+          <div className="pr-2">
             <h1 className="text-[13px] font-bold tracking-wider text-foreground">
               DIGITAL PERSONA
             </h1>
@@ -46,12 +46,12 @@ export function CallHeader({ status, sessionTime }: CallHeaderProps) {
       </div>
 
       {/* Status Badges */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 pl-2">
         <GlassPanel rounded="xl" className="px-3.5 py-2 flex items-center gap-2.5 bg-white/5 border-white/5">
           <StatusDot status={statusMap[status]} pulse={status === "connected"} />
           <span
             className={cn(
-              "text-[11px] font-bold tracking-wide uppercase",
+              "text-[10px] font-bold tracking-wide uppercase",
               status === "connected"
                 ? "text-emerald-500"
                 : status === "connecting"
@@ -66,15 +66,14 @@ export function CallHeader({ status, sessionTime }: CallHeaderProps) {
         </GlassPanel>
 
         {sessionTime && status === "connected" && (
-          <GlassPanel rounded="xl" className="px-3.5 py-2 bg-white/5 border-white/5">
-            <span className="text-[11px] font-mono font-bold text-primary flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+          <GlassPanel rounded="xl" className="px-3.5 py-2 flex items-center gap-2 bg-white/5 border-white/5">
+            <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+            <span className="text-[10px] font-mono font-bold text-primary leading-none mt-0.5">
               {sessionTime}
             </span>
           </GlassPanel>
         )}
       </div>
-
     </header>
   );
 }

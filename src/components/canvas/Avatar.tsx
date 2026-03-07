@@ -30,6 +30,7 @@ type GLTFResult = GLTF & {
     Wolf3D_Head: THREE.SkinnedMesh;
     Wolf3D_Teeth: THREE.SkinnedMesh;
     Hips: THREE.Bone;
+    Head?: THREE.Bone;
   };
   materials: {
     Wolf3D_Hair: THREE.MeshStandardMaterial;
@@ -98,7 +99,7 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
   // Smoothed value for lip-sync
   const smoothedLevel = useRef(0);
 
-  useFrame(() => {
+  useFrame(({ camera }) => {
     const rawLevel = audioLevelRef.current ?? 0;
 
     // Smooth the audio level to avoid jitter
@@ -160,6 +161,12 @@ export function Avatar({ audioLevelRef, currentAnimation }: AvatarProps) {
     if (nodes.Hips) {
       nodes.Hips.position.y =
         Math.sin(Date.now() * BREATHING_SPEED) * BREATHING_AMPLITUDE;
+    }
+
+    // Make avatar look at the camera
+    const headNode = nodes.Head || scene.getObjectByName("Head");
+    if (headNode) {
+      headNode.lookAt(camera.position.x, camera.position.y, camera.position.z);
     }
   });
 
