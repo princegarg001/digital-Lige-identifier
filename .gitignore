@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/tmp_visage
 /.pnp
 .pnp.*
 .yarn/*
