@@ -17,10 +17,21 @@ export async function POST(req: Request) {
       console.warn("Could not read existing camera.json, creating new one.");
     }
 
-    // Merge the data
+    const existing = existingData as Record<string, unknown>;
+    const incoming = data as Record<string, unknown>;
+
+    type ConfigNode = Record<string, unknown>;
+    const e = existing as Record<string, ConfigNode>;
+    const i = incoming as Record<string, ConfigNode>;
+
+    // Deep merge the data
     const mergedData = {
-      ...existingData,
-      ...data,
+      ...existing,
+      ...incoming,
+      camera: { ...(e.camera || {}), ...(i.camera || {}) },
+      avatar: { ...(e.avatar || {}), ...(i.avatar || {}) },
+      lighting: { ...(e.lighting || {}), ...(i.lighting || {}) },
+      features: { ...(e.features || {}), ...(i.features || {}) },
     };
     
     // Write back to the config file

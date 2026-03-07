@@ -66,7 +66,7 @@ describe('Avatar Component', () => {
       expect(() => {
         render(
           <Canvas>
-            <Avatar audioLevelRef={mockAudioLevelRef} />
+            <Avatar audioLevelRef={mockAudioLevelRef} avatarUrl="/avatars/avatar-transformed.glb" />
           </Canvas>
         );
       }).not.toThrow();
@@ -77,7 +77,7 @@ describe('Avatar Component', () => {
       expect(() => {
         render(
           <Canvas>
-            <Avatar audioLevelRef={mockAudioLevelRefWithLevel} />
+            <Avatar audioLevelRef={mockAudioLevelRefWithLevel} avatarUrl="/avatars/avatar-transformed.glb" />
           </Canvas>
         );
       }).not.toThrow();

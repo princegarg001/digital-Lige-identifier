@@ -208,7 +208,7 @@ function LightEditor({
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
 export function ConfigPanel() {
-  const { config, features, setConfig, toggleFeature } = useSceneConfig();
+  const { config, setConfig, avatarRegistry } = useSceneConfig();
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -250,6 +250,13 @@ export function ConfigPanel() {
       lighting: { ...d.lighting, [key]: l },
     }));
 
+  const toggleFeatureLocal = (key: keyof FeatureToggles) => {
+    setDraft((d) => ({
+      ...d,
+      features: { ...d.features, [key]: !d.features[key] },
+    }));
+  };
+
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-black/10">
       {/* Scrollable Area for Settings */}
@@ -277,6 +284,22 @@ export function ConfigPanel() {
 
       {/* ── Avatar Section ────────────────────────────────────── */}
       <Section title="Avatar" accent="#a78bfa">
+        {/* Model Selector */}
+        <div>
+          <p className="text-[10px] text-muted-foreground/60 mb-1">Model</p>
+          <select
+            value={draft.avatar.model}
+            onChange={(e) => patchAvatar({ model: e.target.value })}
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-2.5 py-2 text-[11px] text-foreground/90 font-medium focus:outline-none focus:border-violet-400/50 cursor-pointer appearance-none transition-colors hover:bg-white/8"
+            style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%239ca3af%27 stroke-width=%272%27%3E%3Cpolyline points=%276 9 12 15 18 9%27/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
+          >
+            {avatarRegistry.map((a) => (
+              <option key={a.id} value={a.id} className="bg-zinc-900 text-white">
+                {a.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <Vec3Input
           label="Position"
           value={draft.avatar.position}
@@ -316,12 +339,12 @@ export function ConfigPanel() {
 
       {/* ── Feature Toggles ───────────────────────────────────── */}
       <Section title="Features" accent="#6ee7b7" defaultOpen={true}>
-        {(Object.keys(features) as (keyof FeatureToggles)[]).map((key) => (
+        {(Object.keys(draft.features) as (keyof FeatureToggles)[]).map((key) => (
           <ToggleSwitch
             key={key}
             label={key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase())}
-            checked={features[key]}
-            onChange={() => toggleFeature(key)}
+            checked={draft.features[key]}
+            onChange={() => toggleFeatureLocal(key)}
           />
         ))}
       </Section>

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 import initialConfig from "@/config/camera.json";
+import { type AvatarEntry, DEFAULT_AVATARS, fetchAvatarRegistry } from "@/lib/avatars";
 
 /* ─── Types ────────────────────────────────────────────────────────────────── */
 
@@ -21,12 +22,14 @@ export interface SceneConfig {
     position: [number, number, number];
     rotation: [number, number, number];
     scale: number;
+    model: string;
   };
   lighting: {
     keyLight: LightConfig;
     fillLight: LightConfig;
     rimLight: LightConfig;
   };
+  features: FeatureToggles;
 }
 
 export interface FeatureToggles {
@@ -34,16 +37,15 @@ export interface FeatureToggles {
   breathing: boolean;
   gazeDrift: boolean;
   blinking: boolean;
-  hoverSmile: boolean;
+  hoverEffect: boolean;
 }
 
 interface SceneConfigContextValue {
   config: SceneConfig;
-  features: FeatureToggles;
   updateConfig: (patch: Partial<SceneConfig>) => void;
   setConfig: (full: SceneConfig) => void;
   toggleFeature: (key: keyof FeatureToggles) => void;
-  setFeatures: (f: FeatureToggles) => void;
+  avatarRegistry: AvatarEntry[];
 }
 
 /* ─── Defaults ─────────────────────────────────────────────────────────────── */
@@ -53,7 +55,7 @@ const DEFAULT_FEATURES: FeatureToggles = {
   breathing: true,
   gazeDrift: true,
   blinking: true,
-  hoverSmile: true,
+  hoverEffect: true,
 };
 
 const SceneConfigCtx = createContext<SceneConfigContextValue | null>(null);
@@ -61,17 +63,25 @@ const SceneConfigCtx = createContext<SceneConfigContextValue | null>(null);
 /* ─── Provider ─────────────────────────────────────────────────────────────── */
 
 export function SceneConfigProvider({ children }: { children: ReactNode }) {
-  const [config, _setConfig] = useState<SceneConfig>(initialConfig as SceneConfig);
-  const [features, setFeatures] = useState<FeatureToggles>(DEFAULT_FEATURES);
+  // Ensure default features exist if loading from older JSON without them
+  const initial: SceneConfig = {
+    ...initialConfig,
+    features: {
+      ...DEFAULT_FEATURES,
+      ...((initialConfig as Record<string, unknown>).features as Partial<FeatureToggles> || {}),
+    },
+  } as SceneConfig;
+
+  const [config, _setConfig] = useState<SceneConfig>(initial);
 
   const updateConfig = useCallback((patch: Partial<SceneConfig>) => {
     _setConfig((prev) => ({
       ...prev,
       ...patch,
-      // Deep merge nested objects
       camera: patch.camera ? { ...prev.camera, ...patch.camera } : prev.camera,
       avatar: patch.avatar ? { ...prev.avatar, ...patch.avatar } : prev.avatar,
       lighting: patch.lighting ? { ...prev.lighting, ...patch.lighting } : prev.lighting,
+      features: patch.features ? { ...prev.features, ...patch.features } : prev.features,
     }));
   }, []);
 
@@ -80,12 +90,21 @@ export function SceneConfigProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggleFeature = useCallback((key: keyof FeatureToggles) => {
-    setFeatures((prev) => ({ ...prev, [key]: !prev[key] }));
+    _setConfig((prev) => ({
+      ...prev,
+      features: { ...prev.features, [key]: !prev.features[key] },
+    }));
+  }, []);
+
+  // Load avatar registry from public/avatars/index.json
+  const [avatarRegistry, setAvatarRegistry] = useState<AvatarEntry[]>(DEFAULT_AVATARS);
+  useEffect(() => {
+    fetchAvatarRegistry().then(setAvatarRegistry);
   }, []);
 
   return (
     <SceneConfigCtx.Provider
-      value={{ config, features, updateConfig, setConfig, toggleFeature, setFeatures }}
+      value={{ config, updateConfig, setConfig, toggleFeature, avatarRegistry }}
     >
       {children}
     </SceneConfigCtx.Provider>

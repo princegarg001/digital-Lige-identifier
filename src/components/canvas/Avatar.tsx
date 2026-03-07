@@ -53,6 +53,7 @@ type GLTFResult = GLTF & {
 
 interface AvatarProps {
   audioLevelRef: React.RefObject<number>;
+  avatarUrl: string;
   currentAnimation?: string;
   skinPreset?: SkinPreset | null;
   featureToggles?: FeatureToggles;
@@ -63,18 +64,17 @@ const DEFAULT_FEATURES: FeatureToggles = {
   breathing: true,
   gazeDrift: true,
   blinking: true,
-  hoverSmile: true,
+  hoverEffect: true,
 };
 
 /**
  * Wolf3D avatar with real-time lip-sync, idle breathing,
  * MeshPhysicalMaterial skin with SSS, and gaze drift.
  */
-export function Avatar({ audioLevelRef, currentAnimation, skinPreset = null, featureToggles = DEFAULT_FEATURES }: AvatarProps) {
+export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, skinPreset = null, featureToggles = DEFAULT_FEATURES }: AvatarProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
-  const avatarUrl = process.env.NEXT_PUBLIC_AVATAR_GLB ? `/${process.env.NEXT_PUBLIC_AVATAR_GLB}` : "/avatar-transformed.glb";
   const { scene, animations: avatarAnimations } = useGLTF(avatarUrl);
 
   // Load official animations
@@ -149,7 +149,7 @@ export function Avatar({ audioLevelRef, currentAnimation, skinPreset = null, fea
     }
 
     // ARKit Hover Smile Effect
-    if (featureToggles.hoverSmile && head?.morphTargetDictionary && head?.morphTargetInfluences) {
+    if (featureToggles.hoverEffect && head?.morphTargetDictionary && head?.morphTargetInfluences) {
       const smileLeftIdx = head.morphTargetDictionary["mouthSmileLeft"];
       const smileRightIdx = head.morphTargetDictionary["mouthSmileRight"];
       const cheekLeftIdx = head.morphTargetDictionary["cheekSquintLeft"];
@@ -223,7 +223,9 @@ export function Avatar({ audioLevelRef, currentAnimation, skinPreset = null, fea
       onPointerOver={(e) => {
         e.stopPropagation();
         setHovered(true);
-        document.body.style.cursor = "pointer";
+        if (featureToggles.hoverEffect) {
+          document.body.style.cursor = "pointer";
+        }
       }}
       onPointerOut={() => {
         setHovered(false);
@@ -236,7 +238,7 @@ export function Avatar({ audioLevelRef, currentAnimation, skinPreset = null, fea
           setTimeout(() => actions["wave"]?.fadeOut(0.5), 2000);
         }
       }}
-      scale={hovered ? 1.05 : 1}
+      scale={(hovered && featureToggles.hoverEffect) ? 1.05 : 1}
     >
       <primitive object={nodes.Hips} />
       <skinnedMesh
@@ -307,11 +309,6 @@ export function Avatar({ audioLevelRef, currentAnimation, skinPreset = null, fea
   );
 }
 
-// Preload the specific files so they load faster
-if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_AVATAR_GLB) {
-  useGLTF.preload(`/${process.env.NEXT_PUBLIC_AVATAR_GLB}`);
-} else {
-  useGLTF.preload("/avatar-transformed.glb");
-}
+// Preload animations (avatar model is preloaded by Scene based on config)
 useGLTF.preload("/animations/idle.glb");
 useGLTF.preload("/animations/wave.glb");

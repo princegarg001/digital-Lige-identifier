@@ -9,6 +9,7 @@ import {
 import React, { Suspense, lazy } from "react";
 import { Avatar } from "./Avatar";
 import { SkinPreset } from "@/lib/skinConfig";
+import { getAvatarUrl } from "@/lib/avatars";
 import { useSceneConfig } from "@/hooks/SceneConfigContext";
 
 const DebugCameraPanel = lazy(() => import("./DebugCameraPanel"));
@@ -31,7 +32,9 @@ function SceneInner({
   skinPreset,
   debug = false,
 }: SceneProps) {
-  const { config, features } = useSceneConfig();
+  const { config, avatarRegistry } = useSceneConfig();
+  const features = config.features;
+  const avatarUrl = getAvatarUrl(config.avatar.model, avatarRegistry);
 
   return (
     <Canvas
@@ -78,6 +81,7 @@ function SceneInner({
         >
           <Avatar
             audioLevelRef={audioLevelRef}
+            avatarUrl={avatarUrl}
             currentAnimation={currentAnimation}
             skinPreset={skinPreset}
             featureToggles={features}

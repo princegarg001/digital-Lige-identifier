@@ -4,6 +4,7 @@ import { useRef, useState, useCallback } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
+import { useSceneConfig } from "@/hooks/SceneConfigContext";
 
 // How many frames to skip between reads (6 = ~10 fps at 60 fps)
 const POLL_INTERVAL = 6;
@@ -34,6 +35,7 @@ function fmt(n: number) {
  */
 export default function DebugCameraPanel() {
   const { camera, size, controls } = useThree();
+  const { updateConfig } = useSceneConfig();
   const frameCount = useRef(0);
   const [reading, setReading] = useState<CameraReading>({
     px: 0,
@@ -94,14 +96,15 @@ export default function DebugCameraPanel() {
   const handleSet = useCallback(async () => {
     const payload = {
       camera: {
-        position: [reading.px, reading.py, reading.pz],
+        position: [reading.px, reading.py, reading.pz] as [number, number, number],
         fov: Math.round(reading.fov),
-        target: [reading.tx, reading.ty, reading.tz],
+        target: [reading.tx, reading.ty, reading.tz] as [number, number, number],
       }
     };
     
-    // We only update the camera in local state, real merge happens on API!
-    localStorage.setItem("scene_camera_debug", JSON.stringify(payload));
+    // Update context instantly so Scene reacts without reload
+    updateConfig(payload);
+
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
 
@@ -114,7 +117,7 @@ export default function DebugCameraPanel() {
     } catch (e) {
       console.error("Failed to save camera config via API:", e);
     }
-  }, [reading]);
+  }, [reading, updateConfig]);
 
   return (
     <Html
