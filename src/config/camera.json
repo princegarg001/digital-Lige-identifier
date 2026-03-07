@@ -56,10 +56,10 @@
     }
   },
   "features": {
-    "lipSync": false,
-    "breathing": false,
+    "lipSync": true,
+    "breathing": true,
     "gazeDrift": false,
-    "blinking": false,
-    "hoverEffect": false
+    "blinking": true,
+    "hoverEffect": true
   }
 }

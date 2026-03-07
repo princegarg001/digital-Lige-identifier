@@ -269,7 +269,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, skinPreset 
       {/* Body — uses same PBR skin material for consistency */}
       <skinnedMesh
         geometry={nodes.Wolf3D_Body.geometry}
-        material={skinMaterial}
+        material={skinMaterial || materials.Wolf3D_Body}
         skeleton={nodes.Wolf3D_Body.skeleton}
       />
       <skinnedMesh
@@ -288,11 +288,11 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, skinPreset 
         morphTargetDictionary={nodes.EyeRight.morphTargetDictionary}
         morphTargetInfluences={nodes.EyeRight.morphTargetInfluences}
       />
-      {/* Head — receives the full PBR MeshPhysicalMaterial with SSS */}
+      {/* Head — receives the full PBR MeshPhysicalMaterial with SSS (if not raw) */}
       <skinnedMesh
         name="Wolf3D_Head"
         geometry={nodes.Wolf3D_Head.geometry}
-        material={skinMaterial}
+        material={skinMaterial || materials.Wolf3D_Skin}
         skeleton={nodes.Wolf3D_Head.skeleton}
         morphTargetDictionary={nodes.Wolf3D_Head.morphTargetDictionary}
         morphTargetInfluences={nodes.Wolf3D_Head.morphTargetInfluences}

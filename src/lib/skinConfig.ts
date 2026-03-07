@@ -23,8 +23,21 @@ export interface SkinPreset {
   sheenColor: string;    // Color of micro-sheen (slightly red/peach for skin)
 }
 
-/** 5 curated preset skins — no texture files required, PBR tints only */
+/** 6 curated preset skins — 'raw' leaves original textures, others use PBR tints */
 export const SKIN_PRESETS: SkinPreset[] = [
+  {
+    id: "raw",
+    label: "Raw (Original)",
+    emoji: "👤",
+    description: "Original model textures with no processing",
+    color: "",
+    roughness: 0,
+    thickness: 0,
+    transmission: 0,
+    clearcoat: 0,
+    clearcoatRoughness: 0,
+    sheenColor: "",
+  },
   {
     id: "warm",
     label: "Warm Ivory",

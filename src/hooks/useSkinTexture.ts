@@ -12,12 +12,15 @@ import * as THREE from "three";
 import { useMemo, useEffect, useRef } from "react";
 import { SkinPreset } from "@/lib/skinConfig";
 
-export function useSkinTexture(preset: SkinPreset | null): THREE.MeshPhysicalMaterial {
+export function useSkinTexture(preset: SkinPreset | null): THREE.MeshPhysicalMaterial | null {
   // Keep a stable material reference across renders
   const materialRef = useRef<THREE.MeshPhysicalMaterial | null>(null);
 
   // Create or update the material whenever the preset changes
   const material = useMemo(() => {
+    if (preset?.id === "raw") {
+      return null;
+    }
     if (!preset) {
       return new THREE.MeshPhysicalMaterial({
         color: new THREE.Color("#f5cba7"),
