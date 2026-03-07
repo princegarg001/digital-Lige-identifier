@@ -1,6 +1,21 @@
 {
   "version": 1,
   "skills": {
+    "gemini": {
+      "source": "softaworks/agent-toolkit",
+      "sourceType": "github",
+      "computedHash": "feed23504518537af26b18b25ea80ea1ceb6d06084b1deeb3784d63ed151e6b4"
+    },
+    "gemini-api-dev": {
+      "source": "google-gemini/gemini-skills",
+      "sourceType": "github",
+      "computedHash": "d521744b97bfe7847e7abc7b80e447fb1a5edc30d49f94b390db41318e1bdc4b"
+    },
+    "gemini-computer-use": {
+      "source": "am-will/codex-skills",
+      "sourceType": "github",
+      "computedHash": "ccf048790f240a55a29bf7513d946d2591f87ae399de5e0291ea58211ed9b30d"
+    },
     "r3f-animation": {
       "source": "enzed/r3f-skills",
       "sourceType": "github",
