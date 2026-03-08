@@ -126,6 +126,7 @@ function HomePage() {
     registerTool("trigger_animation", (args) => {
       const gestures = (args.gesture_sequence as string[]) || [];
       const durationPerGesture = args.duration_per_gesture_ms as number | undefined;
+      const timeScale = args.time_scale as number | undefined;
 
       if (gestures.length > 0) {
         const state = useAnimationStore.getState();
@@ -136,11 +137,12 @@ function HomePage() {
         // Dispatch to the chronological queue
         state.playSequence(resolvedSequence.map(name => ({
            name,
-           durationMs: durationPerGesture
+           durationMs: durationPerGesture,
+           timeScale: timeScale
         })));
       }
 
-      return { acknowledged: true, gesture_sequence: gestures, duration_per_gesture_ms: durationPerGesture };
+      return { acknowledged: true, gesture_sequence: gestures, duration_per_gesture_ms: durationPerGesture, time_scale: timeScale };
     });
 
     // set_persona_mode — switch interaction style

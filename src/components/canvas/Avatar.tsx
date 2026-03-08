@@ -85,6 +85,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
   const { scene, animations: avatarAnimations } = useGLTF(avatarUrl);
 
   const currentAnimationName = useAnimationStore((state) => state.currentAnimation);
+  const activeQueueItems = useAnimationStore((state) => state.animationQueue);
   const { activeClip } = useDynamicAnimations();
 
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene]);
@@ -129,6 +130,20 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
     if (!actionName || !actions[actionName]) return;
 
     const currentAction = actions[actionName];
+
+    // Retrieve custom scaling from Gemini logic
+    const activeData = activeQueueItems.find(item => item.name === currentAnimationName);
+    const speed = activeData?.timeScale || 1.0;
+    currentAction.setEffectiveTimeScale(speed);
+
+    // Stop the action from violently teleporting back to frame 0 when complete.
+    // Instead, it physically freezes on its final frame and holds the pose
+    // until the next chronological sequence item begins to crossfade!
+    currentAction.setLoop(THREE.LoopOnce, 1);
+     
+    // eslint-disable-next-line
+    currentAction.clampWhenFinished = true;
+
     currentAction.reset().play();
 
     // If there is an active animation currently playing, cross-fade to the new one!
@@ -146,7 +161,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
        // We intentionally DO NOT fadeOut here anymore, because the incoming 
        // `crossFadeFrom` handles the weight dialing down automatically!
     };
-  }, [currentAnimationName, actions]);
+  }, [currentAnimationName, actions, activeQueueItems]);
 
   // Use the Visage-ported head movement hook
   useHeadMovement({

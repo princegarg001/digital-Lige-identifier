@@ -5,6 +5,7 @@ export interface QueuedAnimation {
   id: string; // Unique ID to force React reactivity even if same animation repeats
   name: string;
   durationMs?: number;
+  timeScale?: number;
 }
 
 interface AnimationState {

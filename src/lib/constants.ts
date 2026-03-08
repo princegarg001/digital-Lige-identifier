@@ -30,6 +30,10 @@ export const GEMINI_TOOLS = [
               type: Type.NUMBER,
               description: "Optional override for how long to hold each animation in milliseconds before crossfading to the next. Defaults to the exact length of the literal animation file.",
             },
+            time_scale: {
+              type: Type.NUMBER,
+              description: "Optional playback speed multiplier. 1.0 is normal. 1.5 is fast (e.g. for energetic/frantic responses). 0.5 is slow (e.g. for sad, sleepy, or hesitant responses).",
+            },
           },
           required: ["gesture_sequence"],
         },

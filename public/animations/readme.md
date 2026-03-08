@@ -98,7 +98,12 @@ We retired basic exact-word matching in favor of a Hybrid algorithm combining th
 ### 2. Multi-Action Sequencing (Animation Stacking)
 The tool schema explicitly instructs the LLM to chain 3 to 5 continuous movements instead of firing a single action. 
 - The Zustand `useAnimationStore` utilizes an internal `animationQueue` hook.
-- The `page.tsx` application intercepts dynamic Array sequences from the LLM, scores all 5 actions instantly using the Hybrid NLP logic, queues them into global state chronologically, and seamlessly auto-advances the Avatar into the next pose using self-evaluating `useEffect` timers to ensure nonstop, continuous presence!
+- The `page.tsx` application intercepts dynamic Array sequences from the LLM, scores all 5 actions instantly using the Hybrid NLP logic, and queues them into global state chronologically.
+- **Dynamic Binary Timing**: Instead of relying on blind React timeouts, the `useDynamicAnimations.ts` hook actively reads the exact 3D binary `clip.duration` from the active `.glb` file to trigger perfect crossfades automatically.
+- **Dynamic Speed Control (`timeScale`)**: The Gemini API schema explicitly exposes a `time_scale` float parameter to the LLM. The AI can dynamically speed up (e.g., `1.5x` for frantic reactions) or slow down (`0.5x` for depressed reactions) the animation. The entire chronological sequence queue automatically recalculates the physical wait time based on the active timescale to guarantee perfect sequencing.
+- **Async Preloading**: A look-ahead `useEffect` actively runs `useGLTF.preload(url)` on upcoming queue items so they silently cache in the background while the avatar is busy performing the current task, completely eliminating UI network blocking or React Suspense halts.
+- **Three.js Mathematical Blending (`crossFadeFrom`)**: The `Avatar.tsx` renderer actively caches the `previousAction` and utilizes underlying Three.js logic to physically interpolate the bone weights between the outgoing skeleton and the incoming skeleton for photorealistic fluidity without snapping.
+- **Auto-Halting (`clampWhenFinished`)**: The Avatar naturally freezes and holds its final pose instead of awkwardly looping if an animation chunk finishes before the LLM speaks the next sentence.
 
 ### 3. Future "End-State" Vector Embeddings (Transformers.js)
 The ultimate, final evolution of this pipeline abandons literal string intersections entirely in favor of **Client-Side Vector Embeddings**. 

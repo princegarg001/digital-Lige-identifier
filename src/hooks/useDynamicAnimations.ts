@@ -34,7 +34,9 @@ export function useDynamicAnimations() {
         
         // If the LLM requested a forced duration (e.g. 1000ms), we obey it.
         // Otherwise, we read the exact physical length of the 3D binary clip!
-        const durationMs = currentTask.durationMs || (clip.duration * 1000);
+        // We also divide by the requested `timeScale` so if the animation is playing 2x fast, the queue advances in half the time.
+        const scale = currentTask.timeScale || 1.0;
+        const durationMs = currentTask.durationMs || ((clip.duration * 1000) / scale);
         
         const timer = setTimeout(() => {
           advanceQueue();
