@@ -60,6 +60,7 @@ function SceneInner({
   const controlsMaxDistance = config.camera.controlsMaxDistance ?? 3.2;
   const minPolarAngle = config.camera.minPolarAngle ?? 1.4;
   const maxPolarAngle = config.camera.maxPolarAngle ?? 1.4;
+  const zoomTargetShift = config.camera.zoomTargetShift ?? 0.6;
 
   return (
     <Canvas
@@ -149,6 +150,7 @@ function SceneInner({
           maxDistance={controlsMaxDistance}
           minPolarAngle={minPolarAngle}
           maxPolarAngle={maxPolarAngle}
+          zoomTargetShift={zoomTargetShift}
         />
       )}
 
@@ -166,6 +168,7 @@ function SceneInner({
             maxDistance={controlsMaxDistance}
             minPolarAngle={minPolarAngle}
             maxPolarAngle={maxPolarAngle}
+            zoomTargetShift={zoomTargetShift}
           />
           <Suspense fallback={null}>
             <DebugCameraPanel />

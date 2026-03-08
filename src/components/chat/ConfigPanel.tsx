@@ -261,21 +261,32 @@ export function ConfigPanel() {
   }, [draft]);
 
   // Shortcut to update nested draft fields
-  const patchCamera = (p: Partial<SceneConfig["camera"]>) =>
-    setDraft((d) => ({ ...d, camera: { ...d.camera, ...p } }));
-  const patchAvatar = (p: Partial<SceneConfig["avatar"]>) =>
-    setDraft((d) => ({ ...d, avatar: { ...d.avatar, ...p } }));
-  const patchLight = (key: "keyLight" | "fillLight" | "rimLight", l: LightConfig) =>
-    setDraft((d) => ({
-      ...d,
-      lighting: { ...d.lighting, [key]: l },
-    }));
+  const patchCamera = (p: Partial<SceneConfig["camera"]>) => {
+    const next = { ...draft, camera: { ...draft.camera, ...p } };
+    setDraft(next);
+    setConfig(next);
+  };
+  const patchAvatar = (p: Partial<SceneConfig["avatar"]>) => {
+    const next = { ...draft, avatar: { ...draft.avatar, ...p } };
+    setDraft(next);
+    setConfig(next);
+  };
+  const patchLight = (key: "keyLight" | "fillLight" | "rimLight", l: LightConfig) => {
+    const next = {
+      ...draft,
+      lighting: { ...draft.lighting, [key]: l },
+    };
+    setDraft(next);
+    setConfig(next);
+  };
 
   const toggleFeatureLocal = (key: keyof FeatureToggles) => {
-    setDraft((d) => ({
-      ...d,
-      features: { ...d.features, [key]: !d.features[key] },
-    }));
+    const next = {
+      ...draft,
+      features: { ...draft.features, [key]: !draft.features[key] },
+    };
+    setDraft(next);
+    setConfig(next);
   };
 
   return (
@@ -333,6 +344,13 @@ export function ConfigPanel() {
           step={0.05}
           max={3.14}
           description="Upper vertical rotation limit (radians)."
+        />
+        <NumInput
+          label="Zoom Shift"
+          value={draft.camera.zoomTargetShift ?? 0.6}
+          onChange={(v) => patchCamera({ zoomTargetShift: v })}
+          step={0.05}
+          description="How much the focus shifts between chest and face during zoom."
         />
       </Section>
 

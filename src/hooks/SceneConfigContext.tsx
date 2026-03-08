@@ -21,6 +21,7 @@ export interface SceneConfig {
     controlsMaxDistance?: number;
     minPolarAngle?: number;
     maxPolarAngle?: number;
+    zoomTargetShift?: number;
   };
   avatar: {
     position: [number, number, number];

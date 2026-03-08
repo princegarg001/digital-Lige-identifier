@@ -14,6 +14,7 @@ interface SmartCameraControlsProps {
   maxDistance: number;
   minPolarAngle?: number;
   maxPolarAngle?: number;
+  zoomTargetShift?: number;
   enableRotate?: boolean;
   enablePan?: boolean;
   makeDefault?: boolean;
@@ -42,6 +43,7 @@ export function SmartCameraControls({
   maxDistance,
   minPolarAngle = 0,
   maxPolarAngle = Math.PI,
+  zoomTargetShift = 0.6,
   enableRotate = true,
   enablePan = true,
   ...rest
@@ -65,10 +67,9 @@ export function SmartCameraControls({
       // Calculate pivot: 1.0 = fully zoomed in, 0.0 = fully zoomed out
       const pivot = (distance - minDistance) / (maxDistance - minDistance);
 
-      // Slide the target downward by up to 0.6 units as we zoom in.
-      // E.g. When pivot is 0 (zoomed to minDistance), we shift target.y down by 0.6.
+      // E.g. When pivot is 0 (zoomed to minDistance), we shift target.y down by zoomTargetShift.
       // This is the exact Visage anti-clipping formula.
-      controls.target.set(target[0], baseTargetY - 0.6 * pivot, target[2]);
+      controls.target.set(target[0], baseTargetY - (zoomTargetShift ?? 0.6) * pivot, target[2]);
       
       controls.update();
     }
