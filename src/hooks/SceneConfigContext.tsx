@@ -17,6 +17,8 @@ export interface SceneConfig {
     position: [number, number, number];
     fov: number;
     target: [number, number, number];
+    controlsMinDistance?: number;
+    controlsMaxDistance?: number;
   };
   avatar: {
     position: [number, number, number];

@@ -10,7 +10,9 @@
       -0.0029521371620907844,
       -0.15613567019758137,
       -0.1833845911048288
-    ]
+    ],
+    "controlsMinDistance": 0.5,
+    "controlsMaxDistance": 3.2
   },
   "avatar": {
     "position": [

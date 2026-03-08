@@ -280,6 +280,18 @@ export function ConfigPanel() {
           value={draft.camera.target}
           onChange={(t) => patchCamera({ target: t })}
         />
+        <NumInput
+          label="Min Dist"
+          value={draft.camera.controlsMinDistance ?? 0.5}
+          onChange={(v) => patchCamera({ controlsMinDistance: v })}
+          step={0.1}
+        />
+        <NumInput
+          label="Max Dist"
+          value={draft.camera.controlsMaxDistance ?? 3.2}
+          onChange={(v) => patchCamera({ controlsMaxDistance: v })}
+          step={0.1}
+        />
       </Section>
 
       {/* ── Avatar Section ────────────────────────────────────── */}

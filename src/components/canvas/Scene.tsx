@@ -12,8 +12,21 @@ import { Avatar } from "./Avatar";
 import { SkinPreset } from "@/lib/skinConfig";
 import { getAvatarUrl } from "@/lib/avatars";
 import { useSceneConfig } from "@/hooks/SceneConfigContext";
+import { SceneLoader } from "./SceneLoader";
 
 const DebugCameraPanel = lazy(() => import("./DebugCameraPanel"));
+
+/**
+ * Resolve DPR range dynamically, matching Visage BaseCanvas behaviour.
+ * Uses half the native DPR as a floor, capped at 1.5 max.
+ * This prevents ultra-high-DPR screens from crushing the framerate
+ * while keeping 1x screens at full quality.
+ */
+const BASE_DPR = typeof window !== "undefined" ? window.devicePixelRatio : 1;
+const DPR_RANGE: [number, number] = [
+  Math.max(0.5, BASE_DPR * 0.5),
+  Math.min(BASE_DPR, 1.5),
+];
 
 interface SceneProps {
   audioLevelRef: React.RefObject<number>;
@@ -26,6 +39,11 @@ interface SceneProps {
 /**
  * 3D canvas — video-call style 3-point lighting rig.
  * Reads all settings from SceneConfigContext for live reactivity.
+ *
+ * Best practices combined from:
+ *  - RPM Editor: powerPreference, alpha, preserveDrawingBuffer
+ *  - Visage BaseCanvas: resize debounce, dynamic DPR, key-based FOV remount
+ *  - Current project: ACES tone mapping, soft shadows, ContactShadows, Environment
  */
 function SceneInner({
   audioLevelRef,
@@ -37,24 +55,36 @@ function SceneInner({
   const features = config.features;
   const avatarUrl = getAvatarUrl(config.avatar.model, avatarRegistry);
 
+  /* Camera controls distance limits — from config or Visage CAMERA defaults */
+  const controlsMinDistance = config.camera.controlsMinDistance ?? 0.5;
+  const controlsMaxDistance = config.camera.controlsMaxDistance ?? 3.2;
+
   return (
     <Canvas
-      camera={{ position: config.camera.position as [number, number, number], fov: config.camera.fov || 50 }}
+      /* key={fov} forces a clean Canvas remount when FOV changes (Visage best practice) */
+      key={config.camera.fov}
+      camera={{
+        position: config.camera.position as [number, number, number],
+        fov: config.camera.fov || 50,
+      }}
       shadows="soft"
-      dpr={[1, 1.5]}
-      gl={{ 
-        antialias: true, 
+      dpr={DPR_RANGE}
+      gl={{
+        antialias: true,
         alpha: true,
         preserveDrawingBuffer: true,
+        powerPreference: "high-performance",
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.8
+        toneMappingExposure: 1.8,
       }}
+      /* Visage: debounced resize prevents layout thrashing on scroll/resize */
+      resize={{ scroll: true, debounce: { scroll: 50, resize: 0 } }}
       style={{ background: "transparent" }}
     >
-      {/* ── Base ambient fill ─────────────────────────────── */}
+      {/* Base ambient fill */}
       <ambientLight intensity={0.3} />
 
-      {/* ── Key light ── */}
+      {/* Key light */}
       <spotLight
         position={config.lighting.keyLight.position as [number, number, number]}
         angle={0.25}
@@ -65,7 +95,7 @@ function SceneInner({
         color={config.lighting.keyLight.color}
       />
 
-      {/* ── Fill light ── */}
+      {/* Fill light */}
       <spotLight
         position={config.lighting.fillLight.position as [number, number, number]}
         angle={0.35}
@@ -74,14 +104,14 @@ function SceneInner({
         color={config.lighting.fillLight.color}
       />
 
-      {/* ── Rim light ── */}
+      {/* Rim light */}
       <pointLight
         position={config.lighting.rimLight.position as [number, number, number]}
         intensity={config.lighting.rimLight.intensity}
         color={config.lighting.rimLight.color}
       />
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<SceneLoader />}>
         <group
           position={config.avatar.position as [number, number, number]}
           rotation={config.avatar.rotation as [number, number, number]}
@@ -107,7 +137,20 @@ function SceneInner({
         color="#22d3ee"
       />
 
-      {/* ── Debug mode: OrbitControls + live camera panel ── */}
+      {/* Production: constrained zoom-only controls (Visage CameraControls pattern) */}
+      {!debug && (
+        <OrbitControls
+          enableRotate={false}
+          enablePan={false}
+          target={config.camera.target as [number, number, number]}
+          minDistance={controlsMinDistance}
+          maxDistance={controlsMaxDistance}
+          minPolarAngle={1.4}
+          maxPolarAngle={1.4}
+        />
+      )}
+
+      {/* Debug mode: full OrbitControls + live camera panel */}
       {debug && (
         <>
           <OrbitControls
@@ -127,7 +170,7 @@ function SceneInner({
   );
 }
 
-// Re-export as default — SceneInner already reads from context
+// Re-export as default
 export default function Scene(props: SceneProps) {
   return <SceneInner {...props} />;
 }
