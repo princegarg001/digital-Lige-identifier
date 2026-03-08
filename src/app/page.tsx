@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useState, useRef, memo } from "react";
+import { useCallback, useEffect, useState, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
@@ -116,32 +116,31 @@ function HomePage() {
   const timer = useSessionTimer(session.isConnected);
   const chat = useChatMessages();
 
-  // animationTimeoutRef must be declared before the tool-registration useEffect below
-  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // (Animation Queue Auto-Progression moved inside useDynamicAnimations.ts for precise timing)
 
   // ── Register application-level tool handlers ──────────────────────────────
   // These run ONCE on mount so they are available before the first connect().
 
   useEffect(() => {
-    // trigger_animation — play a named gesture on the 3D avatar
+    // trigger_animation — play a sequence of gestures on the 3D avatar
     registerTool("trigger_animation", (args) => {
-      const gesture = args.gesture_name as string;
-      const duration = (args.duration_ms as number | undefined) ?? 3000;
+      const gestures = (args.gesture_sequence as string[]) || [];
+      const durationPerGesture = args.duration_per_gesture_ms as number | undefined;
 
-      if (gesture) {
-        // [Fuzzy Match Integration]
+      if (gestures.length > 0) {
         const state = useAnimationStore.getState();
-        const registry = state.registry;
-        const resolvedGesture = findBestAnimationMatch(gesture, registry);
         
-        state.setAnimation(resolvedGesture);
-        if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current);
-        animationTimeoutRef.current = setTimeout(() => {
-          state.setAnimation("idle");
-        }, duration);
+        // Resolve all gestures using the advanced Semantic Matcher
+        const resolvedSequence = gestures.map(g => findBestAnimationMatch(g, state.registry));
+        
+        // Dispatch to the chronological queue
+        state.playSequence(resolvedSequence.map(name => ({
+           name,
+           durationMs: durationPerGesture
+        })));
       }
 
-      return { acknowledged: true, gesture_name: gesture, duration_ms: duration };
+      return { acknowledged: true, gesture_sequence: gestures, duration_per_gesture_ms: durationPerGesture };
     });
 
     // set_persona_mode — switch interaction style

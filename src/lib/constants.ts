@@ -28,7 +28,7 @@ export const GEMINI_TOOLS = [
             },
             duration_per_gesture_ms: {
               type: Type.NUMBER,
-              description: "Optional override for how long to hold each animation in milliseconds before crossfading to the next. Defaults to 3000.",
+              description: "Optional override for how long to hold each animation in milliseconds before crossfading to the next. Defaults to the exact length of the literal animation file.",
             },
           },
           required: ["gesture_sequence"],

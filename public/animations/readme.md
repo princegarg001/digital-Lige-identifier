@@ -85,21 +85,30 @@ Because writing complex JSON arrays of descriptors for 250 animations is tedious
 3. Run `node public/animations/generate_registry.js` to crawl `.glb` files and merge the new semantics.
 4. The script outputs the enriched registry to `index.json` for the frontend to consume.
 
-## Future Enhancements for Robustness (NLP Best Practices)
-While our current Bag-of-Words Jaccard implementation is highly effective, industry standards in Natural Language Processing (NLP) suggest the following upgrades to make the matcher practically bulletproof:
+## Next-Generation Upgrades (Active Pipeline)
 
-### 1. Advanced Tokenization (k-grams/n-grams)
-Currently, we tokenize by full words (`"happy"`, `"dance"`). If the LLM outputs `"happydance"` (no space), our token intersection fails.
-- **Improvement**: We can implement **character n-grams** (e.g., splitting text into 3-letter chunks like `hap`, `app`, `ppy`). Jaccard similarity applied to 3-grams is exceptionally robust against merged words and minor spelling variations.
+To ensure the Avatar never falls out of sync or acts lifeless during long periods of conversation, the Semantic Matcher has been upgraded to a full "Gold Standard" architecture:
 
-### 2. Lemmatization & Stemming
-If the LLM says `"dancing"`, but our tags are `["dance"]`, Jaccard sees zero overlap between those specific strings.
-- **Improvement**: Integrate a lightweight stemming algorithm (like Porter Stemmer) during the `normalizeText()` phase to strip suffixes (so `"dancing"`, `"dances"`, and `"danced"` all reduce to the root `"danc"` before the Jaccard calculation).
+### 1. Hybrid Linguistic NLP 
+We retired basic exact-word matching in favor of a Hybrid algorithm combining three major NLP pillars inside `animationMatcher.ts`:
+- **Root Stemming:** The Matcher strips grammatical suffixes (e.g., intelligently reducing `"dancing"` and `"dances"` to the root linguistic index `"danc"`). 
+- **Levenshtein Typo Correction:** The engine runs a Fast-Levenshtein matrix over all strings. If an unrecognized word from the LLM exceeds an 80% character similarity to a known registry tag, it gracefully accepts the match as a typo.
+- **Trigram Semantics:** The `weightedHybridJaccardSimilarity` leverages these unified stems to flawlessly connect disjointed sentences into numeric weight scores. 
 
-### 3. Hybrid Scoring (Jaccard + Levenshtein)
-Jaccard solves word-order swapping (A B == B A). Levenshtein (Fuse.js) solves typos (A == A*).
-- **Improvement**: We can introduce a hybrid score where we calculate the Jaccard intersection of the semantic tags, but use Levenshtein distance on the individual tokens themselves. E.g. allowing `denc` to match `dance` with a 0.8 weight.
+### 2. Multi-Action Sequencing (Animation Stacking)
+The tool schema explicitly instructs the LLM to chain 3 to 5 continuous movements instead of firing a single action. 
+- The Zustand `useAnimationStore` utilizes an internal `animationQueue` hook.
+- The `page.tsx` application intercepts dynamic Array sequences from the LLM, scores all 5 actions instantly using the Hybrid NLP logic, queues them into global state chronologically, and seamlessly auto-advances the Avatar into the next pose using self-evaluating `useEffect` timers to ensure nonstop, continuous presence!
 
-### 4. Vector Embeddings (Cosine Similarity)
-The ultimate "Gold Standard" is abandoning literal string intersections entirely. 
-- **Improvement**: We could calculate Word2Vec or local transformer embeddings for the semantic tags and the LLM's requested string, then calculate the **Cosine Similarity** between the multidimensional vectors. This maps conceptual synonyms (e.g. `"joyful"` matching `"happy"`) perfectly even when the literal strings share absolutely no letters.
+### 3. Future "End-State" Vector Embeddings (Transformers.js)
+The ultimate, final evolution of this pipeline abandons literal string intersections entirely in favor of **Client-Side Vector Embeddings**. 
+
+The current industry "Gold Standard" for zero-latency, private, browser-based semantic search operates on the following stack:
+1. **[Transformers.js](https://huggingface.co/docs/transformers.js)**: A Hugging Face port that runs ML models directly in the browser via WebAssembly (WASM) and WebGPU.
+2. **`Xenova/all-MiniLM-L6-v2`**: A heavily quantized, ultra-lightweight (~30MB) embedding model that runs lightning-fast on client devices.
+3. **Local Vector Database**: Tools like `EntityDB` or generic IndexedDB wrappers cache the calculated embeddings offline.
+
+**How it would work:**
+Instead of storing text tags in `index.json`, the build pipeline would pre-calculate an embedding vector (a 384-dimensional array of floats) for each animation's PAD metrics. At runtime, the browser would load `Transformers.js`, convert the LLM's requested string (e.g. `"joyful"`) into a vector, and calculate the **Cosine Similarity** against the animation registry. 
+
+This approach flawlessly maps conceptual synonyms (instantly recognizing `"joyful"` matches `"happy"` despite sharing zero letters) with absolutely no cloud latency or server costs!

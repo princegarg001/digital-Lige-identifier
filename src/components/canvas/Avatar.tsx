@@ -119,6 +119,8 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
 
   const { actions } = useAnimations(normalizedAnimations, groupRef);
 
+  const previousActionRef = useRef<THREE.AnimationAction | null>(null);
+
   useEffect(() => {
     const actionName = currentAnimationName && actions[currentAnimationName]
       ? currentAnimationName
@@ -126,10 +128,23 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
 
     if (!actionName || !actions[actionName]) return;
 
-    actions[actionName].reset().fadeIn(0.3).play();
+    const currentAction = actions[actionName];
+    currentAction.reset().play();
+
+    // If there is an active animation currently playing, cross-fade to the new one!
+    // The `true` flag enables time-warping so mismatched length loops don't warp scale.
+    if (previousActionRef.current && previousActionRef.current !== currentAction) {
+      currentAction.crossFadeFrom(previousActionRef.current, 0.5, true);
+    } else {
+      currentAction.fadeIn(0.5);
+    }
+
+    // Keep track of what is playing so the NEXT animation can fade from it
+    previousActionRef.current = currentAction;
 
     return () => {
-      actions[actionName]?.fadeOut(0.3);
+       // We intentionally DO NOT fadeOut here anymore, because the incoming 
+       // `crossFadeFrom` handles the weight dialing down automatically!
     };
   }, [currentAnimationName, actions]);
 
