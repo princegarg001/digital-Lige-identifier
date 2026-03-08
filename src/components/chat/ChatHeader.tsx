@@ -17,6 +17,7 @@ interface ChatHeaderProps {
 const TAB_KEYS: ChatTab[] = ["messages", "participants", "skins", "config"];
 
 export function ChatHeader({
+  activeTab,
   onTabChange,
   isConnected,
   showConfigTab = false,
@@ -45,7 +46,16 @@ export function ChatHeader({
     return null;
   };
 
-
+  // Map from ChatTab key back to ExpandableTabs index (accounts for separators)
+  const tabKeyToIndex = (key: ChatTab): number | null => {
+    let tabCount = 0;
+    for (let i = 0; i < tabs.length; i++) {
+      if ("type" in tabs[i] && tabs[i].type === "separator") continue;
+      if (TAB_KEYS[tabCount] === key) return i;
+      tabCount++;
+    }
+    return null;
+  };
 
   const handleChange = (index: number | null) => {
     if (index === null) {
@@ -69,10 +79,10 @@ export function ChatHeader({
         </h2>
       </div>
 
-      {/* Expandable Tabs */}
+      {/* Expandable Tabs — controlled via activeIdx */}
       <ExpandableTabs
         tabs={tabs}
-        defaultSelected={0}
+        activeIdx={tabKeyToIndex(activeTab)}
         activeColor="text-primary"
         onChange={handleChange}
         className="bg-white/5 border-white/5 backdrop-blur-sm"

@@ -34,7 +34,23 @@ export function ChatPanel({
   onSkinChange,
   debugMode = false,
 }: ChatPanelProps) {
-  const [activeTab, setActiveTab] = useState<ChatTab>("messages");
+  const [activeTab, setActiveTab] = useState<ChatTab>(debugMode ? "config" : "messages");
+  const [prevDebugMode, setPrevDebugMode] = useState(debugMode);
+
+  // Derive state from props: Only force tab switches when debugMode *transitions*
+  if (debugMode !== prevDebugMode) {
+    setPrevDebugMode(debugMode);
+    if (debugMode) {
+      setActiveTab("config");
+    } else if (activeTab === "config") {
+      // Gracefully switch out of config tab if it was closed
+      setActiveTab("messages");
+    }
+  }
+
+  const handleTabChange = (tab: ChatTab) => {
+    setActiveTab(tab);
+  };
 
   return (
     <GlassPanel
@@ -48,7 +64,7 @@ export function ChatPanel({
       {/* Header with Tabs */}
       <ChatHeader
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         isConnected={isConnected}
         showConfigTab={debugMode}
       />

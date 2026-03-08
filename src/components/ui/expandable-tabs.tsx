@@ -25,6 +25,8 @@ interface ExpandableTabsProps {
   className?: string;
   activeColor?: string;
   defaultSelected?: number;
+  /** Controlled: externally managed selected index */
+  activeIdx?: number | null;
   onChange?: (index: number | null) => void;
 }
 
@@ -54,18 +56,23 @@ export function ExpandableTabs({
   className,
   activeColor = "text-primary",
   defaultSelected,
+  activeIdx,
   onChange,
 }: ExpandableTabsProps) {
-  const [selected, setSelected] = React.useState<number | null>(defaultSelected ?? null);
+  const [internalSelected, setInternalSelected] = React.useState<number | null>(defaultSelected ?? null);
   const outsideClickRef = React.useRef<HTMLDivElement>(null);
 
+  // Controlled vs uncontrolled: use activeIdx if provided
+  const isControlled = activeIdx !== undefined;
+  const selected = isControlled ? activeIdx : internalSelected;
+
   useOnClickOutside(outsideClickRef as React.RefObject<HTMLDivElement>, () => {
-    setSelected(null);
+    if (!isControlled) setInternalSelected(null);
     onChange?.(null);
   });
 
   const handleSelect = (index: number) => {
-    setSelected(index);
+    if (!isControlled) setInternalSelected(index);
     onChange?.(index);
   };
 
