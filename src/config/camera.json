@@ -13,7 +13,7 @@
     ],
     "controlsMinDistance": 0.7,
     "controlsMaxDistance": 3.2,
-    "minPolarAngle": 1.4,
+    "minPolarAngle": 1.5,
     "maxPolarAngle": 1.4,
     "zoomTargetShift": 0.6
   },

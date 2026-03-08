@@ -64,7 +64,7 @@ describe('useGeminiLive Hook', () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ token: "mock-ephemeral-token" })
-    }) as any;
+    }) as unknown as typeof fetch;
   });
 
   afterEach(() => {
