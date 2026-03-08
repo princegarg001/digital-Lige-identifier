@@ -61,6 +61,10 @@ describe('useGeminiLive Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     __capturedCallbacks = {};
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ token: "mock-ephemeral-token" })
+    }) as any;
   });
 
   afterEach(() => {
@@ -69,12 +73,12 @@ describe('useGeminiLive Hook', () => {
 
   describe('Connection Management', () => {
     it('should initialize with disconnected status', () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
       expect(result.current.status).toBe('disconnected');
     });
 
     it('should connect using the SDK', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
       
       act(() => {
         result.current.connect();
@@ -92,7 +96,7 @@ describe('useGeminiLive Hook', () => {
     });
 
     it('should pass correct model, config, and VAD config to SDK', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
       
       act(() => {
         result.current.connect();
@@ -112,7 +116,7 @@ describe('useGeminiLive Hook', () => {
     });
 
     it('should handle disconnection', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
       
       act(() => {
         result.current.connect();
@@ -133,7 +137,7 @@ describe('useGeminiLive Hook', () => {
 
   describe('Video Frame Streaming', () => {
     it('should send video frames via SDK session', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
       
       act(() => {
         result.current.connect();
@@ -158,7 +162,7 @@ describe('useGeminiLive Hook', () => {
     });
 
     it('should not throw when sending frames before connected', () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
       
       expect(() => {
         act(() => {
@@ -170,7 +174,7 @@ describe('useGeminiLive Hook', () => {
 
   describe('Audio Streaming', () => {
     it('should send audio chunks via SDK session', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
       
       act(() => {
         result.current.connect();
@@ -197,7 +201,7 @@ describe('useGeminiLive Hook', () => {
 
   describe('Text Sending', () => {
     it('should send text via SDK sendClientContent', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
       
       act(() => {
         result.current.connect();
@@ -220,7 +224,7 @@ describe('useGeminiLive Hook', () => {
 
   describe('Response Handling', () => {
     it('should handle audio responses', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
       
       const audioCallback = vi.fn();
       result.current.onAudioData.current = audioCallback;
@@ -254,7 +258,7 @@ describe('useGeminiLive Hook', () => {
     });
 
     it('should handle text transcripts', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
       
       const transcriptCallback = vi.fn();
       result.current.onTranscript.current = transcriptCallback;
@@ -281,7 +285,7 @@ describe('useGeminiLive Hook', () => {
     });
 
     it('should use fallback { result: ok } when no handler is registered', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
 
       const toolCallback = vi.fn();
       result.current.onToolCall.current = toolCallback;
@@ -334,7 +338,7 @@ describe('useGeminiLive Hook', () => {
     });
 
     it('should invoke registered tool handler and send its result', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
 
       // Register a real handler before connecting
       const handler = vi.fn().mockResolvedValue({ formatted: '10:00 AM', iso: '2026-03-07T10:00:00Z' });
@@ -384,7 +388,7 @@ describe('useGeminiLive Hook', () => {
     });
 
     it('should handle interruptions gracefully', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
       
       const audioCallback = vi.fn();
       result.current.onAudioData.current = audioCallback;
@@ -415,7 +419,7 @@ describe('useGeminiLive Hook', () => {
     it('should handle SDK connection errors', async () => {
       __mockConnect.mockRejectedValueOnce(new Error('Network error'));
 
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
       
       act(() => {
         result.current.connect();
@@ -428,7 +432,7 @@ describe('useGeminiLive Hook', () => {
     });
 
     it('should handle onerror callback', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
       
       act(() => {
         result.current.connect();
@@ -451,7 +455,7 @@ describe('useGeminiLive Hook', () => {
 
   describe('Session Resumption', () => {
     it('should capture sessionResumptionUpdate handle from server', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
 
       act(() => {
         result.current.connect();
@@ -474,7 +478,7 @@ describe('useGeminiLive Hook', () => {
     });
 
     it('should pass stored handle to SDK config on reconnect', async () => {
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
 
       // First connection
       act(() => {
@@ -517,7 +521,7 @@ describe('useGeminiLive Hook', () => {
     it('should return timeout error when handler exceeds 10s', async () => {
       vi.useFakeTimers();
 
-      const { result } = renderHook(() => useGeminiLive('test-api-key'));
+      const { result } = renderHook(() => useGeminiLive());
 
       // Register a handler that never resolves
       const neverResolve = () => new Promise<Record<string, unknown>>(() => {});

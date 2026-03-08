@@ -17,8 +17,8 @@ import { useWebcam } from "./useWebcam";
  * `display_text`) should be registered by the page via the returned
  * `registerTool` function BEFORE calling `toggleSession`.
  */
-export function useSessionManager(apiKey: string) {
-  const { onAudioData: onAudioDataRef, onInterrupted: onInterruptedRef, registerTool, ...gemini } = useGeminiLive(apiKey);
+export function useSessionManager() {
+  const { onAudioData: onAudioDataRef, onInterrupted: onInterruptedRef, registerTool, ...gemini } = useGeminiLive();
   const audio = useAudioProcessor();
   const { onFrameRef, ...webcam } = useWebcam();
 

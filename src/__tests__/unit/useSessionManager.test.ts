@@ -51,11 +51,15 @@ vi.mock('@/hooks/useWebcam', () => ({
 describe('useSessionManager Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ token: "mock-ephemeral-token" })
+    }) as any;
   });
 
   describe('Initialization', () => {
     it('should initialize with disconnected state', () => {
-      const { result } = renderHook(() => useSessionManager('test-api-key'));
+      const { result } = renderHook(() => useSessionManager());
 
       expect(result.current.isConnected).toBe(false);
       expect(result.current.status).toBe('disconnected');
@@ -64,7 +68,7 @@ describe('useSessionManager Hook', () => {
     });
 
     it('should provide all required methods', () => {
-      const { result } = renderHook(() => useSessionManager('test-api-key'));
+      const { result } = renderHook(() => useSessionManager());
 
       expect(result.current.toggleSession).toBeDefined();
       expect(result.current.toggleMic).toBeDefined();
@@ -75,7 +79,7 @@ describe('useSessionManager Hook', () => {
 
   describe('Session Control', () => {
     it('should start session when toggleSession is called', async () => {
-      const { result } = renderHook(() => useSessionManager('test-api-key'));
+      const { result } = renderHook(() => useSessionManager());
 
       await act(async () => {
         await result.current.toggleSession();
@@ -86,7 +90,7 @@ describe('useSessionManager Hook', () => {
     });
 
     it('should stop session when already connected', async () => {
-      const { result } = renderHook(() => useSessionManager('test-api-key'));
+      const { result } = renderHook(() => useSessionManager());
 
       // First start
       await act(async () => {
@@ -104,7 +108,7 @@ describe('useSessionManager Hook', () => {
 
   describe('Audio Control', () => {
     it('should toggle microphone', () => {
-      const { result } = renderHook(() => useSessionManager('test-api-key'));
+      const { result } = renderHook(() => useSessionManager());
 
       act(() => {
         result.current.toggleMic();
@@ -116,7 +120,7 @@ describe('useSessionManager Hook', () => {
 
   describe('Camera Control', () => {
     it('should toggle camera', () => {
-      const { result } = renderHook(() => useSessionManager('test-api-key'));
+      const { result } = renderHook(() => useSessionManager());
 
       act(() => {
         result.current.toggleCamera();
@@ -128,7 +132,7 @@ describe('useSessionManager Hook', () => {
 
   describe('Error Handling', () => {
     it('should expose error messages', () => {
-      const { result } = renderHook(() => useSessionManager('test-api-key'));
+      const { result } = renderHook(() => useSessionManager());
 
       expect(result.current.errorMessage).toBeNull();
     });
@@ -136,14 +140,14 @@ describe('useSessionManager Hook', () => {
 
   describe('State Exposure', () => {
     it('should expose audio level', () => {
-      const { result } = renderHook(() => useSessionManager('test-api-key'));
+      const { result } = renderHook(() => useSessionManager());
 
       expect(result.current.audioLevelRef).toBeDefined();
       expect(result.current.audioLevelRef.current).toBe(0);
     });
 
     it('should expose video ref', () => {
-      const { result } = renderHook(() => useSessionManager('test-api-key'));
+      const { result } = renderHook(() => useSessionManager());
 
       expect(result.current.videoRef).toBeDefined();
     });

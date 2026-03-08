@@ -28,9 +28,10 @@ const DPR_RANGE: [number, number] = [
   Math.min(BASE_DPR, 1.5),
 ];
 
-interface SceneProps {
+export interface SceneProps {
   audioLevelRef: React.RefObject<number>;
   currentAnimation?: string;
+  currentExpression?: string;
   skinPreset?: SkinPreset | null;
   /** When true, enables OrbitControls + live debug panel. Default: false */
   debug?: boolean;
@@ -45,10 +46,11 @@ interface SceneProps {
  *  - Visage BaseCanvas: resize debounce, dynamic DPR, key-based FOV remount
  *  - Current project: ACES tone mapping, soft shadows, ContactShadows, Environment
  */
-function SceneInner({
+export function SceneInner({
   audioLevelRef,
-  currentAnimation,
-  skinPreset,
+  currentAnimation = "idle",
+  currentExpression = "idle",
+  skinPreset = null,
   debug = false,
 }: SceneProps) {
   const { config, avatarRegistry } = useSceneConfig();
@@ -124,6 +126,7 @@ function SceneInner({
             audioLevelRef={audioLevelRef}
             avatarUrl={avatarUrl}
             currentAnimation={currentAnimation}
+            currentExpression={currentExpression}
             skinPreset={skinPreset}
             featureToggles={features}
           />

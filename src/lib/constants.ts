@@ -84,6 +84,22 @@ export const GEMINI_TOOLS = [
           required: ["content"],
         },
       },
+      {
+        name: "set_expression",
+        description:
+          "Sets an ARKit facial expression on the avatar. Emit this alongside your speech to convey emotion. Expressions naturally fade out.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {
+            expression: {
+              type: Type.STRING,
+              enum: ["smile", "sad", "angry", "surprised", "disgusted", "fearful"],
+              description: "The emotion/expression to show on the avatar's face.",
+            },
+          },
+          required: ["expression"],
+        },
+      },
     ],
   },
 ];

@@ -58,6 +58,7 @@ interface AvatarProps {
   audioLevelRef: React.RefObject<number>;
   avatarUrl: string;
   currentAnimation?: string;
+  currentExpression?: string;
   skinPreset?: SkinPreset | null;
   featureToggles?: FeatureToggles;
 }
@@ -75,7 +76,7 @@ const DEFAULT_FEATURES: FeatureToggles = {
  * Wolf3D avatar with real-time lip-sync, idle breathing,
  * MeshPhysicalMaterial skin with SSS, and gaze drift.
  */
-export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, skinPreset = null, featureToggles = DEFAULT_FEATURES }: AvatarProps) {
+export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpression, skinPreset = null, featureToggles = DEFAULT_FEATURES }: AvatarProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -179,28 +180,56 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, skinPreset 
       }
     }
 
-    // ARKit Hover Smile Effect
-    if (featureToggles.hoverEffect && head?.morphTargetDictionary && head?.morphTargetInfluences) {
+    // ARKit Hover Smile Effect & Emotion Expressions
+    if (head?.morphTargetDictionary && head?.morphTargetInfluences) {
       const smileLeftIdx = head.morphTargetDictionary["mouthSmileLeft"];
       const smileRightIdx = head.morphTargetDictionary["mouthSmileRight"];
       const cheekLeftIdx = head.morphTargetDictionary["cheekSquintLeft"];
       const cheekRightIdx = head.morphTargetDictionary["cheekSquintRight"];
+      const browInnerUpIdx = head.morphTargetDictionary["browInnerUp"];
+      const browDownLeftIdx = head.morphTargetDictionary["browDownLeft"];
+      const browDownRightIdx = head.morphTargetDictionary["browDownRight"];
+      const mouthFrownLeftIdx = head.morphTargetDictionary["mouthFrownLeft"];
+      const mouthFrownRightIdx = head.morphTargetDictionary["mouthFrownRight"];
+      
+      // Determine targets based on currentExpression OR hoverEffect
+      let targetSmile = (hovered && featureToggles.hoverEffect) ? 0.8 : 0;
+      let targetCheek = (hovered && featureToggles.hoverEffect) ? 0.3 : 0;
+      let targetBrowInnerUp = 0;
+      let targetBrowDown = 0;
+      let targetFrown = 0;
 
-      const targetSmile = hovered ? 0.8 : 0;
-      const targetCheek = hovered ? 0.3 : 0;
+      if (currentExpression === "happy" || currentExpression === "smile") {
+        targetSmile = 1.0;
+        targetCheek = 0.6;
+      } else if (currentExpression === "sad") {
+        targetBrowInnerUp = 0.8;
+        targetFrown = 0.8;
+      } else if (currentExpression === "angry") {
+        targetBrowDown = 0.9;
+        targetFrown = 0.4;
+      } else if (currentExpression === "surprised") {
+        targetBrowInnerUp = 1.0;
+        targetSmile = 0.2; // slight open
+      } else if (currentExpression === "fearful") {
+        targetBrowInnerUp = 1.0;
+        targetFrown = 0.5;
+      } else if (currentExpression === "disgusted") {
+        targetBrowDown = 0.5;
+        targetFrown = 0.6;
+      }
 
-      if (smileLeftIdx !== undefined) {
-        head.morphTargetInfluences[smileLeftIdx] += (targetSmile - head.morphTargetInfluences[smileLeftIdx]) * 0.1;
-      }
-      if (smileRightIdx !== undefined) {
-        head.morphTargetInfluences[smileRightIdx] += (targetSmile - head.morphTargetInfluences[smileRightIdx]) * 0.1;
-      }
-      if (cheekLeftIdx !== undefined) {
-        head.morphTargetInfluences[cheekLeftIdx] += (targetCheek - head.morphTargetInfluences[cheekLeftIdx]) * 0.1;
-      }
-      if (cheekRightIdx !== undefined) {
-        head.morphTargetInfluences[cheekRightIdx] += (targetCheek - head.morphTargetInfluences[cheekRightIdx]) * 0.1;
-      }
+      const lerpSpeed = 0.1;
+
+      if (smileLeftIdx !== undefined) head.morphTargetInfluences[smileLeftIdx] += (targetSmile - head.morphTargetInfluences[smileLeftIdx]) * lerpSpeed;
+      if (smileRightIdx !== undefined) head.morphTargetInfluences[smileRightIdx] += (targetSmile - head.morphTargetInfluences[smileRightIdx]) * lerpSpeed;
+      if (cheekLeftIdx !== undefined) head.morphTargetInfluences[cheekLeftIdx] += (targetCheek - head.morphTargetInfluences[cheekLeftIdx]) * lerpSpeed;
+      if (cheekRightIdx !== undefined) head.morphTargetInfluences[cheekRightIdx] += (targetCheek - head.morphTargetInfluences[cheekRightIdx]) * lerpSpeed;
+      if (browInnerUpIdx !== undefined) head.morphTargetInfluences[browInnerUpIdx] += (targetBrowInnerUp - head.morphTargetInfluences[browInnerUpIdx]) * lerpSpeed;
+      if (browDownLeftIdx !== undefined) head.morphTargetInfluences[browDownLeftIdx] += (targetBrowDown - head.morphTargetInfluences[browDownLeftIdx]) * lerpSpeed;
+      if (browDownRightIdx !== undefined) head.morphTargetInfluences[browDownRightIdx] += (targetBrowDown - head.morphTargetInfluences[browDownRightIdx]) * lerpSpeed;
+      if (mouthFrownLeftIdx !== undefined) head.morphTargetInfluences[mouthFrownLeftIdx] += (targetFrown - head.morphTargetInfluences[mouthFrownLeftIdx]) * lerpSpeed;
+      if (mouthFrownRightIdx !== undefined) head.morphTargetInfluences[mouthFrownRightIdx] += (targetFrown - head.morphTargetInfluences[mouthFrownRightIdx]) * lerpSpeed;
     }
 
     // Subtle idle breathing — small Y oscillation on Hips

@@ -83,7 +83,7 @@ export interface UseGeminiLiveReturn {
  *
  * @see https://ai.google.dev/gemini-api/docs/function-calling
  */
-export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
+export function useGeminiLive(): UseGeminiLiveReturn {
   const sessionRef = useRef<Session | null>(null);
   const [status, setStatus] = useState<GeminiStatus>("disconnected");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -113,11 +113,8 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
   // Stores the latest session handle so reconnect can resume context.
   const sessionHandleRef = useRef<string | null>(null);
 
-  // ── SDK client — initialized once per apiKey ──────────────────────────────
+  // ── SDK client — instantiated dynamically per-connect using Ephemeral Token
   const clientRef = useRef<GoogleGenAI | null>(null);
-  useEffect(() => {
-    clientRef.current = new GoogleGenAI({ apiKey });
-  }, [apiKey]);
 
   const disconnect = useCallback(() => {
     if (sessionRef.current) {
@@ -128,19 +125,38 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
     setStatus("disconnected");
   }, []);
 
-  const connect = useCallback(() => {
+  const connect = useCallback(async () => {
     if (sessionRef.current) disconnect();
-    if (!clientRef.current) {
-      setErrorMessage("SDK client not initialized. Check API key.");
-      statusRef.current = "error";
-      setStatus("error");
-      return;
-    }
 
     statusRef.current = "connecting";
     setStatus("connecting");
     setErrorMessage(null);
 
+    // 1. Fetch ephemeral token from the Next.js backend proxy
+    try {
+      const tokenRes = await fetch("/api/token", { method: "POST" });
+      if (!tokenRes.ok) throw new Error("Failed to fetch Ephemeral Token");
+      const { token, error } = await tokenRes.json();
+      if (error) throw new Error(error);
+
+      // 2. Initialize the client securely using this temporary 30-min token
+      clientRef.current = new GoogleGenAI({ 
+        apiKey: token,
+        httpOptions: { apiVersion: "v1alpha" }
+      });
+    } catch (err) {
+      console.error("[GeminiLive] Token error:", err);
+      setErrorMessage(
+        `Authentication failed: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+      statusRef.current = "error";
+      setStatus("error");
+      return;
+    }
+
+    if (!clientRef.current) return;
     const ai = clientRef.current;
 
     // ── Incoming message handler ──────────────────────────────────────────

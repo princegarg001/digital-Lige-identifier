@@ -41,8 +41,6 @@ const Scene = dynamic(() => import("@/components/canvas/Scene"), {
   loading: () => <SceneLoader />,
 });
 
-const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
-
 // Loading component for 3D scene
 function SceneLoader() {
   return (
@@ -95,6 +93,7 @@ function HomePage() {
   // UI State
   const [isChatOpen, setIsChatOpen] = useState(true);
   const [currentAnimation, setCurrentAnimation] = useState<string>("idle");
+  const [currentExpression, setCurrentExpression] = useState<string>("idle");
   const [personaMode, setPersonaMode] = useState<"focus" | "casual" | "presentation">("casual");
   // Skin state — default to warm ivory preset
   const [selectedSkin, setSelectedSkin] = useState<SkinPreset>(SKIN_PRESETS[0]);
@@ -102,7 +101,7 @@ function HomePage() {
   const [debugMode, setDebugMode] = useState(false);
 
   // Session management
-  const { onTranscript: onTranscriptRef, registerTool, ...session } = useSessionManager(API_KEY);
+  const { onTranscript: onTranscriptRef, registerTool, ...session } = useSessionManager();
   const timer = useSessionTimer(session.isConnected);
   const chat = useChatMessages();
 
@@ -135,6 +134,17 @@ function HomePage() {
       setPersonaMode(mode);
       console.log(`[Page] Persona mode switched to: ${mode}`);
       return { acknowledged: true, active_mode: mode };
+    });
+
+    // set_expression - change facial expression
+    registerTool("set_expression", (args) => {
+      const expr = args.expression as string;
+      if (expr) {
+        setCurrentExpression(expr);
+        // Automatically fade out expression after 4 seconds
+        setTimeout(() => setCurrentExpression("idle"), 4000);
+      }
+      return { acknowledged: true, expression: expr };
     });
 
     // display_text — push content into the chat panel as an assistant message
@@ -215,6 +225,7 @@ function HomePage() {
           <Scene
             audioLevelRef={session.audioLevelRef}
             currentAnimation={currentAnimation}
+            currentExpression={currentExpression}
             skinPreset={selectedSkin}
             debug={debugMode}
           />
