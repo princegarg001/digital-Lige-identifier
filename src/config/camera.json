@@ -61,7 +61,7 @@
     "lipSync": true,
     "breathing": true,
     "gazeDrift": false,
-    "blinking": false,
+    "blinking": true,
     "hoverEffect": false
   }
 }

@@ -13,6 +13,7 @@ import { SkinPreset } from "@/lib/skinConfig";
 import { getAvatarUrl } from "@/lib/avatars";
 import { useSceneConfig } from "@/hooks/SceneConfigContext";
 import { SceneLoader } from "./SceneLoader";
+import { SmartCameraControls } from "./SmartCameraControls";
 
 const DebugCameraPanel = lazy(() => import("./DebugCameraPanel"));
 
@@ -137,9 +138,9 @@ function SceneInner({
         color="#22d3ee"
       />
 
-      {/* Production: constrained zoom-only controls (Visage CameraControls pattern) */}
+      {/* Production: constrained zoom-only controls (Visage CameraControls pattern) + Smart Anti-Clipping */}
       {!debug && (
-        <OrbitControls
+        <SmartCameraControls
           enableRotate={false}
           enablePan={false}
           target={config.camera.target as [number, number, number]}
