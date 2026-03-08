@@ -142,12 +142,32 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpr
   // Use the Visage-ported idle expressions (lifelike random blink/squint)
   useIdleExpression("blink", nodes.Wolf3D_Head, featureToggles.blinking);
 
+  // Safeguard: Reset zero/NaN scales on bones to prevent mesh collapse
+  React.useEffect(() => {
+    Object.values(nodes).forEach((node) => {
+      const obj = node as THREE.Object3D;
+      if (obj?.scale) {
+        if (
+          obj.scale.x === 0 || Number.isNaN(obj.scale.x) ||
+          obj.scale.y === 0 || Number.isNaN(obj.scale.y) ||
+          obj.scale.z === 0 || Number.isNaN(obj.scale.z)
+        ) {
+          console.warn(`[Avatar] Resetting invalid scale on node: ${obj.name}`);
+          obj.scale.set(1, 1, 1);
+        }
+      }
+    });
+  }, [nodes]);
+
   // Smoothed value for lip-sync
   const smoothedLevel = useRef(0);
   // Gaze drift accumulators
   const gazePhaseRef = useRef(1.57); // π/2 — fixed initial phase avoids impure Math.random
 
   useFrame(({ camera }) => {
+    // Race Condition Guard: wait for the head mesh to be ready
+    if (!nodes.Wolf3D_Head || !nodes.Wolf3D_Teeth) return;
+
     const rawLevel = audioLevelRef.current ?? 0;
 
     // Smooth the audio level to avoid jitter

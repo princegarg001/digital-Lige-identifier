@@ -40,6 +40,20 @@ export async function fetchAvatarRegistry(): Promise<AvatarEntry[]> {
 export function getAvatarUrl(id: string, registry: AvatarEntry[]): string {
   const entry = registry.find((a) => a.id === id);
   const file = entry?.file ?? registry[0]?.file ?? DEFAULT_AVATARS[0].file;
+  
+  if (file.startsWith("http://") || file.startsWith("https://")) {
+    try {
+      const url = new URL(file);
+      // Ensure morphTargets are requested for ARKit blendshapes
+      url.searchParams.set("morphTargets", "ARKit");
+      // Cache buster for inconsistent browsers
+      url.searchParams.set("random", Math.random().toString(36).substring(7));
+      return url.toString();
+    } catch {
+      return file;
+    }
+  }
+  
   return `/avatars/${file}`;
 }
 
