@@ -72,6 +72,7 @@ export function ChatHeader({
       {/* Expandable Tabs */}
       <ExpandableTabs
         tabs={tabs}
+        defaultSelected={0}
         activeColor="text-primary"
         onChange={handleChange}
         className="bg-white/5 border-white/5 backdrop-blur-sm"
