@@ -1,0 +1,2260 @@
+{
+  "feminine_dance_f_dances_001": {
+    "name": "feminine_dance_f_dances_001",
+    "url": "/animations/feminine/dance/F_Dances_001.glb",
+    "type": "dance"
+  },
+  "feminine_dance_f_dances_004": {
+    "name": "feminine_dance_f_dances_004",
+    "url": "/animations/feminine/dance/F_Dances_004.glb",
+    "type": "dance"
+  },
+  "feminine_dance_f_dances_005": {
+    "name": "feminine_dance_f_dances_005",
+    "url": "/animations/feminine/dance/F_Dances_005.glb",
+    "type": "dance"
+  },
+  "feminine_dance_f_dances_006": {
+    "name": "feminine_dance_f_dances_006",
+    "url": "/animations/feminine/dance/F_Dances_006.glb",
+    "type": "dance"
+  },
+  "feminine_dance_f_dances_007": {
+    "name": "feminine_dance_f_dances_007",
+    "url": "/animations/feminine/dance/F_Dances_007.glb",
+    "type": "dance"
+  },
+  "feminine_dance_m_dances_001": {
+    "name": "feminine_dance_m_dances_001",
+    "url": "/animations/feminine/dance/M_Dances_001.glb",
+    "type": "dance"
+  },
+  "feminine_dance_m_dances_002": {
+    "name": "feminine_dance_m_dances_002",
+    "url": "/animations/feminine/dance/M_Dances_002.glb",
+    "type": "dance"
+  },
+  "feminine_dance_m_dances_003": {
+    "name": "feminine_dance_m_dances_003",
+    "url": "/animations/feminine/dance/M_Dances_003.glb",
+    "type": "dance"
+  },
+  "feminine_dance_m_dances_004": {
+    "name": "feminine_dance_m_dances_004",
+    "url": "/animations/feminine/dance/M_Dances_004.glb",
+    "type": "dance"
+  },
+  "feminine_dance_m_dances_005": {
+    "name": "feminine_dance_m_dances_005",
+    "url": "/animations/feminine/dance/M_Dances_005.glb",
+    "type": "dance"
+  },
+  "feminine_dance_m_dances_006": {
+    "name": "feminine_dance_m_dances_006",
+    "url": "/animations/feminine/dance/M_Dances_006.glb",
+    "type": "dance"
+  },
+  "feminine_dance_m_dances_007": {
+    "name": "feminine_dance_m_dances_007",
+    "url": "/animations/feminine/dance/M_Dances_007.glb",
+    "type": "dance"
+  },
+  "feminine_dance_m_dances_008": {
+    "name": "feminine_dance_m_dances_008",
+    "url": "/animations/feminine/dance/M_Dances_008.glb",
+    "type": "dance"
+  },
+  "feminine_dance_m_dances_009": {
+    "name": "feminine_dance_m_dances_009",
+    "url": "/animations/feminine/dance/M_Dances_009.glb",
+    "type": "dance"
+  },
+  "feminine_dance_m_dances_011": {
+    "name": "feminine_dance_m_dances_011",
+    "url": "/animations/feminine/dance/M_Dances_011.glb",
+    "type": "dance"
+  },
+  "feminine_expression_f_talking_variations_001": {
+    "name": "feminine_expression_f_talking_variations_001",
+    "url": "/animations/feminine/expression/F_Talking_Variations_001.glb",
+    "type": "expression"
+  },
+  "feminine_expression_f_talking_variations_002": {
+    "name": "feminine_expression_f_talking_variations_002",
+    "url": "/animations/feminine/expression/F_Talking_Variations_002.glb",
+    "type": "expression"
+  },
+  "feminine_expression_f_talking_variations_003": {
+    "name": "feminine_expression_f_talking_variations_003",
+    "url": "/animations/feminine/expression/F_Talking_Variations_003.glb",
+    "type": "expression"
+  },
+  "feminine_expression_f_talking_variations_004": {
+    "name": "feminine_expression_f_talking_variations_004",
+    "url": "/animations/feminine/expression/F_Talking_Variations_004.glb",
+    "type": "expression"
+  },
+  "feminine_expression_f_talking_variations_005": {
+    "name": "feminine_expression_f_talking_variations_005",
+    "url": "/animations/feminine/expression/F_Talking_Variations_005.glb",
+    "type": "expression"
+  },
+  "feminine_expression_f_talking_variations_006": {
+    "name": "feminine_expression_f_talking_variations_006",
+    "url": "/animations/feminine/expression/F_Talking_Variations_006.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_001": {
+    "name": "feminine_expression_m_standing_expressions_001",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_001.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_002": {
+    "name": "feminine_expression_m_standing_expressions_002",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_002.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_004": {
+    "name": "feminine_expression_m_standing_expressions_004",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_004.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_005": {
+    "name": "feminine_expression_m_standing_expressions_005",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_005.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_006": {
+    "name": "feminine_expression_m_standing_expressions_006",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_006.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_007": {
+    "name": "feminine_expression_m_standing_expressions_007",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_007.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_008": {
+    "name": "feminine_expression_m_standing_expressions_008",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_008.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_009": {
+    "name": "feminine_expression_m_standing_expressions_009",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_009.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_010": {
+    "name": "feminine_expression_m_standing_expressions_010",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_010.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_011": {
+    "name": "feminine_expression_m_standing_expressions_011",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_011.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_012": {
+    "name": "feminine_expression_m_standing_expressions_012",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_012.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_013": {
+    "name": "feminine_expression_m_standing_expressions_013",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_013.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_014": {
+    "name": "feminine_expression_m_standing_expressions_014",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_014.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_015": {
+    "name": "feminine_expression_m_standing_expressions_015",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_015.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_016": {
+    "name": "feminine_expression_m_standing_expressions_016",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_016.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_017": {
+    "name": "feminine_expression_m_standing_expressions_017",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_017.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_standing_expressions_018": {
+    "name": "feminine_expression_m_standing_expressions_018",
+    "url": "/animations/feminine/expression/M_Standing_Expressions_018.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_talking_variations_001": {
+    "name": "feminine_expression_m_talking_variations_001",
+    "url": "/animations/feminine/expression/M_Talking_Variations_001.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_talking_variations_002": {
+    "name": "feminine_expression_m_talking_variations_002",
+    "url": "/animations/feminine/expression/M_Talking_Variations_002.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_talking_variations_003": {
+    "name": "feminine_expression_m_talking_variations_003",
+    "url": "/animations/feminine/expression/M_Talking_Variations_003.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_talking_variations_004": {
+    "name": "feminine_expression_m_talking_variations_004",
+    "url": "/animations/feminine/expression/M_Talking_Variations_004.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_talking_variations_005": {
+    "name": "feminine_expression_m_talking_variations_005",
+    "url": "/animations/feminine/expression/M_Talking_Variations_005.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_talking_variations_006": {
+    "name": "feminine_expression_m_talking_variations_006",
+    "url": "/animations/feminine/expression/M_Talking_Variations_006.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_talking_variations_007": {
+    "name": "feminine_expression_m_talking_variations_007",
+    "url": "/animations/feminine/expression/M_Talking_Variations_007.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_talking_variations_008": {
+    "name": "feminine_expression_m_talking_variations_008",
+    "url": "/animations/feminine/expression/M_Talking_Variations_008.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_talking_variations_009": {
+    "name": "feminine_expression_m_talking_variations_009",
+    "url": "/animations/feminine/expression/M_Talking_Variations_009.glb",
+    "type": "expression"
+  },
+  "feminine_expression_m_talking_variations_010": {
+    "name": "feminine_expression_m_talking_variations_010",
+    "url": "/animations/feminine/expression/M_Talking_Variations_010.glb",
+    "type": "expression"
+  },
+  "feminine_feminine_tpose": {
+    "name": "feminine_feminine_tpose",
+    "url": "/animations/feminine/Feminine_TPose.glb",
+    "type": "misc"
+  },
+  "feminine_idle_f_standing_idle_001": {
+    "name": "feminine_idle_f_standing_idle_001",
+    "url": "/animations/feminine/idle/F_Standing_Idle_001.glb",
+    "type": "idle"
+  },
+  "feminine_idle_f_standing_idle_variations_001": {
+    "name": "feminine_idle_f_standing_idle_variations_001",
+    "url": "/animations/feminine/idle/F_Standing_Idle_Variations_001.glb",
+    "type": "idle"
+  },
+  "feminine_idle_f_standing_idle_variations_002": {
+    "name": "feminine_idle_f_standing_idle_variations_002",
+    "url": "/animations/feminine/idle/F_Standing_Idle_Variations_002.glb",
+    "type": "idle"
+  },
+  "feminine_idle_f_standing_idle_variations_003": {
+    "name": "feminine_idle_f_standing_idle_variations_003",
+    "url": "/animations/feminine/idle/F_Standing_Idle_Variations_003.glb",
+    "type": "idle"
+  },
+  "feminine_idle_f_standing_idle_variations_004": {
+    "name": "feminine_idle_f_standing_idle_variations_004",
+    "url": "/animations/feminine/idle/F_Standing_Idle_Variations_004.glb",
+    "type": "idle"
+  },
+  "feminine_idle_f_standing_idle_variations_005": {
+    "name": "feminine_idle_f_standing_idle_variations_005",
+    "url": "/animations/feminine/idle/F_Standing_Idle_Variations_005.glb",
+    "type": "idle"
+  },
+  "feminine_idle_f_standing_idle_variations_006": {
+    "name": "feminine_idle_f_standing_idle_variations_006",
+    "url": "/animations/feminine/idle/F_Standing_Idle_Variations_006.glb",
+    "type": "idle"
+  },
+  "feminine_idle_f_standing_idle_variations_007": {
+    "name": "feminine_idle_f_standing_idle_variations_007",
+    "url": "/animations/feminine/idle/F_Standing_Idle_Variations_007.glb",
+    "type": "idle"
+  },
+  "feminine_idle_f_standing_idle_variations_008": {
+    "name": "feminine_idle_f_standing_idle_variations_008",
+    "url": "/animations/feminine/idle/F_Standing_Idle_Variations_008.glb",
+    "type": "idle"
+  },
+  "feminine_idle_f_standing_idle_variations_009": {
+    "name": "feminine_idle_f_standing_idle_variations_009",
+    "url": "/animations/feminine/idle/F_Standing_Idle_Variations_009.glb",
+    "type": "idle"
+  },
+  "feminine_idle_m_standing_idle_001": {
+    "name": "feminine_idle_m_standing_idle_001",
+    "url": "/animations/feminine/idle/M_Standing_Idle_001.glb",
+    "type": "idle"
+  },
+  "feminine_idle_m_standing_idle_002": {
+    "name": "feminine_idle_m_standing_idle_002",
+    "url": "/animations/feminine/idle/M_Standing_Idle_002.glb",
+    "type": "idle"
+  },
+  "feminine_idle_m_standing_idle_variations_001": {
+    "name": "feminine_idle_m_standing_idle_variations_001",
+    "url": "/animations/feminine/idle/M_Standing_Idle_Variations_001.glb",
+    "type": "idle"
+  },
+  "feminine_idle_m_standing_idle_variations_002": {
+    "name": "feminine_idle_m_standing_idle_variations_002",
+    "url": "/animations/feminine/idle/M_Standing_Idle_Variations_002.glb",
+    "type": "idle"
+  },
+  "feminine_idle_m_standing_idle_variations_003": {
+    "name": "feminine_idle_m_standing_idle_variations_003",
+    "url": "/animations/feminine/idle/M_Standing_Idle_Variations_003.glb",
+    "type": "idle"
+  },
+  "feminine_idle_m_standing_idle_variations_004": {
+    "name": "feminine_idle_m_standing_idle_variations_004",
+    "url": "/animations/feminine/idle/M_Standing_Idle_Variations_004.glb",
+    "type": "idle"
+  },
+  "feminine_idle_m_standing_idle_variations_005": {
+    "name": "feminine_idle_m_standing_idle_variations_005",
+    "url": "/animations/feminine/idle/M_Standing_Idle_Variations_005.glb",
+    "type": "idle"
+  },
+  "feminine_idle_m_standing_idle_variations_006": {
+    "name": "feminine_idle_m_standing_idle_variations_006",
+    "url": "/animations/feminine/idle/M_Standing_Idle_Variations_006.glb",
+    "type": "idle"
+  },
+  "feminine_idle_m_standing_idle_variations_007": {
+    "name": "feminine_idle_m_standing_idle_variations_007",
+    "url": "/animations/feminine/idle/M_Standing_Idle_Variations_007.glb",
+    "type": "idle"
+  },
+  "feminine_idle_m_standing_idle_variations_008": {
+    "name": "feminine_idle_m_standing_idle_variations_008",
+    "url": "/animations/feminine/idle/M_Standing_Idle_Variations_008.glb",
+    "type": "idle"
+  },
+  "feminine_idle_m_standing_idle_variations_009": {
+    "name": "feminine_idle_m_standing_idle_variations_009",
+    "url": "/animations/feminine/idle/M_Standing_Idle_Variations_009.glb",
+    "type": "idle"
+  },
+  "feminine_idle_m_standing_idle_variations_010": {
+    "name": "feminine_idle_m_standing_idle_variations_010",
+    "url": "/animations/feminine/idle/M_Standing_Idle_Variations_010.glb",
+    "type": "idle"
+  },
+  "feminine_locomotion_f_crouchedwalk_backwards_001": {
+    "name": "feminine_locomotion_f_crouchedwalk_backwards_001",
+    "url": "/animations/feminine/locomotion/F_CrouchedWalk_Backwards_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_crouch_strafe_left": {
+    "name": "feminine_locomotion_f_crouch_strafe_left",
+    "url": "/animations/feminine/locomotion/F_Crouch_Strafe_Left.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_crouch_strafe_right": {
+    "name": "feminine_locomotion_f_crouch_strafe_right",
+    "url": "/animations/feminine/locomotion/F_Crouch_Strafe_Right.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_crouch_walk_001": {
+    "name": "feminine_locomotion_f_crouch_walk_001",
+    "url": "/animations/feminine/locomotion/F_Crouch_Walk_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_falling_idle_000": {
+    "name": "feminine_locomotion_f_falling_idle_000",
+    "url": "/animations/feminine/locomotion/F_Falling_Idle_000.glb",
+    "type": "idle"
+  },
+  "feminine_locomotion_f_falling_idle_001": {
+    "name": "feminine_locomotion_f_falling_idle_001",
+    "url": "/animations/feminine/locomotion/F_Falling_Idle_001.glb",
+    "type": "idle"
+  },
+  "feminine_locomotion_f_jog_001": {
+    "name": "feminine_locomotion_f_jog_001",
+    "url": "/animations/feminine/locomotion/F_Jog_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_jog_backwards_001": {
+    "name": "feminine_locomotion_f_jog_backwards_001",
+    "url": "/animations/feminine/locomotion/F_Jog_Backwards_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_jog_jump_small_001": {
+    "name": "feminine_locomotion_f_jog_jump_small_001",
+    "url": "/animations/feminine/locomotion/F_Jog_Jump_Small_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_jog_strafe_left_002": {
+    "name": "feminine_locomotion_f_jog_strafe_left_002",
+    "url": "/animations/feminine/locomotion/F_Jog_Strafe_Left_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_jog_strafe_right_002": {
+    "name": "feminine_locomotion_f_jog_strafe_right_002",
+    "url": "/animations/feminine/locomotion/F_Jog_Strafe_Right_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_run_001": {
+    "name": "feminine_locomotion_f_run_001",
+    "url": "/animations/feminine/locomotion/F_Run_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_run_backwards_001": {
+    "name": "feminine_locomotion_f_run_backwards_001",
+    "url": "/animations/feminine/locomotion/F_Run_Backwards_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_run_jump_001": {
+    "name": "feminine_locomotion_f_run_jump_001",
+    "url": "/animations/feminine/locomotion/F_Run_Jump_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_run_strafe_left_001": {
+    "name": "feminine_locomotion_f_run_strafe_left_001",
+    "url": "/animations/feminine/locomotion/F_Run_Strafe_Left_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_run_strafe_right_001": {
+    "name": "feminine_locomotion_f_run_strafe_right_001",
+    "url": "/animations/feminine/locomotion/F_Run_Strafe_Right_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_walk_002": {
+    "name": "feminine_locomotion_f_walk_002",
+    "url": "/animations/feminine/locomotion/F_Walk_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_walk_003": {
+    "name": "feminine_locomotion_f_walk_003",
+    "url": "/animations/feminine/locomotion/F_Walk_003.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_walk_backwards_001": {
+    "name": "feminine_locomotion_f_walk_backwards_001",
+    "url": "/animations/feminine/locomotion/F_Walk_Backwards_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_walk_jump_001": {
+    "name": "feminine_locomotion_f_walk_jump_001",
+    "url": "/animations/feminine/locomotion/F_Walk_Jump_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_walk_jump_002": {
+    "name": "feminine_locomotion_f_walk_jump_002",
+    "url": "/animations/feminine/locomotion/F_Walk_Jump_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_walk_strafe_left_001": {
+    "name": "feminine_locomotion_f_walk_strafe_left_001",
+    "url": "/animations/feminine/locomotion/F_Walk_Strafe_Left_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_f_walk_strafe_right_001": {
+    "name": "feminine_locomotion_f_walk_strafe_right_001",
+    "url": "/animations/feminine/locomotion/F_Walk_Strafe_Right_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_crouchedwalk_backwards_002": {
+    "name": "feminine_locomotion_m_crouchedwalk_backwards_002",
+    "url": "/animations/feminine/locomotion/M_CrouchedWalk_Backwards_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_crouch_strafe_left_002": {
+    "name": "feminine_locomotion_m_crouch_strafe_left_002",
+    "url": "/animations/feminine/locomotion/M_Crouch_Strafe_Left_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_crouch_strafe_right_002": {
+    "name": "feminine_locomotion_m_crouch_strafe_right_002",
+    "url": "/animations/feminine/locomotion/M_Crouch_Strafe_Right_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_crouch_walk_003": {
+    "name": "feminine_locomotion_m_crouch_walk_003",
+    "url": "/animations/feminine/locomotion/M_Crouch_Walk_003.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_falling_idle_002": {
+    "name": "feminine_locomotion_m_falling_idle_002",
+    "url": "/animations/feminine/locomotion/M_Falling_Idle_002.glb",
+    "type": "idle"
+  },
+  "feminine_locomotion_m_jog_001": {
+    "name": "feminine_locomotion_m_jog_001",
+    "url": "/animations/feminine/locomotion/M_Jog_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_jog_003": {
+    "name": "feminine_locomotion_m_jog_003",
+    "url": "/animations/feminine/locomotion/M_Jog_003.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_jog_backwards_001": {
+    "name": "feminine_locomotion_m_jog_backwards_001",
+    "url": "/animations/feminine/locomotion/M_Jog_Backwards_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_jog_jump_001": {
+    "name": "feminine_locomotion_m_jog_jump_001",
+    "url": "/animations/feminine/locomotion/M_Jog_Jump_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_jog_jump_002": {
+    "name": "feminine_locomotion_m_jog_jump_002",
+    "url": "/animations/feminine/locomotion/M_Jog_Jump_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_jog_strafe_left_001": {
+    "name": "feminine_locomotion_m_jog_strafe_left_001",
+    "url": "/animations/feminine/locomotion/M_Jog_Strafe_Left_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_jog_strafe_right_001": {
+    "name": "feminine_locomotion_m_jog_strafe_right_001",
+    "url": "/animations/feminine/locomotion/M_Jog_Strafe_Right_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_run_001": {
+    "name": "feminine_locomotion_m_run_001",
+    "url": "/animations/feminine/locomotion/M_Run_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_run_backwards_002": {
+    "name": "feminine_locomotion_m_run_backwards_002",
+    "url": "/animations/feminine/locomotion/M_Run_Backwards_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_run_jump_001": {
+    "name": "feminine_locomotion_m_run_jump_001",
+    "url": "/animations/feminine/locomotion/M_Run_Jump_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_run_jump_002": {
+    "name": "feminine_locomotion_m_run_jump_002",
+    "url": "/animations/feminine/locomotion/M_Run_Jump_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_run_strafe_left_002": {
+    "name": "feminine_locomotion_m_run_strafe_left_002",
+    "url": "/animations/feminine/locomotion/M_Run_Strafe_Left_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_run_strafe_right_002": {
+    "name": "feminine_locomotion_m_run_strafe_right_002",
+    "url": "/animations/feminine/locomotion/M_Run_Strafe_Right_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_walk_001": {
+    "name": "feminine_locomotion_m_walk_001",
+    "url": "/animations/feminine/locomotion/M_Walk_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_walk_002": {
+    "name": "feminine_locomotion_m_walk_002",
+    "url": "/animations/feminine/locomotion/M_Walk_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_walk_backwards_001": {
+    "name": "feminine_locomotion_m_walk_backwards_001",
+    "url": "/animations/feminine/locomotion/M_Walk_Backwards_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_walk_jump_001": {
+    "name": "feminine_locomotion_m_walk_jump_001",
+    "url": "/animations/feminine/locomotion/M_Walk_Jump_001.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_walk_jump_002": {
+    "name": "feminine_locomotion_m_walk_jump_002",
+    "url": "/animations/feminine/locomotion/M_Walk_Jump_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_walk_jump_003": {
+    "name": "feminine_locomotion_m_walk_jump_003",
+    "url": "/animations/feminine/locomotion/M_Walk_Jump_003.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_walk_strafe_left_002": {
+    "name": "feminine_locomotion_m_walk_strafe_left_002",
+    "url": "/animations/feminine/locomotion/M_Walk_Strafe_Left_002.glb",
+    "type": "misc"
+  },
+  "feminine_locomotion_m_walk_strafe_right_002": {
+    "name": "feminine_locomotion_m_walk_strafe_right_002",
+    "url": "/animations/feminine/locomotion/M_Walk_Strafe_Right_002.glb",
+    "type": "misc"
+  },
+  "idle": {
+    "name": "idle",
+    "url": "/animations/idle.glb",
+    "type": "idle"
+  },
+  "male-idle": {
+    "name": "male-idle",
+    "url": "/animations/male-idle.glb",
+    "type": "idle"
+  },
+  "masculine_dance_f_dances_001": {
+    "name": "masculine_dance_f_dances_001",
+    "url": "/animations/masculine/dance/F_Dances_001.glb",
+    "type": "dance",
+    "primary_emotion": "playful",
+    "valence": "positive",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 6,
+    "description": "A rhythmic, side-to-side groove with light hand movements and a relaxed bounce.",
+    "semantic_tags": [
+      "dance",
+      "groove",
+      "rhythmic",
+      "casual",
+      "upbeat",
+      "sway",
+      "fluid",
+      "celebration"
+    ]
+  },
+  "masculine_dance_f_dances_004": {
+    "name": "masculine_dance_f_dances_004",
+    "url": "/animations/masculine/dance/F_Dances_004.glb",
+    "type": "dance",
+    "primary_emotion": "energetic",
+    "valence": "positive",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 8,
+    "description": "A high-energy shuffle involving coordinated arm swings and weight shifts.",
+    "semantic_tags": [
+      "active",
+      "shuffle",
+      "dynamic",
+      "modern",
+      "hip-hop",
+      "youthful",
+      "vibrant",
+      "coordinated"
+    ]
+  },
+  "masculine_dance_f_dances_005": {
+    "name": "masculine_dance_f_dances_005",
+    "url": "/animations/masculine/dance/F_Dances_005.glb",
+    "type": "dance",
+    "primary_emotion": "confident",
+    "valence": "positive",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 5,
+    "description": "A smooth, controlled hip-sway dance with subtle hand gestures.",
+    "semantic_tags": [
+      "smooth",
+      "sassy",
+      "feminine",
+      "chill",
+      "style",
+      "sway",
+      "elegant",
+      "rhythmic"
+    ]
+  },
+  "masculine_dance_f_dances_006": {
+    "name": "masculine_dance_f_dances_006",
+    "url": "/animations/masculine/dance/F_Dances_006.glb",
+    "type": "dance",
+    "primary_emotion": "joyful",
+    "valence": "positive",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 7,
+    "description": "An expressive dance featuring wide arm arcs and a steady, bouncy tempo.",
+    "semantic_tags": [
+      "happy",
+      "expressive",
+      "celebratory",
+      "bouncy",
+      "open",
+      "welcoming",
+      "spirited",
+      "fun"
+    ]
+  },
+  "masculine_dance_f_dances_007": {
+    "name": "masculine_dance_f_dances_007",
+    "url": "/animations/masculine/dance/F_Dances_007.glb",
+    "type": "dance",
+    "primary_emotion": "relaxed",
+    "valence": "positive",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 4,
+    "description": "A gentle, low-intensity groove with minimal travel and steady rhythm.",
+    "semantic_tags": [
+      "chill",
+      "mellow",
+      "steady",
+      "ambient",
+      "casual",
+      "relaxed",
+      "vibe",
+      "minimalist"
+    ]
+  },
+  "masculine_dance_m_dances_001": {
+    "name": "masculine_dance_m_dances_001",
+    "url": "/animations/masculine/dance/M_Dances_001.glb",
+    "type": "dance",
+    "primary_emotion": "cool",
+    "valence": "positive",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 5,
+    "description": "A masculine, rhythmic step-touch dance with relaxed shoulder movement.",
+    "semantic_tags": [
+      "masculine",
+      "cool",
+      "urban",
+      "rhythmic",
+      "relaxed",
+      "swagger",
+      "casual",
+      "club"
+    ]
+  },
+  "masculine_dance_m_dances_002": {
+    "name": "masculine_dance_m_dances_002",
+    "url": "/animations/masculine/dance/M_Dances_002.glb",
+    "type": "dance",
+    "primary_emotion": "excited",
+    "valence": "positive",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 9,
+    "description": "A fast-paced, high-intensity dance with rapid footwork and arm pumps.",
+    "semantic_tags": [
+      "hype",
+      "intense",
+      "fast",
+      "athletic",
+      "energetic",
+      "celebration",
+      "victory",
+      "rapid"
+    ]
+  },
+  "masculine_dance_m_dances_003": {
+    "name": "masculine_dance_m_dances_003",
+    "url": "/animations/masculine/dance/M_Dances_003.glb",
+    "type": "dance",
+    "primary_emotion": "silly",
+    "valence": "positive",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 6,
+    "description": "A quirky, exaggerated dance move with humorous limb coordination.",
+    "semantic_tags": [
+      "funny",
+      "quirky",
+      "silly",
+      "awkward",
+      "unique",
+      "humor",
+      "unconventional",
+      "character"
+    ]
+  },
+  "masculine_dance_m_dances_004": {
+    "name": "masculine_dance_m_dances_004",
+    "url": "/animations/masculine/dance/M_Dances_004.glb",
+    "type": "dance",
+    "primary_emotion": "focused",
+    "valence": "neutral",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 7,
+    "description": "A precise, technical dance routine focusing on sharp, isolated movements.",
+    "semantic_tags": [
+      "technical",
+      "sharp",
+      "isolation",
+      "robotics",
+      "precise",
+      "modern",
+      "disciplined",
+      "clean"
+    ]
+  },
+  "masculine_dance_m_dances_005": {
+    "name": "masculine_dance_m_dances_005",
+    "url": "/animations/masculine/dance/M_Dances_005.glb",
+    "type": "dance",
+    "primary_emotion": "proud",
+    "valence": "positive",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 6,
+    "description": "A bold dance with a wide stance and expansive chest-out movements.",
+    "semantic_tags": [
+      "bold",
+      "strong",
+      "proud",
+      "expansive",
+      "confident",
+      "powerful",
+      "leader",
+      "heroic"
+    ]
+  },
+  "masculine_dance_m_dances_006": {
+    "name": "masculine_dance_m_dances_006",
+    "url": "/animations/masculine/dance/M_Dances_006.glb",
+    "type": "dance",
+    "primary_emotion": "relaxed",
+    "valence": "positive",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 4,
+    "description": "A low-key, casual sway with minimal arm movement and a steady rhythmic bounce.",
+    "semantic_tags": [
+      "chill",
+      "casual",
+      "mellow",
+      "relaxed",
+      "minimalist",
+      "sway",
+      "steady",
+      "easygoing"
+    ]
+  },
+  "masculine_dance_m_dances_007": {
+    "name": "masculine_dance_m_dances_007",
+    "url": "/animations/masculine/dance/M_Dances_007.glb",
+    "type": "dance",
+    "primary_emotion": "playful",
+    "valence": "positive",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 6,
+    "description": "An upbeat side-to-side step with light finger snaps and a cheerful torso tilt.",
+    "semantic_tags": [
+      "playful",
+      "rhythmic",
+      "cheerful",
+      "stepping",
+      "lighthearted",
+      "groove",
+      "active",
+      "fun"
+    ]
+  },
+  "masculine_dance_m_dances_008": {
+    "name": "masculine_dance_m_dances_008",
+    "url": "/animations/masculine/dance/M_Dances_008.glb",
+    "type": "dance",
+    "primary_emotion": "confident",
+    "valence": "positive",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 5,
+    "description": "A smooth, controlled groove featuring subtle shoulder rolls and a fixed, assertive stance.",
+    "semantic_tags": [
+      "confident",
+      "smooth",
+      "swagger",
+      "controlled",
+      "subtle",
+      "masculine",
+      "cool",
+      "stylish"
+    ]
+  },
+  "masculine_dance_m_dances_009": {
+    "name": "masculine_dance_m_dances_009",
+    "url": "/animations/masculine/dance/M_Dances_009.glb",
+    "type": "dance",
+    "primary_emotion": "energetic",
+    "valence": "positive",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 8,
+    "description": "A high-energy, rapid bouncing movement with active arm pumping and weight shifting.",
+    "semantic_tags": [
+      "energetic",
+      "hype",
+      "intense",
+      "bouncy",
+      "vibrant",
+      "active",
+      "dynamic",
+      "club"
+    ]
+  },
+  "masculine_dance_m_dances_011": {
+    "name": "masculine_dance_m_dances_011",
+    "url": "/animations/masculine/dance/M_Dances_011.glb",
+    "type": "dance",
+    "primary_emotion": "focused",
+    "valence": "neutral",
+    "action": "dancing",
+    "base_posture": "standing",
+    "intensity": 7,
+    "description": "A technical dance sequence focusing on sharp footwork and precise, rhythmic upper-body isolations.",
+    "semantic_tags": [
+      "technical",
+      "sharp",
+      "precision",
+      "rhythmic",
+      "isolated",
+      "modern",
+      "disciplined",
+      "focused"
+    ]
+  },
+  "masculine_expression_f_talking_variations_001": {
+    "name": "masculine_expression_f_talking_variations_001",
+    "url": "/animations/masculine/expression/F_Talking_Variations_001.glb",
+    "type": "expression",
+    "primary_emotion": "attentive",
+    "valence": "neutral",
+    "action": "listening",
+    "base_posture": "standing",
+    "intensity": 2,
+    "description": "A neutral standing posture with a subtle head tilt indicating active listening or waiting for a cue.",
+    "semantic_tags": [
+      "still",
+      "patient",
+      "neutral",
+      "idle",
+      "observant",
+      "waiting",
+      "calm"
+    ]
+  },
+  "masculine_expression_f_talking_variations_002": {
+    "name": "masculine_expression_f_talking_variations_002",
+    "url": "/animations/masculine/expression/F_Talking_Variations_002.glb",
+    "type": "expression",
+    "primary_emotion": "engaged",
+    "valence": "positive",
+    "action": "explaining",
+    "base_posture": "standing",
+    "intensity": 4,
+    "description": "A conversational stance with slight forward leaning and open facial expression used for general dialogue.",
+    "semantic_tags": [
+      "talking",
+      "communicating",
+      "open",
+      "friendly",
+      "moderate",
+      "gesturing",
+      "informative"
+    ]
+  },
+  "masculine_expression_f_talking_variations_003": {
+    "name": "masculine_expression_f_talking_variations_003",
+    "url": "/animations/masculine/expression/F_Talking_Variations_003.glb",
+    "type": "expression",
+    "primary_emotion": "contemplative",
+    "valence": "neutral",
+    "action": "thinking",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "Slight shifts in weight and gaze suggesting the avatar is processing information while speaking.",
+    "semantic_tags": [
+      "thoughtful",
+      "pensive",
+      "shifting",
+      "subtle",
+      "serious",
+      "intellectual",
+      "focused"
+    ]
+  },
+  "masculine_expression_f_talking_variations_004": {
+    "name": "masculine_expression_f_talking_variations_004",
+    "url": "/animations/masculine/expression/F_Talking_Variations_004.glb",
+    "type": "expression",
+    "primary_emotion": "confident",
+    "valence": "positive",
+    "action": "presenting",
+    "base_posture": "standing",
+    "intensity": 5,
+    "description": "An upright, steady posture with clear articulation and direct eye contact for authoritative delivery.",
+    "semantic_tags": [
+      "bold",
+      "direct",
+      "formal",
+      "articulate",
+      "steady",
+      "assured",
+      "professional"
+    ]
+  },
+  "masculine_expression_f_talking_variations_005": {
+    "name": "masculine_expression_f_talking_variations_005",
+    "url": "/animations/masculine/expression/F_Talking_Variations_005.glb",
+    "type": "expression",
+    "primary_emotion": "empathetic",
+    "valence": "positive",
+    "action": "reassuring",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "Softened facial features and relaxed shoulder positioning to convey comfort or agreement.",
+    "semantic_tags": [
+      "kind",
+      "supportive",
+      "gentle",
+      "approvable",
+      "soft",
+      "agreeing",
+      "warm"
+    ]
+  },
+  "masculine_expression_f_talking_variations_006": {
+    "name": "masculine_expression_f_talking_variations_006",
+    "url": "/animations/masculine/expression/F_Talking_Variations_006.glb",
+    "type": "expression",
+    "primary_emotion": "dynamic",
+    "valence": "positive",
+    "action": "emphasizing",
+    "base_posture": "standing",
+    "intensity": 6,
+    "description": "Increased micro-movements and facial animation to highlight specific points in a conversation.",
+    "semantic_tags": [
+      "animated",
+      "expressive",
+      "vocal",
+      "energetic",
+      "articulated",
+      "persuasive",
+      "active"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_001": {
+    "name": "masculine_expression_m_standing_expressions_001",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_001.glb",
+    "type": "expression",
+    "primary_emotion": "cheerful",
+    "valence": "positive",
+    "action": "smiling",
+    "base_posture": "standing",
+    "intensity": 4,
+    "description": "A bright facial expression with relaxed arms, conveying a sense of happiness and approachability.",
+    "semantic_tags": [
+      "happy",
+      "smiling",
+      "welcoming",
+      "friendly",
+      "upbeat",
+      "relaxed",
+      "kind"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_002": {
+    "name": "masculine_expression_m_standing_expressions_002",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_002.glb",
+    "type": "expression",
+    "primary_emotion": "skeptical",
+    "valence": "negative",
+    "action": "doubting",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "A subtle squint and slight head pull-back suggesting suspicion or disbelief.",
+    "semantic_tags": [
+      "unsure",
+      "cynical",
+      "questioning",
+      "distrustful",
+      "reserved",
+      "analytical",
+      "judgmental"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_004": {
+    "name": "masculine_expression_m_standing_expressions_004",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_004.glb",
+    "type": "expression",
+    "primary_emotion": "surprised",
+    "valence": "neutral",
+    "action": "reacting",
+    "base_posture": "standing",
+    "intensity": 5,
+    "description": "Raised eyebrows and slightly widened eyes indicating a sudden realization or shock.",
+    "semantic_tags": [
+      "amazed",
+      "startled",
+      "curious",
+      "wonder",
+      "alert",
+      "unexpected",
+      "wide-eyed"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_005": {
+    "name": "masculine_expression_m_standing_expressions_005",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_005.glb",
+    "type": "expression",
+    "primary_emotion": "determined",
+    "valence": "positive",
+    "action": "focusing",
+    "base_posture": "standing",
+    "intensity": 6,
+    "description": "A firm jawline and sharp eye focus, showing readiness and strong intent.",
+    "semantic_tags": [
+      "resolute",
+      "serious",
+      "intense",
+      "motivated",
+      "ready",
+      "stern",
+      "authoritative"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_006": {
+    "name": "masculine_expression_m_standing_expressions_006",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_006.glb",
+    "type": "expression",
+    "primary_emotion": "annoyed",
+    "valence": "negative",
+    "action": "scoffing",
+    "base_posture": "standing",
+    "intensity": 4,
+    "description": "A sharp exhale with a slight head toss and eye roll, conveying mild irritation or dismissal.",
+    "semantic_tags": [
+      "frustrated",
+      "impatient",
+      "dismissive",
+      "scoff",
+      "irritated",
+      "unimpressed",
+      "negative",
+      "bored"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_007": {
+    "name": "masculine_expression_m_standing_expressions_007",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_007.glb",
+    "type": "expression",
+    "primary_emotion": "contemplative",
+    "valence": "neutral",
+    "action": "pondering",
+    "base_posture": "standing",
+    "intensity": 2,
+    "description": "A subtle upward gaze and slight head tilt suggesting the avatar is deep in thought or reflecting.",
+    "semantic_tags": [
+      "thinking",
+      "thoughtful",
+      "pensive",
+      "dreamy",
+      "introspective",
+      "quiet",
+      "reflecting",
+      "analytical"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_008": {
+    "name": "masculine_expression_m_standing_expressions_008",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_008.glb",
+    "type": "expression",
+    "primary_emotion": "sad",
+    "valence": "negative",
+    "action": "frowning",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "Downcast eyes and a subtle slump in the shoulders, expressing disappointment or sorrow.",
+    "semantic_tags": [
+      "unhappy",
+      "dejected",
+      "somber",
+      "gloomy",
+      "melancholy",
+      "disappointed",
+      "downcast",
+      "upset"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_009": {
+    "name": "masculine_expression_m_standing_expressions_009",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_009.glb",
+    "type": "expression",
+    "primary_emotion": "confused",
+    "valence": "neutral",
+    "action": "questioning",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "A slight brow furrow and head cock to the side, indicating a lack of understanding or curiosity.",
+    "semantic_tags": [
+      "puzzled",
+      "uncertain",
+      "bewildered",
+      "curious",
+      "inquiring",
+      "lost",
+      "skeptical",
+      "unsure"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_010": {
+    "name": "masculine_expression_m_standing_expressions_010",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_010.glb",
+    "type": "expression",
+    "primary_emotion": "angry",
+    "valence": "negative",
+    "action": "glaring",
+    "base_posture": "standing",
+    "intensity": 6,
+    "description": "A sharp, intense stare with narrowed eyes and a tightened jawline conveying hostility.",
+    "semantic_tags": [
+      "furious",
+      "stern",
+      "aggressive",
+      "mad",
+      "threatening",
+      "hostile",
+      "intense",
+      "fierce"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_011": {
+    "name": "masculine_expression_m_standing_expressions_011",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_011.glb",
+    "type": "expression",
+    "primary_emotion": "proud",
+    "valence": "positive",
+    "action": "smirking",
+    "base_posture": "standing",
+    "intensity": 4,
+    "description": "A slight, one-sided smile and puffed chest indicating self-satisfaction or confidence.",
+    "semantic_tags": [
+      "smug",
+      "confident",
+      "satisfied",
+      "arrogant",
+      "successful",
+      "bold",
+      "pleased",
+      "assured"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_012": {
+    "name": "masculine_expression_m_standing_expressions_012",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_012.glb",
+    "type": "expression",
+    "primary_emotion": "disgusted",
+    "valence": "negative",
+    "action": "recoiling",
+    "base_posture": "standing",
+    "intensity": 5,
+    "description": "A wrinkled nose and slight pull-back of the head as if reacting to something unpleasant.",
+    "semantic_tags": [
+      "grossed-out",
+      "repulsed",
+      "aversion",
+      "dislike",
+      "offended",
+      "cringing",
+      "distasteful",
+      "repelled"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_013": {
+    "name": "masculine_expression_m_standing_expressions_013",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_013.glb",
+    "type": "expression",
+    "primary_emotion": "bored",
+    "valence": "negative",
+    "action": "sighing",
+    "base_posture": "standing",
+    "intensity": 2,
+    "description": "A slow blink and heavy shoulders, conveying a complete lack of interest or fatigue.",
+    "semantic_tags": [
+      "uninterested",
+      "tired",
+      "listless",
+      "apathetic",
+      "dull",
+      "weary",
+      "indifferent",
+      "lethargic"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_014": {
+    "name": "masculine_expression_m_standing_expressions_014",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_014.glb",
+    "type": "expression",
+    "primary_emotion": "fearful",
+    "valence": "negative",
+    "action": "trembling",
+    "base_posture": "standing",
+    "intensity": 5,
+    "description": "Widened eyes and a subtle tensing of the body, indicating anxiety or apprehension.",
+    "semantic_tags": [
+      "scared",
+      "anxious",
+      "nervous",
+      "worried",
+      "frightened",
+      "timid",
+      "uneasy",
+      "alarmed"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_015": {
+    "name": "masculine_expression_m_standing_expressions_015",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_015.glb",
+    "type": "expression",
+    "primary_emotion": "excited",
+    "valence": "positive",
+    "action": "beaming",
+    "base_posture": "standing",
+    "intensity": 7,
+    "description": "A wide, genuine smile with bright eyes and energetic micro-movements of the head.",
+    "semantic_tags": [
+      "joyful",
+      "enthusiastic",
+      "thrilled",
+      "eager",
+      "delighted",
+      "vibrant",
+      "cheerful",
+      "animated"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_016": {
+    "name": "masculine_expression_m_standing_expressions_016",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_016.glb",
+    "type": "expression",
+    "primary_emotion": "stoic",
+    "valence": "neutral",
+    "action": "standing",
+    "base_posture": "standing",
+    "intensity": 1,
+    "description": "A neutral, expressionless stance with minimal body movement, representing a baseline idle state.",
+    "semantic_tags": [
+      "idle",
+      "calm",
+      "steady",
+      "unemotional",
+      "baseline",
+      "waiting",
+      "composed",
+      "passive"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_017": {
+    "name": "masculine_expression_m_standing_expressions_017",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_017.glb",
+    "type": "expression",
+    "primary_emotion": "curious",
+    "valence": "neutral",
+    "action": "observing",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "Alert posture with focused eye tracking, suggesting interest in an external stimulus.",
+    "semantic_tags": [
+      "attentive",
+      "watching",
+      "interested",
+      "alert",
+      "mindful",
+      "noticing",
+      "scanning",
+      "aware"
+    ]
+  },
+  "masculine_expression_m_standing_expressions_018": {
+    "name": "masculine_expression_m_standing_expressions_018",
+    "url": "/animations/masculine/expression/M_Standing_Expressions_018.glb",
+    "type": "expression",
+    "primary_emotion": "guilty",
+    "valence": "negative",
+    "action": "averting gaze",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "Shifting weight and looking away briefly, conveying a sense of unease or embarrassment.",
+    "semantic_tags": [
+      "shy",
+      "bashful",
+      "awkward",
+      "remorseful",
+      "hesitant",
+      "sheepish",
+      "uncomfortable",
+      "evasive"
+    ]
+  },
+  "masculine_expression_m_talking_variations_001": {
+    "name": "masculine_expression_m_talking_variations_001",
+    "url": "/animations/masculine/expression/M_Talking_Variations_001.glb",
+    "type": "expression"
+  },
+  "masculine_expression_m_talking_variations_002": {
+    "name": "masculine_expression_m_talking_variations_002",
+    "url": "/animations/masculine/expression/M_Talking_Variations_002.glb",
+    "type": "expression"
+  },
+  "masculine_expression_m_talking_variations_003": {
+    "name": "masculine_expression_m_talking_variations_003",
+    "url": "/animations/masculine/expression/M_Talking_Variations_003.glb",
+    "type": "expression",
+    "primary_emotion": "pensive",
+    "valence": "neutral",
+    "action": "talking",
+    "base_posture": "standing",
+    "intensity": 4,
+    "description": "Talking with measured head tilts and pauses, as if carefully choosing words during a deep conversation.",
+    "semantic_tags": [
+      "discussing",
+      "explaining",
+      "thoughtful",
+      "intellectual",
+      "serious",
+      "sincere",
+      "deliberate",
+      "articulating"
+    ]
+  },
+  "masculine_expression_m_talking_variations_004": {
+    "name": "masculine_expression_m_talking_variations_004",
+    "url": "/animations/masculine/expression/M_Talking_Variations_004.glb",
+    "type": "expression",
+    "primary_emotion": "persuasive",
+    "valence": "positive",
+    "action": "gesturing",
+    "base_posture": "standing",
+    "intensity": 5,
+    "description": "Communicating with confident body language and steady head nods to emphasize key points.",
+    "semantic_tags": [
+      "convincing",
+      "direct",
+      "assured",
+      "authoritative",
+      "friendly",
+      "open",
+      "clear",
+      "engaging"
+    ]
+  },
+  "masculine_expression_m_talking_variations_005": {
+    "name": "masculine_expression_m_talking_variations_005",
+    "url": "/animations/masculine/expression/M_Talking_Variations_005.glb",
+    "type": "expression"
+  },
+  "masculine_expression_m_talking_variations_006": {
+    "name": "masculine_expression_m_talking_variations_006",
+    "url": "/animations/masculine/expression/M_Talking_Variations_006.glb",
+    "type": "expression",
+    "primary_emotion": "animated",
+    "valence": "positive",
+    "action": "explaining",
+    "base_posture": "standing",
+    "intensity": 6,
+    "description": "High-energy verbal communication with expressive facial shifts and dynamic head movements.",
+    "semantic_tags": [
+      "vibrant",
+      "expressive",
+      "talkative",
+      "passionate",
+      "energetic",
+      "articulated",
+      "social",
+      "lively"
+    ]
+  },
+  "masculine_expression_m_talking_variations_007": {
+    "name": "masculine_expression_m_talking_variations_007",
+    "url": "/animations/masculine/expression/M_Talking_Variations_007.glb",
+    "type": "expression",
+    "primary_emotion": "empathetic",
+    "valence": "positive",
+    "action": "reassuring",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "Softened eye contact and gentle head movements while speaking, conveying comfort and understanding.",
+    "semantic_tags": [
+      "supportive",
+      "kind",
+      "gentle",
+      "caring",
+      "listening",
+      "approachable",
+      "warm",
+      "patient"
+    ]
+  },
+  "masculine_expression_m_talking_variations_008": {
+    "name": "masculine_expression_m_talking_variations_008",
+    "url": "/animations/masculine/expression/M_Talking_Variations_008.glb",
+    "type": "expression",
+    "primary_emotion": "assertive",
+    "valence": "neutral",
+    "action": "explaining",
+    "base_posture": "standing",
+    "intensity": 4,
+    "description": "A focused conversational gesture involving a rhythmic downward hand chop to emphasize a specific point.",
+    "semantic_tags": [
+      "talking",
+      "emphasizing",
+      "instructional",
+      "chopping",
+      "masculine",
+      "deliberate",
+      "confident",
+      "explaining"
+    ]
+  },
+  "masculine_expression_m_talking_variations_009": {
+    "name": "masculine_expression_m_talking_variations_009",
+    "url": "/animations/masculine/expression/M_Talking_Variations_009.glb",
+    "type": "expression",
+    "primary_emotion": "open",
+    "valence": "positive",
+    "action": "gesturing",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "A friendly communicative motion where the avatar extends a hand outward in an inviting, inclusive manner.",
+    "semantic_tags": [
+      "talking",
+      "welcoming",
+      "inclusive",
+      "offering",
+      "social",
+      "friendly",
+      "presenting",
+      "calm"
+    ]
+  },
+  "masculine_expression_m_talking_variations_010": {
+    "name": "masculine_expression_m_talking_variations_010",
+    "url": "/animations/masculine/expression/M_Talking_Variations_010.glb",
+    "type": "expression",
+    "primary_emotion": "analytical",
+    "valence": "neutral",
+    "action": "discussing",
+    "base_posture": "standing",
+    "intensity": 5,
+    "description": "A more animated verbal exchange characterized by bilateral hand movements and active shoulder engagement.",
+    "semantic_tags": [
+      "talking",
+      "expressive",
+      "animated",
+      "discussion",
+      "logical",
+      "persuasive",
+      "dynamic",
+      "active"
+    ]
+  },
+  "masculine_idle_f_standing_idle_001": {
+    "name": "masculine_idle_f_standing_idle_001",
+    "url": "/animations/masculine/idle/F_Standing_Idle_001.glb",
+    "type": "idle",
+    "primary_emotion": "neutral",
+    "valence": "neutral",
+    "action": "standing",
+    "base_posture": "standing",
+    "intensity": 1,
+    "description": "A static, symmetrical standing pose with arms at the sides and a forward-facing gaze.",
+    "semantic_tags": [
+      "idle",
+      "still",
+      "default",
+      "waiting",
+      "calm",
+      "symmetrical",
+      "passive",
+      "baseline"
+    ]
+  },
+  "masculine_idle_f_standing_idle_variations_001": {
+    "name": "masculine_idle_f_standing_idle_variations_001",
+    "url": "/animations/masculine/idle/F_Standing_Idle_Variations_001.glb",
+    "type": "idle",
+    "primary_emotion": "composed",
+    "valence": "positive",
+    "action": "shifting weight",
+    "base_posture": "standing",
+    "intensity": 2,
+    "description": "A subtle shift in balance where the avatar moves weight to one leg, creating a more natural silhouette.",
+    "semantic_tags": [
+      "relaxed",
+      "natural",
+      "casual",
+      "asymmetrical",
+      "comfortable",
+      "patient",
+      "humanlike"
+    ]
+  },
+  "masculine_idle_f_standing_idle_variations_002": {
+    "name": "masculine_idle_f_standing_idle_variations_002",
+    "url": "/animations/masculine/idle/F_Standing_Idle_Variations_002.glb",
+    "type": "idle",
+    "primary_emotion": "attentive",
+    "valence": "neutral",
+    "action": "breathing",
+    "base_posture": "standing",
+    "intensity": 2,
+    "description": "A micro-movement idle involving a slight chest expansion and a soft blink to simulate life.",
+    "semantic_tags": [
+      "conscious",
+      "organic",
+      "subtle",
+      "looping",
+      "stable",
+      "present",
+      "living"
+    ]
+  },
+  "masculine_idle_f_standing_idle_variations_003": {
+    "name": "masculine_idle_f_standing_idle_variations_003",
+    "url": "/animations/masculine/idle/F_Standing_Idle_Variations_003.glb",
+    "type": "idle",
+    "primary_emotion": "observant",
+    "valence": "neutral",
+    "action": "looking around",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "The avatar performs a slow, horizontal head turn to scan the environment.",
+    "semantic_tags": [
+      "aware",
+      "searching",
+      "scanning",
+      "curious",
+      "head-turn",
+      "environmental",
+      "noticing"
+    ]
+  },
+  "masculine_idle_f_standing_idle_variations_004": {
+    "name": "masculine_idle_f_standing_idle_variations_004",
+    "url": "/animations/masculine/idle/F_Standing_Idle_Variations_004.glb",
+    "type": "idle",
+    "primary_emotion": "pensive",
+    "valence": "neutral",
+    "action": "tilting head",
+    "base_posture": "standing",
+    "intensity": 2,
+    "description": "A gentle side-to-side head tilt suggesting the avatar is processing information or listening.",
+    "semantic_tags": [
+      "thoughtful",
+      "listening",
+      "considering",
+      "inquiring",
+      "gentle",
+      "contemplative",
+      "soft"
+    ]
+  },
+  "masculine_idle_f_standing_idle_variations_005": {
+    "name": "masculine_idle_f_standing_idle_variations_005",
+    "url": "/animations/masculine/idle/F_Standing_Idle_Variations_005.glb",
+    "type": "idle",
+    "primary_emotion": "confident",
+    "valence": "positive",
+    "action": "straightening posture",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "A brief adjustment where the shoulders pull back slightly to display a more assertive stance.",
+    "semantic_tags": [
+      "proud",
+      "alert",
+      "ready",
+      "formal",
+      "assured",
+      "strong",
+      "upright"
+    ]
+  },
+  "masculine_idle_f_standing_idle_variations_006": {
+    "name": "masculine_idle_f_standing_idle_variations_006",
+    "url": "/animations/masculine/idle/F_Standing_Idle_Variations_006.glb",
+    "type": "idle",
+    "primary_emotion": "restless",
+    "valence": "neutral",
+    "action": "fidgeting",
+    "base_posture": "standing",
+    "intensity": 4,
+    "description": "Small, rhythmic hand movements and a slight sway, indicating a transition from total stillness.",
+    "semantic_tags": [
+      "fidgety",
+      "impatient",
+      "active-idle",
+      "dynamic",
+      "anticipating",
+      "unsettled",
+      "moving"
+    ]
+  },
+  "masculine_idle_f_standing_idle_variations_007": {
+    "name": "masculine_idle_f_standing_idle_variations_007",
+    "url": "/animations/masculine/idle/F_Standing_Idle_Variations_007.glb",
+    "type": "idle",
+    "primary_emotion": "relaxed",
+    "valence": "positive",
+    "action": "slumping slightly",
+    "base_posture": "standing",
+    "intensity": 2,
+    "description": "The shoulders drop and the core loosens, indicating a shift into a low-stress state.",
+    "semantic_tags": [
+      "chill",
+      "easygoing",
+      "informal",
+      "loose",
+      "unwind",
+      "mellow",
+      "approachable"
+    ]
+  },
+  "masculine_idle_f_standing_idle_variations_008": {
+    "name": "masculine_idle_f_standing_idle_variations_008",
+    "url": "/animations/masculine/idle/F_Standing_Idle_Variations_008.glb",
+    "type": "idle",
+    "primary_emotion": "focused",
+    "valence": "neutral",
+    "action": "adjusting gaze",
+    "base_posture": "standing",
+    "intensity": 2,
+    "description": "A targeted eye dart and slight chin adjustment toward a specific point of interest.",
+    "semantic_tags": [
+      "tracking",
+      "concentrated",
+      "aimed",
+      "intent",
+      "fixed",
+      "serious",
+      "observational"
+    ]
+  },
+  "masculine_idle_f_standing_idle_variations_009": {
+    "name": "masculine_idle_f_standing_idle_variations_009",
+    "url": "/animations/masculine/idle/F_Standing_Idle_Variations_009.glb",
+    "type": "idle",
+    "primary_emotion": "friendly",
+    "valence": "positive",
+    "action": "softening stance",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "A welcoming variation of the idle with a slight forward lean and open body language.",
+    "semantic_tags": [
+      "inviting",
+      "warm",
+      "open",
+      "kind",
+      "responsive",
+      "social",
+      "engaging"
+    ]
+  },
+  "masculine_idle_m_standing_idle_001": {
+    "name": "masculine_idle_m_standing_idle_001",
+    "url": "/animations/masculine/idle/M_Standing_Idle_001.glb",
+    "type": "idle",
+    "primary_emotion": "neutral",
+    "valence": "neutral",
+    "action": "standing",
+    "base_posture": "standing",
+    "intensity": 1,
+    "description": "A rigid, perfectly still standing pose with arms hanging straight and eyes fixed forward.",
+    "semantic_tags": [
+      "static",
+      "baseline",
+      "stiff",
+      "symmetric",
+      "waiting",
+      "unmoving",
+      "formal"
+    ]
+  },
+  "masculine_idle_m_standing_idle_002": {
+    "name": "masculine_idle_m_standing_idle_002",
+    "url": "/animations/masculine/idle/M_Standing_Idle_002.glb",
+    "type": "idle",
+    "primary_emotion": "neutral",
+    "valence": "neutral",
+    "action": "breathing",
+    "base_posture": "standing",
+    "intensity": 2,
+    "description": "A standard idle featuring subtle shoulder rise and fall to simulate natural respiration.",
+    "semantic_tags": [
+      "organic",
+      "respiration",
+      "stable",
+      "calm",
+      "living",
+      "subtle",
+      "default"
+    ]
+  },
+  "masculine_idle_m_standing_idle_variations_001": {
+    "name": "masculine_idle_m_standing_idle_variations_001",
+    "url": "/animations/masculine/idle/M_Standing_Idle_Variations_001.glb",
+    "type": "idle",
+    "primary_emotion": "relaxed",
+    "valence": "positive",
+    "action": "weight shifting",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "The avatar shifts its center of gravity to the left leg, causing a natural tilt in the hips and shoulders.",
+    "semantic_tags": [
+      "casual",
+      "loose",
+      "asymmetric",
+      "comfortable",
+      "human",
+      "relaxed stance",
+      "natural"
+    ]
+  },
+  "masculine_idle_m_standing_idle_variations_002": {
+    "name": "masculine_idle_m_standing_idle_variations_002",
+    "url": "/animations/masculine/idle/M_Standing_Idle_Variations_002.glb",
+    "type": "idle",
+    "primary_emotion": "attentive",
+    "valence": "neutral",
+    "action": "blinking",
+    "base_posture": "standing",
+    "intensity": 2,
+    "description": "A focused standing pose characterized by periodic natural blinking and micro-adjustments of the head.",
+    "semantic_tags": [
+      "conscious",
+      "alert",
+      "observing",
+      "active",
+      "present",
+      "stable",
+      "watching"
+    ]
+  },
+  "masculine_idle_m_standing_idle_variations_003": {
+    "name": "masculine_idle_m_standing_idle_variations_003",
+    "url": "/animations/masculine/idle/M_Standing_Idle_Variations_003.glb",
+    "type": "idle",
+    "primary_emotion": "curious",
+    "valence": "positive",
+    "action": "scanning",
+    "base_posture": "standing",
+    "intensity": 4,
+    "description": "A smooth, horizontal head rotation as if the avatar is looking at something passing by.",
+    "semantic_tags": [
+      "searching",
+      "tracking",
+      "looking",
+      "interested",
+      "aware",
+      "dynamic-idle",
+      "head-turn"
+    ]
+  },
+  "masculine_idle_m_standing_idle_variations_004": {
+    "name": "masculine_idle_m_standing_idle_variations_004",
+    "url": "/animations/masculine/idle/M_Standing_Idle_Variations_004.glb",
+    "type": "idle",
+    "primary_emotion": "contemplative",
+    "valence": "neutral",
+    "action": "tilting head",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "The avatar tilts its head slightly to the side, suggesting processing of information or mild confusion.",
+    "semantic_tags": [
+      "thinking",
+      "pensive",
+      "wondering",
+      "puzzled",
+      "analytical",
+      "listening",
+      "gentle"
+    ]
+  },
+  "masculine_idle_m_standing_idle_variations_005": {
+    "name": "masculine_idle_m_standing_idle_variations_005",
+    "url": "/animations/masculine/idle/M_Standing_Idle_Variations_005.glb",
+    "type": "idle",
+    "primary_emotion": "confident",
+    "valence": "positive",
+    "action": "straightening",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "A subtle expansion of the chest and squaring of the shoulders to project presence and readiness.",
+    "semantic_tags": [
+      "proud",
+      "assertive",
+      "strong",
+      "upright",
+      "heroic",
+      "formal",
+      "ready"
+    ]
+  },
+  "masculine_idle_m_standing_idle_variations_006": {
+    "name": "masculine_idle_m_standing_idle_variations_006",
+    "url": "/animations/masculine/idle/M_Standing_Idle_Variations_006.glb",
+    "type": "idle",
+    "primary_emotion": "bored",
+    "valence": "negative",
+    "action": "swaying",
+    "base_posture": "standing",
+    "intensity": 4,
+    "description": "A restless variation involving a slight side-to-side sway and fingers twitching at the side.",
+    "semantic_tags": [
+      "impatient",
+      "fidgety",
+      "unsettled",
+      "restless",
+      "waiting",
+      "distracted",
+      "moving"
+    ]
+  },
+  "masculine_idle_m_standing_idle_variations_007": {
+    "name": "masculine_idle_m_standing_idle_variations_007",
+    "url": "/animations/masculine/idle/M_Standing_Idle_Variations_007.glb",
+    "type": "idle",
+    "primary_emotion": "mellow",
+    "valence": "positive",
+    "action": "softening",
+    "base_posture": "standing",
+    "intensity": 2,
+    "description": "A release of muscle tension where the knees slightly unlock and the posture becomes less rigid.",
+    "semantic_tags": [
+      "chill",
+      "easy",
+      "unwinding",
+      "low-energy",
+      "passive",
+      "approachable",
+      "soft"
+    ]
+  },
+  "masculine_idle_m_standing_idle_variations_008": {
+    "name": "masculine_idle_m_standing_idle_variations_008",
+    "url": "/animations/masculine/idle/M_Standing_Idle_Variations_008.glb",
+    "type": "idle",
+    "primary_emotion": "serious",
+    "valence": "neutral",
+    "action": "fixing gaze",
+    "base_posture": "standing",
+    "intensity": 2,
+    "description": "A concentrated idle where the head dips slightly and the eyes lock onto a lower focal point.",
+    "semantic_tags": [
+      "intense",
+      "focused",
+      "brooding",
+      "steady",
+      "stern",
+      "determined",
+      "fixed"
+    ]
+  },
+  "masculine_idle_m_standing_idle_variations_009": {
+    "name": "masculine_idle_m_standing_idle_variations_009",
+    "url": "/animations/masculine/idle/M_Standing_Idle_Variations_009.glb",
+    "type": "idle",
+    "primary_emotion": "observant",
+    "valence": "neutral",
+    "action": "glancing",
+    "base_posture": "standing",
+    "intensity": 3,
+    "description": "The avatar performs quick, subtle eye darting movements and a slight chin lift to scan the immediate surroundings.",
+    "semantic_tags": [
+      "vigilant",
+      "wary",
+      "scanning",
+      "noticing",
+      "sharp",
+      "reactive",
+      "looking",
+      "environmental-awareness"
+    ]
+  },
+  "masculine_idle_m_standing_idle_variations_010": {
+    "name": "masculine_idle_m_standing_idle_variations_010",
+    "url": "/animations/masculine/idle/M_Standing_Idle_Variations_010.glb",
+    "type": "idle",
+    "primary_emotion": "pensive",
+    "valence": "neutral",
+    "action": "nodding subtly",
+    "base_posture": "standing",
+    "intensity": 2,
+    "description": "A faint, slow vertical head movement suggesting internal confirmation, agreement, or methodical processing of thought.",
+    "semantic_tags": [
+      "agreeing",
+      "affirming",
+      "thinking",
+      "processing",
+      "slow",
+      "methodical",
+      "understanding",
+      "internal-dialogue"
+    ]
+  },
+  "masculine_locomotion_f_crouchedwalk_backwards_001": {
+    "name": "masculine_locomotion_f_crouchedwalk_backwards_001",
+    "url": "/animations/masculine/locomotion/F_CrouchedWalk_Backwards_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_crouch_strafe_left": {
+    "name": "masculine_locomotion_f_crouch_strafe_left",
+    "url": "/animations/masculine/locomotion/F_Crouch_Strafe_Left.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_crouch_strafe_right": {
+    "name": "masculine_locomotion_f_crouch_strafe_right",
+    "url": "/animations/masculine/locomotion/F_Crouch_Strafe_Right.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_crouch_walk_001": {
+    "name": "masculine_locomotion_f_crouch_walk_001",
+    "url": "/animations/masculine/locomotion/F_Crouch_Walk_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_falling_idle_000": {
+    "name": "masculine_locomotion_f_falling_idle_000",
+    "url": "/animations/masculine/locomotion/F_Falling_Idle_000.glb",
+    "type": "idle"
+  },
+  "masculine_locomotion_f_falling_idle_001": {
+    "name": "masculine_locomotion_f_falling_idle_001",
+    "url": "/animations/masculine/locomotion/F_Falling_Idle_001.glb",
+    "type": "idle"
+  },
+  "masculine_locomotion_f_jog_001": {
+    "name": "masculine_locomotion_f_jog_001",
+    "url": "/animations/masculine/locomotion/F_Jog_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_jog_backwards_001": {
+    "name": "masculine_locomotion_f_jog_backwards_001",
+    "url": "/animations/masculine/locomotion/F_Jog_Backwards_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_jog_jump_small_001": {
+    "name": "masculine_locomotion_f_jog_jump_small_001",
+    "url": "/animations/masculine/locomotion/F_Jog_Jump_Small_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_jog_strafe_left_002": {
+    "name": "masculine_locomotion_f_jog_strafe_left_002",
+    "url": "/animations/masculine/locomotion/F_Jog_Strafe_Left_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_jog_strafe_right_002": {
+    "name": "masculine_locomotion_f_jog_strafe_right_002",
+    "url": "/animations/masculine/locomotion/F_Jog_Strafe_Right_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_run_001": {
+    "name": "masculine_locomotion_f_run_001",
+    "url": "/animations/masculine/locomotion/F_Run_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_run_backwards_001": {
+    "name": "masculine_locomotion_f_run_backwards_001",
+    "url": "/animations/masculine/locomotion/F_Run_Backwards_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_run_jump_001": {
+    "name": "masculine_locomotion_f_run_jump_001",
+    "url": "/animations/masculine/locomotion/F_Run_Jump_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_run_strafe_left_001": {
+    "name": "masculine_locomotion_f_run_strafe_left_001",
+    "url": "/animations/masculine/locomotion/F_Run_Strafe_Left_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_run_strafe_right_001": {
+    "name": "masculine_locomotion_f_run_strafe_right_001",
+    "url": "/animations/masculine/locomotion/F_Run_Strafe_Right_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_walk_002": {
+    "name": "masculine_locomotion_f_walk_002",
+    "url": "/animations/masculine/locomotion/F_Walk_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_walk_003": {
+    "name": "masculine_locomotion_f_walk_003",
+    "url": "/animations/masculine/locomotion/F_Walk_003.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_walk_backwards_001": {
+    "name": "masculine_locomotion_f_walk_backwards_001",
+    "url": "/animations/masculine/locomotion/F_Walk_Backwards_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_walk_jump_001": {
+    "name": "masculine_locomotion_f_walk_jump_001",
+    "url": "/animations/masculine/locomotion/F_Walk_Jump_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_walk_jump_002": {
+    "name": "masculine_locomotion_f_walk_jump_002",
+    "url": "/animations/masculine/locomotion/F_Walk_Jump_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_walk_strafe_left_001": {
+    "name": "masculine_locomotion_f_walk_strafe_left_001",
+    "url": "/animations/masculine/locomotion/F_Walk_Strafe_Left_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_f_walk_strafe_right_001": {
+    "name": "masculine_locomotion_f_walk_strafe_right_001",
+    "url": "/animations/masculine/locomotion/F_Walk_Strafe_Right_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_crouchedwalk_backwards_002": {
+    "name": "masculine_locomotion_m_crouchedwalk_backwards_002",
+    "url": "/animations/masculine/locomotion/M_CrouchedWalk_Backwards_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_crouch_strafe_left_002": {
+    "name": "masculine_locomotion_m_crouch_strafe_left_002",
+    "url": "/animations/masculine/locomotion/M_Crouch_Strafe_Left_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_crouch_strafe_right_002": {
+    "name": "masculine_locomotion_m_crouch_strafe_right_002",
+    "url": "/animations/masculine/locomotion/M_Crouch_Strafe_Right_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_crouch_walk_003": {
+    "name": "masculine_locomotion_m_crouch_walk_003",
+    "url": "/animations/masculine/locomotion/M_Crouch_Walk_003.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_falling_idle_002": {
+    "name": "masculine_locomotion_m_falling_idle_002",
+    "url": "/animations/masculine/locomotion/M_Falling_Idle_002.glb",
+    "type": "idle"
+  },
+  "masculine_locomotion_m_jog_001": {
+    "name": "masculine_locomotion_m_jog_001",
+    "url": "/animations/masculine/locomotion/M_Jog_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_jog_003": {
+    "name": "masculine_locomotion_m_jog_003",
+    "url": "/animations/masculine/locomotion/M_Jog_003.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_jog_backwards_001": {
+    "name": "masculine_locomotion_m_jog_backwards_001",
+    "url": "/animations/masculine/locomotion/M_Jog_Backwards_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_jog_jump_001": {
+    "name": "masculine_locomotion_m_jog_jump_001",
+    "url": "/animations/masculine/locomotion/M_Jog_Jump_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_jog_jump_002": {
+    "name": "masculine_locomotion_m_jog_jump_002",
+    "url": "/animations/masculine/locomotion/M_Jog_Jump_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_jog_strafe_left_001": {
+    "name": "masculine_locomotion_m_jog_strafe_left_001",
+    "url": "/animations/masculine/locomotion/M_Jog_Strafe_Left_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_jog_strafe_right_001": {
+    "name": "masculine_locomotion_m_jog_strafe_right_001",
+    "url": "/animations/masculine/locomotion/M_Jog_Strafe_Right_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_run_001": {
+    "name": "masculine_locomotion_m_run_001",
+    "url": "/animations/masculine/locomotion/M_Run_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_run_backwards_002": {
+    "name": "masculine_locomotion_m_run_backwards_002",
+    "url": "/animations/masculine/locomotion/M_Run_Backwards_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_run_jump_001": {
+    "name": "masculine_locomotion_m_run_jump_001",
+    "url": "/animations/masculine/locomotion/M_Run_Jump_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_run_jump_002": {
+    "name": "masculine_locomotion_m_run_jump_002",
+    "url": "/animations/masculine/locomotion/M_Run_Jump_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_run_strafe_left_002": {
+    "name": "masculine_locomotion_m_run_strafe_left_002",
+    "url": "/animations/masculine/locomotion/M_Run_Strafe_Left_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_run_strafe_right_002": {
+    "name": "masculine_locomotion_m_run_strafe_right_002",
+    "url": "/animations/masculine/locomotion/M_Run_Strafe_Right_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_walk_001": {
+    "name": "masculine_locomotion_m_walk_001",
+    "url": "/animations/masculine/locomotion/M_Walk_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_walk_002": {
+    "name": "masculine_locomotion_m_walk_002",
+    "url": "/animations/masculine/locomotion/M_Walk_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_walk_backwards_001": {
+    "name": "masculine_locomotion_m_walk_backwards_001",
+    "url": "/animations/masculine/locomotion/M_Walk_Backwards_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_walk_jump_001": {
+    "name": "masculine_locomotion_m_walk_jump_001",
+    "url": "/animations/masculine/locomotion/M_Walk_Jump_001.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_walk_jump_002": {
+    "name": "masculine_locomotion_m_walk_jump_002",
+    "url": "/animations/masculine/locomotion/M_Walk_Jump_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_walk_jump_003": {
+    "name": "masculine_locomotion_m_walk_jump_003",
+    "url": "/animations/masculine/locomotion/M_Walk_Jump_003.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_walk_strafe_left_002": {
+    "name": "masculine_locomotion_m_walk_strafe_left_002",
+    "url": "/animations/masculine/locomotion/M_Walk_Strafe_Left_002.glb",
+    "type": "misc"
+  },
+  "masculine_locomotion_m_walk_strafe_right_002": {
+    "name": "masculine_locomotion_m_walk_strafe_right_002",
+    "url": "/animations/masculine/locomotion/M_Walk_Strafe_Right_002.glb",
+    "type": "misc"
+  },
+  "masculine_masculine_tpose": {
+    "name": "masculine_masculine_tpose",
+    "url": "/animations/masculine/Masculine_TPose.glb",
+    "type": "misc"
+  },
+  "wave": {
+    "name": "wave",
+    "url": "/animations/wave.glb",
+    "type": "misc"
+  }
+}

@@ -24,6 +24,8 @@ import { useSkinTexture } from "@/hooks/useSkinTexture";
 import { normaliseFbxAnimations } from "@/lib/animationUtils";
 import { type FeatureToggles } from "@/hooks/SceneConfigContext";
 import { useHeadMovement, type HeadMovementNodes } from "@/hooks/useHeadMovement";
+import { useDynamicAnimations } from "@/hooks/useDynamicAnimations";
+import { useAnimationStore } from "@/store/useAnimationStore";
 import { useIdleExpression } from "@/hooks/useIdleExpression";
 
 type GLTFResult = GLTF & {
@@ -55,7 +57,7 @@ type GLTFResult = GLTF & {
 };
 
 interface AvatarProps {
-  audioLevelRef: React.RefObject<number>;
+  audioLevelRef: React.RefObject<number | null>;
   avatarUrl: string;
   currentAnimation?: string;
   currentExpression?: string;
@@ -76,15 +78,14 @@ const DEFAULT_FEATURES: FeatureToggles = {
  * Wolf3D avatar with real-time lip-sync, idle breathing,
  * MeshPhysicalMaterial skin with SSS, and gaze drift.
  */
-export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpression, skinPreset = null, featureToggles = DEFAULT_FEATURES }: AvatarProps) {
+export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset = null, featureToggles = DEFAULT_FEATURES }: AvatarProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
   const { scene, animations: avatarAnimations } = useGLTF(avatarUrl);
 
-  // Load official animations
-  const { animations: idleAnimation } = useGLTF("/animations/idle.glb");
-  const { animations: waveAnimation } = useGLTF("/animations/wave.glb");
+  const currentAnimationName = useAnimationStore((state) => state.currentAnimation);
+  const { activeClip } = useDynamicAnimations();
 
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const { nodes, materials } = useGraph(clone) as unknown as GLTFResult;
@@ -111,27 +112,26 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpr
   const normalizedAnimations = React.useMemo(() => {
     const allAnimations = [
       ...(avatarAnimations || []),
-      ...(idleAnimation || []).map(a => Object.assign(a, { name: 'idle' })),
-      ...(waveAnimation || []).map(a => Object.assign(a, { name: 'wave' }))
+      ...(activeClip ? [activeClip] : []),
     ];
     return normaliseFbxAnimations(allAnimations);
-  }, [avatarAnimations, idleAnimation, waveAnimation]);
+  }, [avatarAnimations, activeClip]);
 
   const { actions } = useAnimations(normalizedAnimations, groupRef);
 
   useEffect(() => {
-    const actionName = currentAnimation && actions[currentAnimation]
-      ? currentAnimation
-      : (actions["idle"] ? "idle" : undefined);
+    const actionName = currentAnimationName && actions[currentAnimationName]
+      ? currentAnimationName
+      : undefined;
 
     if (!actionName || !actions[actionName]) return;
 
-    actions[actionName].reset().fadeIn(0.5).play();
+    actions[actionName].reset().fadeIn(0.3).play();
 
     return () => {
-      actions[actionName]?.fadeOut(0.5);
+      actions[actionName]?.fadeOut(0.3);
     };
-  }, [currentAnimation, actions]);
+  }, [currentAnimationName, actions]);
 
   // Use the Visage-ported head movement hook
   useHeadMovement({
@@ -404,6 +404,4 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpr
   );
 }
 
-// Preload animations (avatar model is preloaded by Scene based on config)
-useGLTF.preload("/animations/idle.glb");
-useGLTF.preload("/animations/wave.glb");
+// Animations are dynamically loaded via useDynamicAnimations

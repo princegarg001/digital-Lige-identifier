@@ -24,6 +24,9 @@ import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { TextShimmer } from "@/components/ui/text-shimmer";
 
 // Hooks
+import { useAnimationStore } from "@/store/useAnimationStore";
+import { useAnimationRegistry } from "@/hooks/useAnimationRegistry";
+import { findBestAnimationMatch } from "@/lib/animationMatcher";
 import { useSessionManager } from "@/hooks/useSessionManager";
 import { useSessionTimer } from "@/hooks/useSessionTimer";
 import { useChatMessages } from "@/hooks/useChatMessages";
@@ -97,9 +100,10 @@ IdleScreen.displayName = "IdleScreen";
 
 // Main component
 function HomePage() {
+  useAnimationRegistry(); // Fetch animation registry globally
+
   // UI State
   const [isChatOpen, setIsChatOpen] = useState(true);
-  const [currentAnimation, setCurrentAnimation] = useState<string>("idle");
   const [currentExpression, setCurrentExpression] = useState<string>("idle");
   const [personaMode, setPersonaMode] = useState<"focus" | "casual" | "presentation">("casual");
   // Skin state — default to warm ivory preset
@@ -125,10 +129,15 @@ function HomePage() {
       const duration = (args.duration_ms as number | undefined) ?? 3000;
 
       if (gesture) {
-        setCurrentAnimation(gesture);
+        // [Fuzzy Match Integration]
+        const state = useAnimationStore.getState();
+        const registry = state.registry;
+        const resolvedGesture = findBestAnimationMatch(gesture, registry);
+        
+        state.setAnimation(resolvedGesture);
         if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current);
         animationTimeoutRef.current = setTimeout(() => {
-          setCurrentAnimation("idle");
+          state.setAnimation("idle");
         }, duration);
       }
 
@@ -231,7 +240,6 @@ function HomePage() {
       <div className="absolute inset-0 scan-line z-0" data-persona-mode={personaMode}>
           <Scene
             audioLevelRef={session.audioLevelRef}
-            currentAnimation={currentAnimation}
             currentExpression={currentExpression}
             skinPreset={selectedSkin}
             debug={debugMode}

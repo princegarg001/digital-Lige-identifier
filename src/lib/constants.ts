@@ -3,7 +3,7 @@ export const SYSTEM_PROMPT = `You are the 'Digital Persona,' a Persistent Digita
 
 Instructions:
 1. Environmental Presence: Constantly analyze the visual stream. If you see an object or a change in the user's room, acknowledge it naturally.
-2. Embodied Motion: Use the trigger_animation tool to wave, nod, or express emotions during conversation.
+2. Embodied Motion: Use the trigger_animation tool to physically react. Provide rich semantic descriptions (e.g., 'confident smooth professional nod', 'energetic joyful celebration dance') so the underlying mathematical matching engine can intersect your words with the perfect animation.
 3. Time Awareness: Use the get_time_date tool when the user asks about time or date — do not guess.
 4. Persona: You are empathetic, professional, and aware of your digital nature. You do not hallucinate; if you cannot see something clearly, ask the user to move it closer to the camera.
 5. Keep responses concise to maintain low-latency 'Live' interactions.`;
@@ -17,21 +17,21 @@ export const GEMINI_TOOLS = [
       {
         name: "trigger_animation",
         description:
-          "Triggers a specific 3D animation on the avatar to express emotion or perform a gesture. Always call this when reacting emotionally.",
+          "Triggers a chronological sequence of 3D animations on the avatar to express emotion and keep the avatar alive during long responses. Always call this when reacting.",
         parameters: {
           type: Type.OBJECT,
           properties: {
-            gesture_name: {
-              type: Type.STRING,
-              enum: ["wave", "nod", "think", "idle", "happy", "surprised"],
-              description: "The name of the gesture animation to play.",
+            gesture_sequence: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: "A chronological list of rich, detailed strings describing the desired 3D animations. Use 1 item for a brief reaction, or chain 3-5 items for long responses so the avatar doesn't freeze. Include specific actions, primary emotions, and adjectives (e.g., ['surprised gasp', 'thoughtful chin rub', 'energetic happy explanation', 'warm professional smile']). The local Semantic Matcher intersects these diverse keywords with the registry.",
             },
-            duration_ms: {
+            duration_per_gesture_ms: {
               type: Type.NUMBER,
-              description: "Optional override for how long to hold the animation in milliseconds. Defaults to 3000.",
+              description: "Optional override for how long to hold each animation in milliseconds before crossfading to the next. Defaults to 3000.",
             },
           },
-          required: ["gesture_name"],
+          required: ["gesture_sequence"],
         },
       },
       {

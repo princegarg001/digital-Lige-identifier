@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "fuzzy-matching": {
+      "source": "dadbodgeoff/drift",
+      "sourceType": "github",
+      "computedHash": "4d999d36d276d053443269bab986157df34f1ee2d3ea24f52c210ab1fd581598"
+    },
     "gemini": {
       "source": "softaworks/agent-toolkit",
       "sourceType": "github",

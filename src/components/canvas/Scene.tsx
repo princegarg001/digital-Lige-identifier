@@ -30,7 +30,6 @@ const DPR_RANGE: [number, number] = [
 
 export interface SceneProps {
   audioLevelRef: React.RefObject<number>;
-  currentAnimation?: string;
   currentExpression?: string;
   skinPreset?: SkinPreset | null;
   /** When true, enables OrbitControls + live debug panel. Default: false */
@@ -48,7 +47,6 @@ export interface SceneProps {
  */
 export function SceneInner({
   audioLevelRef,
-  currentAnimation = "idle",
   currentExpression = "idle",
   skinPreset = null,
   debug = false,
@@ -125,7 +123,6 @@ export function SceneInner({
           <Avatar
             audioLevelRef={audioLevelRef}
             avatarUrl={avatarUrl}
-            currentAnimation={currentAnimation}
             currentExpression={currentExpression}
             skinPreset={skinPreset}
             featureToggles={features}
