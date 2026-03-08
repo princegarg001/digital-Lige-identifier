@@ -35,19 +35,20 @@ export function CallControls({
   onToggleChat,
 }: CallControlsProps) {
   return (
-    <footer className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center justify-center z-50">
-      <div className="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-4 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+    <footer className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center justify-center z-50">
+      <div className="bg-white/5 backdrop-blur-2xl border border-white/6 rounded-full px-4 py-2.5 flex items-center gap-2 shadow-2xl">
         {/* Chat */}
         <IconButton
           icon={MessageSquare}
           label={isChatOpen ? "Close chat" : "Open chat"}
           active={isChatOpen}
           variant={isChatOpen ? "primary" : "ghost"}
+          size="sm"
           onClick={onToggleChat}
-          className="hover:bg-white/10 rounded-full"
+          className="hover:bg-cyan-500/10 rounded-full"
         />
 
-        <div className="w-px h-8 bg-white/10 mx-2" />
+        <div className="w-px h-6 bg-white/10 mx-1" />
 
         {/* Mic */}
         <IconButton
@@ -55,10 +56,12 @@ export function CallControls({
           label={isMicActive ? "Mute microphone" : "Unmute microphone"}
           active={isMicActive}
           variant="ghost"
+          size="sm"
           onClick={onToggleMic}
           className={cn(
             "rounded-full transition-all duration-300", 
-            !isMicActive && "bg-destructive/20 text-destructive hover:bg-destructive/30"
+            !isMicActive && "bg-destructive/20 text-destructive hover:bg-destructive/30",
+            isMicActive && "hover:bg-emerald-500/10 text-emerald-100"
           )}
         />
 
@@ -68,10 +71,12 @@ export function CallControls({
           label={isCameraActive ? "Turn off camera" : "Turn on camera"}
           active={isCameraActive}
           variant="ghost"
+          size="sm"
           onClick={onToggleCamera}
           className={cn(
             "rounded-full transition-all duration-300", 
-            !isCameraActive && "bg-destructive/20 text-destructive hover:bg-destructive/30"
+            !isCameraActive && "bg-destructive/20 text-destructive hover:bg-destructive/30",
+            isCameraActive && "hover:bg-emerald-500/10 text-emerald-100"
           )}
         />
 
@@ -79,15 +84,15 @@ export function CallControls({
         <LiquidButton
           onClick={onToggleConnection}
           className={cn(
-            "flex items-center justify-center size-14 rounded-full transition-all duration-500 shadow-xl ml-2 border-0 active:scale-90",
+            "flex items-center justify-center size-10 rounded-full transition-all duration-500 shadow-xl ml-1 border-0 active:scale-90",
             isConnected 
               ? "bg-destructive hover:bg-destructive/90 shadow-destructive/20 text-destructive-foreground" 
-              : "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20 text-primary-foreground"
+              : "bg-linear-to-r from-cyan-500 to-emerald-500 text-primary-foreground hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:scale-105"
           )}
           title={isConnected ? "End session" : "Start session"}
         >
 
-          {isConnected ? <PhoneOff className="w-6 h-6" /> : <Phone className="w-6 h-6" />}
+          {isConnected ? <PhoneOff className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
         </LiquidButton>
 
       </div>

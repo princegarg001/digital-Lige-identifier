@@ -57,7 +57,7 @@ export function ChatPanel({
       variant="heavy"
       rounded="3xl"
       className={cn(
-        "h-full flex flex-col min-h-0 overflow-hidden shadow-2xl backdrop-blur-xl bg-black/50 border-white/5",
+        "h-full flex flex-col min-h-0 overflow-hidden shadow-2xl backdrop-blur-xl bg-white/5 border border-white/10",
         className
       )}
     >

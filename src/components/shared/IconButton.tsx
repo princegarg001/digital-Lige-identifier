@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import {
   Tooltip,
   TooltipContent,
@@ -24,27 +24,27 @@ interface IconButtonProps {
 const variantStyles = {
   ghost: {
     active:
-      "bg-white/5 hover:bg-white/10 text-white border-white/10",
+      "bg-white/10 hover:bg-white/15 text-white border border-white/10 shadow-lg",
     inactive:
-      "bg-white/5 hover:bg-white/10 text-muted-foreground border-white/5",
+      "bg-white/5 hover:bg-white/10 text-muted-foreground border border-white/5",
   },
   danger: {
     active:
-      "bg-red-500/20 hover:bg-red-500/30 text-red-400 border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.2)]",
+      "bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.2)]",
     inactive:
-      "bg-red-500/10 hover:bg-red-500/20 text-red-400/60 border-red-500/10",
+      "bg-red-500/10 hover:bg-red-500/20 text-red-400/60 border border-red-500/10",
   },
   success: {
     active:
-      "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border-emerald-500/20 shadow-[0_0_20px_rgba(52,211,153,0.15)]",
+      "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/20 shadow-[0_0_20px_rgba(52,211,153,0.15)]",
     inactive:
-      "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400/60 border-emerald-500/10",
+      "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400/60 border border-emerald-500/10",
   },
   primary: {
     active:
-      "bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border-cyan-500/20 shadow-[0_0_20px_rgba(34,211,238,0.15)]",
+      "bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/20 shadow-[0_0_20px_rgba(34,211,238,0.15)]",
     inactive:
-      "bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400/60 border-cyan-500/10",
+      "bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400/60 border border-cyan-500/10",
   },
 };
 
@@ -79,21 +79,20 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
+          <LiquidButton
             ref={ref}
-            variant="outline"
-            size="icon"
             onClick={onClick}
             disabled={disabled}
             className={cn(
-              "rounded-full transition-all duration-300",
+              "rounded-full transition-all duration-300 backdrop-blur-xl",
               sizeStyles[size],
               variantStyles[variant][state],
               className
             )}
+            style={{ padding: 0 }}
           >
             <Icon className={iconSizes[size]} />
-          </Button>
+          </LiquidButton>
         </TooltipTrigger>
         <TooltipContent
           side="top"

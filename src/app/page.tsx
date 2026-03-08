@@ -59,29 +59,36 @@ const IdleScreen = memo(({ onStart }: { onStart: () => void }) => (
     transition={{ duration: 0.4 }}
     className="absolute inset-0 flex flex-col items-center justify-center z-10"
   >
-    <div className="bg-white/3 backdrop-blur-xl border border-white/6 rounded-3xl px-12 py-10 flex flex-col items-center gap-6 max-w-md">
-      <div className="w-20 h-20 rounded-full bg-linear-to-br from-cyan-400/20 to-emerald-400/20 border border-cyan-400/20 flex items-center justify-center animate-pulse-ring">
-        <Sparkles className="w-8 h-8 text-cyan-400" />
-      </div>
-      <div className="text-center">
-        <TextShimmer 
-          duration={2}
-          className="text-2xl font-semibold tracking-wide mb-2 [--base-color:var(--color-cyan-500)] [--base-gradient-color:var(--color-emerald-300)] dark:[--base-color:var(--color-cyan-500)] dark:[--base-gradient-color:var(--color-emerald-300)]"
+    <div className="relative overflow-hidden rounded-3xl border border-white/6 bg-white/3 px-12 py-10 flex flex-col items-center gap-6 max-w-md backdrop-blur-xl shadow-2xl">
+      {/* Glow Effect */}
+      <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-cyan-400/5 blur-3xl pointer-events-none" />
+      
+      <div className="relative z-10 flex flex-col items-center gap-6 w-full">
+        <div className="w-20 h-20 rounded-full bg-linear-to-br from-cyan-400/20 to-emerald-400/20 border border-cyan-400/20 flex items-center justify-center animate-pulse-ring shadow-xl">
+          <Sparkles className="w-8 h-8 text-cyan-400" />
+        </div>
+        
+        <div className="text-center">
+          <TextShimmer 
+            duration={2}
+            className="text-2xl font-semibold tracking-wide mb-2 [--base-color:var(--color-cyan-500)] [--base-gradient-color:var(--color-emerald-300)] dark:[--base-color:var(--color-cyan-500)] dark:[--base-gradient-color:var(--color-emerald-300)]"
+          >
+            Digital Persona
+          </TextShimmer>
+          <p className="text-sm text-zinc-500 leading-relaxed mt-2">
+            Start a session to activate your AI persona.
+            <br />
+            Grant camera & mic permissions for full interaction.
+          </p>
+        </div>
+        
+        <LiquidButton
+          onClick={onStart}
+          className="w-full py-5 rounded-full bg-linear-to-r from-cyan-500 to-emerald-500 text-primary-foreground font-semibold text-sm tracking-wide hover:shadow-[0_0_30px_rgba(34,211,238,0.3)] hover:opacity-100 transition-all duration-500 hover:scale-105 border-0 cursor-pointer"
         >
-          Digital Persona
-        </TextShimmer>
-        <p className="text-sm text-zinc-500 leading-relaxed mt-2">
-          Start a session to activate your AI persona.
-          <br />
-          Grant camera & mic permissions for full interaction.
-        </p>
+          INITIATE SESSION
+        </LiquidButton>
       </div>
-      <LiquidButton
-        onClick={onStart}
-        className="px-8 py-6 rounded-full bg-linear-to-r from-cyan-500 to-emerald-500 text-primary-foreground font-semibold text-sm tracking-wide hover:shadow-[0_0_30px_rgba(34,211,238,0.3)] hover:opacity-100 transition-all duration-500 hover:scale-105 border-0 cursor-pointer"
-      >
-        INITIATE SESSION
-      </LiquidButton>
     </div>
   </motion.div>
 ));
