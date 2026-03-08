@@ -37,6 +37,8 @@ export function useAudioProcessor() {
   // Playback via AudioStreamer
   const playbackCtxRef = useRef<AudioContext | null>(null);
   const audioStreamerRef = useRef<AudioStreamer | null>(null);
+  // rAF handle for playback-level animation loop
+  const playbackAnimFrameRef = useRef<number>(0);
 
   // ── Mic capture ──────────────────────────────────────────────────────────
   const startMic = useCallback(
@@ -61,8 +63,12 @@ export function useAudioProcessor() {
             audio: {
               sampleRate: AUDIO_SAMPLE_RATE_INPUT,
               channelCount: 1,
-              echoCancellation: true,
-              noiseSuppression: true,
+              // Best practice: disable browser-side AGC and noise processing.
+              // These introduce artifacts that degrade the model's emotional tone
+              // detection. The Gemini Live API processes the raw signal natively.
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: false,
             },
           });
           streamRef.current = stream;
@@ -85,7 +91,9 @@ export function useAudioProcessor() {
               await ctx.audioWorklet.addModule("/pcm-capture-worklet.js");
               const workletNode = new AudioWorkletNode(ctx, "pcm-capture-processor");
               source.connect(workletNode);
-              workletNode.connect(ctx.destination);
+              // ✅ Fix: Do NOT connect workletNode to ctx.destination.
+              // Routing mic → destination would play the raw mic audio back
+              // through the speakers, creating a feedback/echo loop.
               workletNode.port.onmessage = (e: MessageEvent<string>) => {
                 onChunk(e.data);
               };
@@ -194,37 +202,67 @@ export function useAudioProcessor() {
   }, []);
 
   /**
+   * Continuous rAF loop that keeps audioLevelRef updated from the streamer
+   * during playback. Runs at 60fps so Avatar lip-sync is always smooth.
+   * Only active while playback is on-going; cancelled by stopPlayback().
+   */
+  const startPlaybackLevelLoop = useCallback(() => {
+    const tick = () => {
+      if (audioStreamerRef.current) {
+        const vol = audioStreamerRef.current.getVolume();
+        // Map streamer RMS (0-1 float) → audioLevelRef (0-1) with a boost
+        audioLevelRef.current = Math.min(1, vol * 4);
+      }
+      playbackAnimFrameRef.current = requestAnimationFrame(tick);
+    };
+    cancelAnimationFrame(playbackAnimFrameRef.current);
+    playbackAnimFrameRef.current = requestAnimationFrame(tick);
+  }, [audioLevelRef]);
+
+  const stopPlaybackLevelLoop = useCallback(() => {
+    cancelAnimationFrame(playbackAnimFrameRef.current);
+    audioLevelRef.current = 0;
+  }, [audioLevelRef]);
+
+  /**
    * Queue a base64-encoded PCM16 audio chunk for time-scheduled playback.
    * Converts base64 → Uint8Array → hands off to AudioStreamer.
+   *
+   * Best practice: resume the AudioContext before scheduling audio.
+   * Browsers (especially mobile) suspend the context until a user gesture;
+   * attempting to schedule without resuming causes silent playback.
    */
   const playAudioChunk = useCallback((base64: string) => {
-    try {
-      const streamer = getStreamer();
+    (async () => {
+      try {
+        const streamer = getStreamer();
+        const ctx = playbackCtxRef.current!;
 
-      // base64 → Uint8Array (PCM16 bytes)
-      const binary = atob(base64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
+        // ✅ Fix: Resume suspended AudioContext (browser autoplay policy).
+        if (ctx.state === "suspended") {
+          await ctx.resume();
+          console.log("[AudioProcessor] AudioContext resumed from suspended state.");
+        }
+
+        // base64 → Uint8Array (PCM16 bytes)
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+
+        // Feed to AudioStreamer for gapless scheduling.
+        streamer.addPCM16(bytes);
+
+        // ✅ Fix: Instead of computing per-chunk bulk RMS (which freezes
+        // lip-sync between packets), start a continuous rAF loop that
+        // samples the streamer volume at 60fps.
+        startPlaybackLevelLoop();
+      } catch (err) {
+        console.warn("[AudioProcessor] Playback error:", err);
       }
-
-      // Feed to AudioStreamer for gapless scheduling.
-      streamer.addPCM16(bytes);
-
-      // Update audio level ref for lip-sync during playback.
-      // Use RMS from the raw float32 data.
-      const int16 = new Int16Array(bytes.buffer);
-      let sum = 0;
-      for (let i = 0; i < int16.length; i++) {
-        const sample = int16[i] / 32768;
-        sum += sample * sample;
-      }
-      const rms = Math.sqrt(sum / int16.length);
-      audioLevelRef.current = Math.min(1, rms * 4);
-    } catch (err) {
-      console.warn("[AudioProcessor] Playback error:", err);
-    }
-  }, [getStreamer]);
+    })();
+  }, [getStreamer, startPlaybackLevelLoop]);
 
   /**
    * Immediately stop all audio playback and clear the queue.
@@ -236,8 +274,8 @@ export function useAudioProcessor() {
     if (audioStreamerRef.current) {
       audioStreamerRef.current.stop();
     }
-    audioLevelRef.current = 0;
-  }, []);
+    stopPlaybackLevelLoop();
+  }, [stopPlaybackLevelLoop]);
 
   return {
     isMicActive,

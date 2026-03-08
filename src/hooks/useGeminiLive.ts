@@ -302,6 +302,11 @@ export function useGeminiLive(apiKey: string): UseGeminiLiveReturn {
           },
           // Enable output transcription for transcript events
           outputAudioTranscription: {},
+          // Context window compression — prevents long sessions from crashing.
+          // Native audio generates ~25 tokens/sec; without this a 10-minute
+          // session hits the context limit and the server terminates the session.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          contextWindowCompression: { slidingWindow: {} } as any,
           // Session resumption — reconnect with prior context if a handle exists
           ...(sessionHandleRef.current
             ? {

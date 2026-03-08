@@ -101,12 +101,15 @@ export function useSessionManager(apiKey: string) {
   }, [gemini, audio, webcam]);
 
   const toggleSession = useCallback(() => {
-    if (isConnected) {
+    // Guard against double-start: only allow starting when strictly "disconnected".
+    // Without this check, clicking Start while status === "connecting" would open
+    // a second concurrent WebSocket session.
+    if (gemini.status !== "disconnected") {
       stopSession();
     } else {
       startSession();
     }
-  }, [isConnected, startSession, stopSession]);
+  }, [gemini.status, startSession, stopSession]);
 
   const toggleMic = useCallback(() => {
     if (audio.isMicActive) {
