@@ -289,6 +289,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpr
       <skinnedMesh
         castShadow
         receiveShadow
+        frustumCulled={false}
         geometry={nodes.Wolf3D_Hair.geometry}
         material={materials.Wolf3D_Hair}
         skeleton={nodes.Wolf3D_Hair.skeleton}
@@ -296,6 +297,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpr
       <skinnedMesh
         castShadow
         receiveShadow
+        frustumCulled={false}
         geometry={nodes.Wolf3D_Glasses.geometry}
         material={materials.Wolf3D_Glasses}
         skeleton={nodes.Wolf3D_Glasses.skeleton}
@@ -303,6 +305,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpr
       <skinnedMesh
         castShadow
         receiveShadow
+        frustumCulled={false}
         geometry={nodes.Wolf3D_Outfit_Top.geometry}
         material={materials.Wolf3D_Outfit_Top}
         skeleton={nodes.Wolf3D_Outfit_Top.skeleton}
@@ -310,6 +313,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpr
       <skinnedMesh
         castShadow
         receiveShadow
+        frustumCulled={false}
         geometry={nodes.Wolf3D_Outfit_Bottom.geometry}
         material={materials.Wolf3D_Outfit_Bottom}
         skeleton={nodes.Wolf3D_Outfit_Bottom.skeleton}
@@ -317,6 +321,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpr
       <skinnedMesh
         castShadow
         receiveShadow
+        frustumCulled={false}
         geometry={nodes.Wolf3D_Outfit_Footwear.geometry}
         material={materials.Wolf3D_Outfit_Footwear}
         skeleton={nodes.Wolf3D_Outfit_Footwear.skeleton}
@@ -325,6 +330,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpr
       <skinnedMesh
         castShadow
         receiveShadow
+        frustumCulled={false}
         geometry={nodes.Wolf3D_Body.geometry}
         material={skinMaterial || materials.Wolf3D_Body}
         skeleton={nodes.Wolf3D_Body.skeleton}
@@ -332,6 +338,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpr
       <skinnedMesh
         castShadow
         receiveShadow
+        frustumCulled={false}
         name="EyeLeft"
         geometry={nodes.EyeLeft.geometry}
         material={materials.Wolf3D_Eye}
@@ -342,6 +349,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpr
       <skinnedMesh
         castShadow
         receiveShadow
+        frustumCulled={false}
         name="EyeRight"
         geometry={nodes.EyeRight.geometry}
         material={materials.Wolf3D_Eye}
@@ -353,6 +361,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpr
       <skinnedMesh
         castShadow
         receiveShadow
+        frustumCulled={false}
         name="Wolf3D_Head"
         geometry={nodes.Wolf3D_Head.geometry}
         material={skinMaterial || materials.Wolf3D_Skin}
@@ -363,6 +372,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, currentExpr
       <skinnedMesh
         castShadow
         receiveShadow
+        frustumCulled={false}
         name="Wolf3D_Teeth"
         geometry={nodes.Wolf3D_Teeth.geometry}
         material={materials.Wolf3D_Teeth}
