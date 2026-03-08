@@ -1,15 +1,15 @@
 {
   "camera": {
     "position": [
-      0.18995756947184853,
-      0.37594711820591864,
-      1.4222849536753506
+      -0.21058752691589577,
+      0.90113113410367,
+      2.344027697245836
     ],
-    "fov": 40,
+    "fov": 45,
     "target": [
-      -0.0029521371620907844,
-      -0.15613567019758137,
-      -0.1833845911048288
+      0.03634272669316597,
+      0.6470924562121654,
+      -0.4554347154305105
     ],
     "controlsMinDistance": 0.5,
     "controlsMaxDistance": 3.2
@@ -17,7 +17,7 @@
   "avatar": {
     "position": [
       0,
-      -1.6,
+      0,
       0
     ],
     "rotation": [
@@ -32,7 +32,7 @@
     "keyLight": {
       "position": [
         1.5,
-        1.2,
+        1.6,
         1.5
       ],
       "intensity": 2.5,
@@ -41,7 +41,7 @@
     "fillLight": {
       "position": [
         -1.5,
-        0.5,
+        0.8,
         1.5
       ],
       "intensity": 0.5,
@@ -50,7 +50,7 @@
     "rimLight": {
       "position": [
         0,
-        1.5,
+        1.8,
         -1.5
       ],
       "intensity": 3,
@@ -58,8 +58,8 @@
     }
   },
   "features": {
-    "lipSync": false,
-    "breathing": false,
+    "lipSync": true,
+    "breathing": true,
     "gazeDrift": false,
     "blinking": false,
     "hoverEffect": false

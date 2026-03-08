@@ -133,7 +133,7 @@ function SceneInner({
         scale={10}
         blur={2.4}
         far={0.8}
-        position={[0, -1.8, 0]}
+        position={[0, 0, 0]}
         color="#22d3ee"
       />
 

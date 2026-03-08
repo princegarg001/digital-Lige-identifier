@@ -3,6 +3,8 @@
 # dependencies
 /node_modules
 /tmp_visage
+/temp-animations
+/temp-avatar-creator
 /.pnp
 .pnp.*
 .yarn/*
