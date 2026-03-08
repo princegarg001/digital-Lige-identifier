@@ -1,6 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import React from "react";
+import { MessageSquare, Users, Palette, Settings } from "lucide-react";
+import { ExpandableTabs } from "@/components/ui/expandable-tabs";
 import { StatusDot } from "@/components/shared/StatusDot";
 
 export type ChatTab = "messages" | "participants" | "skins" | "config";
@@ -12,18 +14,47 @@ interface ChatHeaderProps {
   showConfigTab?: boolean;
 }
 
+const TAB_KEYS: ChatTab[] = ["messages", "participants", "skins", "config"];
+
 export function ChatHeader({
-  activeTab,
   onTabChange,
   isConnected,
   showConfigTab = false,
 }: ChatHeaderProps) {
-  const tabs: { key: ChatTab; label: string }[] = [
-    { key: "messages", label: "Messages" },
-    { key: "participants", label: "People" },
-    { key: "skins", label: "🎨 Skins" },
-    ...(showConfigTab ? [{ key: "config" as ChatTab, label: "⚙ Config" }] : []),
+  const tabs = [
+    { title: "Chat", icon: MessageSquare },
+    { title: "People", icon: Users },
+    { type: "separator" as const },
+    { title: "Skins", icon: Palette },
+    ...(showConfigTab
+      ? [
+          { type: "separator" as const },
+          { title: "Config", icon: Settings },
+        ]
+      : []),
   ];
+
+  // Map from ExpandableTabs index (which includes separators) to ChatTab key
+  const indexToTabKey = (index: number): ChatTab | null => {
+    let tabCount = 0;
+    for (let i = 0; i < tabs.length; i++) {
+      if ("type" in tabs[i] && tabs[i].type === "separator") continue;
+      if (i === index) return TAB_KEYS[tabCount];
+      tabCount++;
+    }
+    return null;
+  };
+
+
+
+  const handleChange = (index: number | null) => {
+    if (index === null) {
+      // When clicking outside, keep the current active tab (don't deselect)
+      return;
+    }
+    const key = indexToTabKey(index);
+    if (key) onTabChange(key);
+  };
 
   return (
     <div className="px-6 pt-5 pb-0">
@@ -38,23 +69,13 @@ export function ChatHeader({
         </h2>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1.5 bg-white/5 border border-white/5 rounded-[14px] p-1.5 backdrop-blur-sm">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => onTabChange(tab.key)}
-            className={cn(
-              "flex-1 px-2 py-2 text-xs font-semibold rounded-xl transition-all duration-300",
-              activeTab === tab.key
-                ? "bg-primary text-primary-foreground shadow-[0_4px_15px_rgba(var(--primary-rgb),0.25)] ring-1 ring-white/10"
-                : "text-muted-foreground hover:text-foreground hover:bg-white/10"
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {/* Expandable Tabs */}
+      <ExpandableTabs
+        tabs={tabs}
+        activeColor="text-primary"
+        onChange={handleChange}
+        className="bg-white/5 border-white/5 backdrop-blur-sm"
+      />
     </div>
   );
 }
