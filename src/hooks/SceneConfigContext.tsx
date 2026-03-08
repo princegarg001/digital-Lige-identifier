@@ -19,6 +19,8 @@ export interface SceneConfig {
     target: [number, number, number];
     controlsMinDistance?: number;
     controlsMaxDistance?: number;
+    minPolarAngle?: number;
+    maxPolarAngle?: number;
   };
   avatar: {
     position: [number, number, number];
@@ -40,6 +42,7 @@ export interface FeatureToggles {
   gazeDrift: boolean;
   blinking: boolean;
   hoverEffect: boolean;
+  headMovement: boolean;
 }
 
 interface SceneConfigContextValue {
@@ -58,6 +61,7 @@ const DEFAULT_FEATURES: FeatureToggles = {
   gazeDrift: true,
   blinking: true,
   hoverEffect: true,
+  headMovement: true,
 };
 
 const SceneConfigCtx = createContext<SceneConfigContextValue | null>(null);

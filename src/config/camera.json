@@ -1,18 +1,20 @@
 {
   "camera": {
     "position": [
-      -0.21058752691589577,
-      0.90113113410367,
-      2.344027697245836
+      0,
+      1.475,
+      2.5
     ],
     "fov": 45,
     "target": [
-      0.03634272669316597,
-      0.6470924562121654,
-      -0.4554347154305105
+      0,
+      0.475,
+      0
     ],
-    "controlsMinDistance": 0.5,
-    "controlsMaxDistance": 3.2
+    "controlsMinDistance": 1,
+    "controlsMaxDistance": 3.2,
+    "minPolarAngle": 1.4,
+    "maxPolarAngle": 1.4
   },
   "avatar": {
     "position": [
@@ -22,10 +24,10 @@
     ],
     "rotation": [
       0,
-      0,
+      0.09,
       0
     ],
-    "scale": 1,
+    "scale": 0.7,
     "model": "male"
   },
   "lighting": {
@@ -45,7 +47,7 @@
         1.5
       ],
       "intensity": 0.5,
-      "color": "#e0edff"
+      "color": "#31578c"
     },
     "rimLight": {
       "position": [
@@ -62,6 +64,7 @@
     "breathing": true,
     "gazeDrift": false,
     "blinking": true,
-    "hoverEffect": false
+    "hoverEffect": false,
+    "headMovement": false
   }
 }

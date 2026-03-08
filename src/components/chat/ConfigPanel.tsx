@@ -22,28 +22,33 @@ function ToggleSwitch({
   label,
   checked,
   onChange,
+  description,
 }: {
   label: string;
   checked: boolean;
   onChange: () => void;
+  description?: string;
 }) {
   return (
-    <div className="flex items-center justify-between py-1.5 px-1">
-      <span className="text-[11px] font-medium text-muted-foreground/90">{label}</span>
-      <button
-        onClick={onChange}
-        className={cn(
-          "relative flex items-center h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-          checked ? "bg-cyan-500" : "bg-white/10"
-        )}
-      >
-        <span
+    <div className="flex flex-col gap-1.5 py-1.5 px-1">
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-medium text-muted-foreground/90">{label}</span>
+        <button
+          onClick={onChange}
           className={cn(
-            "pointer-events-none block h-3.5 w-3.5 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200",
-            checked ? "translate-x-4" : "translate-x-0.5"
+            "relative flex items-center h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+            checked ? "bg-cyan-500" : "bg-white/10"
           )}
-        />
-      </button>
+        >
+          <span
+            className={cn(
+              "pointer-events-none block h-3.5 w-3.5 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200",
+              checked ? "translate-x-4" : "translate-x-0.5"
+            )}
+          />
+        </button>
+      </div>
+      {description && <p className="text-[9px] text-muted-foreground/50 leading-tight pr-4">{description}</p>}
     </div>
   );
 }
@@ -55,22 +60,33 @@ function NumInput({
   value,
   onChange,
   step = 0.01,
+  min,
+  max,
+  description,
 }: {
   label: string;
   value: number;
   onChange: (v: number) => void;
   step?: number;
+  min?: number;
+  max?: number;
+  description?: string;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-[10px] text-muted-foreground/60 w-5 shrink-0">{label}</span>
-      <input
-        type="number"
-        value={fmt(value)}
-        step={step}
-        onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-        className="flex-1 bg-white/5 border border-white/10 rounded-md px-2 py-1 text-[11px] text-foreground/90 font-mono focus:outline-none focus:border-cyan-400/40 w-full min-w-0"
-      />
+    <div className="flex flex-col gap-1 w-full">
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] text-muted-foreground/60 w-5 shrink-0">{label}</span>
+        <input
+          type="number"
+          value={fmt(value)}
+          step={step}
+          min={min}
+          max={max}
+          onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+          className="flex-1 bg-white/5 border border-white/10 rounded-md px-2 py-1 text-[11px] text-foreground/90 font-mono focus:outline-none focus:border-cyan-400/40 w-full min-w-0"
+        />
+      </div>
+      {description && <p className="text-[9px] text-muted-foreground/50 leading-tight">{description}</p>}
     </div>
   );
 }
@@ -107,11 +123,13 @@ function Vec3Input({
   value,
   onChange,
   step = 0.01,
+  description,
 }: {
   label: string;
   value: [number, number, number];
   onChange: (v: [number, number, number]) => void;
   step?: number;
+  description?: string;
 }) {
   const update = (idx: number, v: number) => {
     const next = [...value] as [number, number, number];
@@ -119,13 +137,14 @@ function Vec3Input({
     onChange(next);
   };
   return (
-    <div>
-      <p className="text-[10px] text-muted-foreground/60 mb-1">{label}</p>
+    <div className="flex flex-col gap-1">
+      <p className="text-[10px] text-muted-foreground/60">{label}</p>
       <div className="grid grid-cols-3 gap-1">
         <NumInput label="X" value={value[0]} onChange={(v) => update(0, v)} step={step} />
         <NumInput label="Y" value={value[1]} onChange={(v) => update(1, v)} step={step} />
         <NumInput label="Z" value={value[2]} onChange={(v) => update(2, v)} step={step} />
       </div>
+      {description && <p className="text-[9px] text-muted-foreground/50 leading-tight mt-0.5">{description}</p>}
     </div>
   );
 }
@@ -187,12 +206,14 @@ function LightEditor({
         value={light.position}
         onChange={(p) => onChange({ ...light, position: p })}
         step={0.1}
+        description="Light source coordinates."
       />
       <NumInput
         label="Int"
         value={light.intensity}
         onChange={(v) => onChange({ ...light, intensity: v })}
         step={0.1}
+        description="Lumen intensity / brightness."
       />
       <ColorInput
         label="Color"
@@ -268,29 +289,50 @@ export function ConfigPanel() {
           label="Position"
           value={draft.camera.position}
           onChange={(p) => patchCamera({ position: p })}
+          description="World coordinates of the camera lens."
         />
         <NumInput
           label="FOV"
           value={draft.camera.fov}
           onChange={(v) => patchCamera({ fov: v })}
           step={1}
+          description="Field of view (degrees). Wider values show more context."
         />
         <Vec3Input
           label="Target"
           value={draft.camera.target}
           onChange={(t) => patchCamera({ target: t })}
+          description="The focal point the camera look at and orbits around."
         />
         <NumInput
           label="Min Dist"
           value={draft.camera.controlsMinDistance ?? 0.5}
           onChange={(v) => patchCamera({ controlsMinDistance: v })}
           step={0.1}
+          description="Closest zoom limit (prevents clipping into mesh)."
         />
         <NumInput
           label="Max Dist"
           value={draft.camera.controlsMaxDistance ?? 3.2}
           onChange={(v) => patchCamera({ controlsMaxDistance: v })}
           step={0.1}
+          description="Furthest zoom limit (keeps character in frame)."
+        />
+        <NumInput
+          label="Min Polar (rad)"
+          value={draft.camera.minPolarAngle ?? 1.4}
+          onChange={(v) => patchCamera({ minPolarAngle: v })}
+          step={0.05}
+          max={3.14}
+          description="Lower vertical rotation limit (radians)."
+        />
+        <NumInput
+          label="Max Polar (rad)"
+          value={draft.camera.maxPolarAngle ?? 1.4}
+          onChange={(v) => patchCamera({ maxPolarAngle: v })}
+          step={0.05}
+          max={3.14}
+          description="Upper vertical rotation limit (radians)."
         />
       </Section>
 
@@ -316,17 +358,20 @@ export function ConfigPanel() {
           label="Position"
           value={draft.avatar.position}
           onChange={(p) => patchAvatar({ position: p })}
+          description="Base offset of the avatar model."
         />
         <Vec3Input
           label="Rotation"
           value={draft.avatar.rotation}
           onChange={(r) => patchAvatar({ rotation: r })}
+          description="Euler rotation (radians)."
         />
         <NumInput
           label="Scale"
           value={draft.avatar.scale}
           onChange={(s) => patchAvatar({ scale: s })}
           step={0.05}
+          description="Universal size multiplier."
         />
       </Section>
 
@@ -351,14 +396,25 @@ export function ConfigPanel() {
 
       {/* ── Feature Toggles ───────────────────────────────────── */}
       <Section title="Features" accent="#6ee7b7" defaultOpen={true}>
-        {(Object.keys(draft.features) as (keyof FeatureToggles)[]).map((key) => (
-          <ToggleSwitch
-            key={key}
-            label={key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase())}
-            checked={draft.features[key]}
-            onChange={() => toggleFeatureLocal(key)}
-          />
-        ))}
+        {((Object.keys(draft.features) as (keyof FeatureToggles)[]).map((key) => {
+          const descriptions: Record<keyof FeatureToggles, string> = {
+            lipSync: "Move mouth based on real-time audio analysis.",
+            breathing: "Subtle chest expansion and shoulder movement.",
+            gazeDrift: "Eye micro-movements to simulate life.",
+            blinking: "Replaced by Randomized Idle Expressions.",
+            hoverEffect: "Float the avatar slightly on the Y axis.",
+            headMovement: "Neck and eyes follow the mouse cursor.",
+          };
+          return (
+            <ToggleSwitch
+              key={key}
+              label={key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase())}
+              checked={draft.features[key]}
+              onChange={() => toggleFeatureLocal(key)}
+              description={descriptions[key]}
+            />
+          );
+        }))}
       </Section>
 
       </div>

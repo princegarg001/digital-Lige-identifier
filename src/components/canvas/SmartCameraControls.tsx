@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls as DreiOrbitControls } from "@react-three/drei";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import * as THREE from "three";
+import { useResponsiveCamera } from "@/hooks/useResponsiveCamera";
 
 interface SmartCameraControlsProps {
   /** The un-zoomed camera target (usually the face/head level e.g., Y=1.55) */
@@ -15,6 +16,9 @@ interface SmartCameraControlsProps {
   maxPolarAngle?: number;
   enableRotate?: boolean;
   enablePan?: boolean;
+  makeDefault?: boolean;
+  enableDamping?: boolean;
+  dampingFactor?: number;
 }
 
 /** clamp a number between min and max */
@@ -40,9 +44,13 @@ export function SmartCameraControls({
   maxPolarAngle = Math.PI,
   enableRotate = true,
   enablePan = true,
+  ...rest
 }: SmartCameraControlsProps) {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const { camera } = useThree();
+
+  // Apply responsive portrait FOV scaling logic to perfectly frame on any device
+  useResponsiveCamera({ baseFov: 45, maxFov: 65 });
 
   // The base Y level we want to observe when zoomed out (e.g., 1.55)
   const baseTargetY = target[1];
@@ -77,6 +85,7 @@ export function SmartCameraControls({
       maxDistance={maxDistance}
       minPolarAngle={minPolarAngle}
       maxPolarAngle={maxPolarAngle}
+      {...rest}
     />
   );
 }

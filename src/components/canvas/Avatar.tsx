@@ -23,6 +23,8 @@ import { SkinPreset } from "@/lib/skinConfig";
 import { useSkinTexture } from "@/hooks/useSkinTexture";
 import { normaliseFbxAnimations } from "@/lib/animationUtils";
 import { type FeatureToggles } from "@/hooks/SceneConfigContext";
+import { useHeadMovement, type HeadMovementNodes } from "@/hooks/useHeadMovement";
+import { useIdleExpression } from "@/hooks/useIdleExpression";
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -66,6 +68,7 @@ const DEFAULT_FEATURES: FeatureToggles = {
   gazeDrift: true,
   blinking: true,
   hoverEffect: true,
+  headMovement: true,
 };
 
 /**
@@ -84,6 +87,20 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, skinPreset 
 
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene]);
   const { nodes, materials } = useGraph(clone) as unknown as GLTFResult;
+
+  // Visage material normalization: Prevents texture pixelation and sets specific roughness
+  React.useEffect(() => {
+    Object.values(materials).forEach((material) => {
+      const mat = material as THREE.MeshStandardMaterial;
+      if (mat.map) {
+        mat.map.minFilter = THREE.LinearFilter;
+        mat.depthWrite = true;
+      }
+      if (mat.name.toLowerCase().includes("hair")) {
+        mat.roughness = 0.9; // Standard Visage hair roughness
+      }
+    });
+  }, [materials]);
 
   // Get the PBR skin material with SSS
   const skinMaterial = useSkinTexture(skinPreset);
@@ -115,12 +132,21 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, skinPreset 
     };
   }, [currentAnimation, actions]);
 
+  // Use the Visage-ported head movement hook
+  useHeadMovement({
+    nodes: nodes as unknown as HeadMovementNodes,
+    enabled: featureToggles.headMovement,
+  });
+
+  // Use the Visage-ported idle expressions (lifelike random blink/squint)
+  useIdleExpression("blink", nodes.Wolf3D_Head, featureToggles.blinking);
+
   // Smoothed value for lip-sync
   const smoothedLevel = useRef(0);
   // Gaze drift accumulators
   const gazePhaseRef = useRef(1.57); // π/2 — fixed initial phase avoids impure Math.random
 
-  useFrame(({ camera, clock }) => {
+  useFrame(({ camera }) => {
     const rawLevel = audioLevelRef.current ?? 0;
 
     // Smooth the audio level to avoid jitter
@@ -203,21 +229,6 @@ export function Avatar({ audioLevelRef, avatarUrl, currentAnimation, skinPreset 
       }
     }
 
-
-    // ── Blink (every ~4 seconds, slight randomness) ──────────────────────────
-    if (featureToggles.blinking && head?.morphTargetDictionary && head?.morphTargetInfluences) {
-      const blinkLeftIdx = head.morphTargetDictionary["eyeBlinkLeft"];
-      const blinkRightIdx = head.morphTargetDictionary["eyeBlinkRight"];
-      const blinkCycle = Math.abs(Math.sin(clock.elapsedTime * 0.8 + 1.2));
-      const blinkValue = blinkCycle > 0.98 ? 1 : 0;
-
-      if (blinkLeftIdx !== undefined) {
-        head.morphTargetInfluences[blinkLeftIdx] += (blinkValue - head.morphTargetInfluences[blinkLeftIdx]) * 0.4;
-      }
-      if (blinkRightIdx !== undefined) {
-        head.morphTargetInfluences[blinkRightIdx] += (blinkValue - head.morphTargetInfluences[blinkRightIdx]) * 0.4;
-      }
-    }
   });
 
   return (

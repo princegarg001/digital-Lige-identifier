@@ -5,7 +5,6 @@ import * as THREE from "three";
 import {
   Environment,
   ContactShadows,
-  OrbitControls,
 } from "@react-three/drei";
 import React, { Suspense, lazy } from "react";
 import { Avatar } from "./Avatar";
@@ -59,6 +58,8 @@ function SceneInner({
   /* Camera controls distance limits — from config or Visage CAMERA defaults */
   const controlsMinDistance = config.camera.controlsMinDistance ?? 0.5;
   const controlsMaxDistance = config.camera.controlsMaxDistance ?? 3.2;
+  const minPolarAngle = config.camera.minPolarAngle ?? 1.4;
+  const maxPolarAngle = config.camera.maxPolarAngle ?? 1.4;
 
   return (
     <Canvas
@@ -146,21 +147,25 @@ function SceneInner({
           target={config.camera.target as [number, number, number]}
           minDistance={controlsMinDistance}
           maxDistance={controlsMaxDistance}
-          minPolarAngle={1.4}
-          maxPolarAngle={1.4}
+          minPolarAngle={minPolarAngle}
+          maxPolarAngle={maxPolarAngle}
         />
       )}
 
       {/* Debug mode: full OrbitControls + live camera panel */}
       {debug && (
         <>
-          <OrbitControls
+          <SmartCameraControls
             makeDefault
             enableDamping
             dampingFactor={0.05}
-            enableZoom={true}
+            enableRotate={true}
             enablePan={true}
             target={config.camera.target as [number, number, number]}
+            minDistance={controlsMinDistance}
+            maxDistance={controlsMaxDistance}
+            minPolarAngle={minPolarAngle}
+            maxPolarAngle={maxPolarAngle}
           />
           <Suspense fallback={null}>
             <DebugCameraPanel />
