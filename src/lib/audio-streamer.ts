@@ -24,8 +24,8 @@ export class AudioStreamer {
 
   /** GainNode sits between sources and destination for clean volume control. */
   public gainNode: GainNode;
-  public source: AudioBufferSourceNode;
-  public analyserNode: AnalyserNode | null = null;
+  public analyserNode!: AnalyserNode;
+  public source!: AudioBufferSourceNode;
   private endOfQueueAudioSource: AudioBufferSourceNode | null = null;
 
   /** Called when the queue has been fully drained and the last buffer finishes. */
@@ -119,7 +119,7 @@ export class AudioStreamer {
     setTimeout(() => {
       this.gainNode.disconnect();
       this.gainNode = this.context.createGain();
-      this.gainNode.connect(this.context.destination);
+      this.gainNode.connect(this.analyserNode);
     }, 200);
   }
 
@@ -144,20 +144,20 @@ export class AudioStreamer {
     this.onComplete();
   }
 
-  /**
-   * Get the current RMS audio level from the last queued chunk.
-   * Useful for lip-sync or volume meters.
-   */
+  /** Gets real-time volume (0 to 1) from the hardware AnalyserNode */
   getVolume(): number {
-    if (this.audioQueue.length === 0 && !this.isPlaying) return 0;
-    // Approximate from the last queued buffer.
-    const last = this.audioQueue[this.audioQueue.length - 1];
-    if (!last) return 0;
+    if (!this.analyserNode) return 0;
+    
+    const data = new Uint8Array(this.analyserNode.frequencyBinCount);
+    this.analyserNode.getByteFrequencyData(data);
+    
     let sum = 0;
-    for (let i = 0; i < last.length; i++) {
-      sum += last[i] * last[i];
+    for (let i = 0; i < data.length; i++) {
+       sum += data[i];
     }
-    return Math.sqrt(sum / last.length);
+    const avg = sum / data.length;
+    // Normalize byte (0-255) to float (0-1)
+    return avg / 255;
   }
 
   // ── Internal scheduling ──────────────────────────────────────────────────
@@ -201,10 +201,8 @@ export class AudioStreamer {
       }
 
       source.buffer = audioBuffer;
+      // Connect specifically through the gainNode (which feeds into analyserNode)
       source.connect(this.gainNode);
-      if (this.analyserNode) {
-        source.connect(this.analyserNode);
-      }
 
       // Never schedule in the past.
       const startTime = Math.max(this.scheduledTime, this.context.currentTime);

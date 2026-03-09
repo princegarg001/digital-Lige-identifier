@@ -316,8 +316,8 @@ export function useGeminiLive(): UseGeminiLiveReturn {
               // Use defaults: server-side VAD with HIGH sensitivity
             },
           },
-          // Enable output transcription for transcript events
-          outputAudioTranscription: {},
+  // We no longer trigger text visemes here since LipSync relies entirely on flawless streaming hardware audio
+        // The Lipsync engine now listens to the live volume frequency of the `AudioStreamer`
           // Context window compression — prevents long sessions from crashing.
           // Native audio generates ~25 tokens/sec; without this a 10-minute
           // session hits the context limit and the server terminates the session.

@@ -1,14 +1,14 @@
 {
   "camera": {
     "position": [
-      0.0905589808933981,
-      0.4603974139015462,
-      0.4916207529831395
+      0.06923252085764106,
+      0.46076319646263303,
+      0.512825990391791
     ],
     "fov": 45,
     "target": [
       0,
-      0.38,
+      0.45,
       0
     ],
     "controlsMinDistance": 0.5,
@@ -29,8 +29,8 @@
       0
     ],
     "scale": 0.7,
-    "model": "female",
-    "idleAnimation": "feminine_idle_m_standing_idle_variations_003"
+    "model": "male",
+    "idleAnimation": "masculine_idle_m_standing_idle_variations_007"
   },
   "lighting": {
     "keyLight": {

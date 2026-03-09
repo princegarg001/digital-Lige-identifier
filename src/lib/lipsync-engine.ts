@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { PHYSICS_SMOOTHING } from "@/lib/constants";
-import { useLipSyncStore } from '@/store/useLipSyncStore';
 import { OCULUS_VISEMES } from './viseme-map';
 import { Lipsync } from 'wawa-lipsync';
 
@@ -18,31 +17,8 @@ export class LipSyncEngine {
     
     if (!head || !head.morphTargetDictionary || !head.morphTargetInfluences) return;
 
-    // Phase 4: Text-driven visemes
-    const weights = useLipSyncStore.getState().scheduler.getWeights(Date.now());
-    let hasTextVisemes = false;
-
-    // Apply text visemes
-    for (const viseme of OCULUS_VISEMES) {
-       const weight = weights[viseme];
-       if (weight > 0.05) {
-          hasTextVisemes = true;
-          this.applyMorph(head, viseme, weight, delta);
-          if (teeth && teeth.morphTargetDictionary && teeth.morphTargetInfluences) {
-             this.applyMorph(teeth, viseme, weight * 1.1, delta);
-          }
-       } else {
-          // Fade out unused visemes
-          this.applyMorph(head, viseme, 0, delta);
-          if (teeth && teeth.morphTargetDictionary && teeth.morphTargetInfluences) {
-             this.applyMorph(teeth, viseme, 0, delta);
-          }
-       }
-    }
-
-    // Phase 3 Fallback: if no text visemes are active, use volume-based jaw/mouth
-    if (!hasTextVisemes) {
-       if (this.wawaLipsync && level > 0.01) {
+    // 100% Native Audio Analysis Fallback
+    if (this.wawaLipsync && level > 0.01) {
           try {
              this.wawaLipsync.processAudio();
              const activeViseme = (this.wawaLipsync.viseme as string).replace('viseme_', '');
@@ -69,7 +45,6 @@ export class LipSyncEngine {
        } else {
          this.applyVolumeFallback(head, teeth, level, delta);
        }
-    }
   }
 
   private applyVolumeFallback(head: THREE.SkinnedMesh, teeth: THREE.SkinnedMesh, level: number, delta: number) {
