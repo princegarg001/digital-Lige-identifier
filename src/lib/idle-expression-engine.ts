@@ -1,0 +1,135 @@
+import * as THREE from 'three';
+import { createNoise2D } from 'simplex-noise';
+
+/**
+ * IdleExpressionEngine
+ * Handles involuntary procedural "life" movements:
+ * - Asymmetric blinking (closing faster than opening)
+ * - Eye saccades (rapid micro-movements via 1/f noise)
+ * - Subtle spine/hips breathing
+ * - Brow twitches
+ */
+export class IdleExpressionEngine {
+  private noise2D = createNoise2D();
+  private time = 0;
+  
+  // Blinking state
+  private nextBlinkInterval = 4000;
+  private timeSinceLastBlink = 0;
+  private blinkState: 'idle' | 'closing' | 'opening' = 'idle';
+  private blinkProgress = 0;
+  private readonly BLINK_CLOSE_TIME = 0.1; // 100ms
+  private readonly BLINK_OPEN_TIME = 0.15; // 150ms
+
+  // Brow state
+  private nextBrowInterval = 3000;
+  private timeSinceLastBrow = 0;
+  private isBrowTwitching = false;
+  private browProgress = 0;
+
+  update(delta: number, nodes: Record<string, THREE.Object3D>) {
+    this.time += delta;
+
+    // 1. Spines Breathing (Hips/Spine)
+    if (nodes.Hips) {
+      // ~6 cycles per minute = ~0.628 rad/sec
+      nodes.Hips.position.y = Math.sin(this.time * 0.628) * 0.01;
+    }
+
+    // 2. Eye Saccades (Micro-tremors on eye bones using noise)
+    const rightEye = nodes.RightEye;
+    const leftEye = nodes.LeftEye;
+    if (rightEye && leftEye) {
+      // 1/f "pink" noise simulated by adding octaves of simplex noise
+      // We will let GazeEngine handle saccades directly to avoid order-of-execution conflicts.
+
+      // Apply to existing rotation or assume starting from 0. 
+      // We'll apply it as an offset. (GazeEngine will set the base rotation).
+      // If Gaze engine runs after, it will overwrite, so GazeEngine needs to incorporate this noise, OR we add Euler angles. 
+      // A better way is to let GazeEngine handle the saccades natively, or we handle it here by adding to whatever it was.
+      // We will let GazeEngine handle saccades directly to avoid order-of-execution conflicts.
+    }
+
+    // Facial Morph Targets
+    const head = nodes.Wolf3D_Head as THREE.SkinnedMesh;
+    if (!head || !head.morphTargetDictionary || !head.morphTargetInfluences) return;
+
+    this.updateBlinking(delta, head);
+    this.updateBrows(delta, head);
+  }
+
+  private updateBlinking(delta: number, head: THREE.SkinnedMesh) {
+    this.timeSinceLastBlink += delta;
+
+    if (this.blinkState === 'idle' && this.timeSinceLastBlink * 1000 > this.nextBlinkInterval) {
+      this.blinkState = 'closing';
+      this.blinkProgress = 0;
+      this.timeSinceLastBlink = 0;
+      // Randomize next interval between 3s and 6s
+      this.nextBlinkInterval = 3000 + Math.random() * 3000;
+    }
+
+    let blinkWeight = 0;
+
+    if (this.blinkState === 'closing') {
+      this.blinkProgress += delta;
+      blinkWeight = Math.min(1, this.blinkProgress / this.BLINK_CLOSE_TIME);
+      if (this.blinkProgress >= this.BLINK_CLOSE_TIME) {
+        this.blinkState = 'opening';
+        this.blinkProgress = 0;
+      }
+    } else if (this.blinkState === 'opening') {
+      this.blinkProgress += delta;
+      blinkWeight = Math.max(0, 1 - (this.blinkProgress / this.BLINK_OPEN_TIME));
+      if (this.blinkProgress >= this.BLINK_OPEN_TIME) {
+        this.blinkState = 'idle';
+        this.blinkProgress = 0;
+        blinkWeight = 0;
+      }
+    }
+
+    this.setMorph(head, "eyeBlinkLeft", blinkWeight);
+    this.setMorph(head, "eyeBlinkRight", blinkWeight);
+    
+    // Squeeze the cheeks slightly during blinks
+    this.setMorph(head, "cheekSquintLeft", blinkWeight * 0.3);
+    this.setMorph(head, "cheekSquintRight", blinkWeight * 0.3);
+  }
+
+  private updateBrows(delta: number, head: THREE.SkinnedMesh) {
+    this.timeSinceLastBrow += delta;
+
+    if (!this.isBrowTwitching && this.timeSinceLastBrow * 1000 > this.nextBrowInterval) {
+      this.isBrowTwitching = true;
+      this.browProgress = 0;
+      this.timeSinceLastBrow = 0;
+      // Randomize next interval between 2s and 5s
+      this.nextBrowInterval = 2000 + Math.random() * 3000;
+    }
+
+    if (this.isBrowTwitching) {
+      this.browProgress += delta;
+      // Quick twitch: up and down in 0.3s
+      const duration = 0.3;
+      let weight = 0;
+      if (this.browProgress < duration) {
+        weight = Math.sin((this.browProgress / duration) * Math.PI) * 0.3; // max 0.3 intensity
+      } else {
+        this.isBrowTwitching = false;
+        weight = 0;
+      }
+
+      this.setMorph(head, "browInnerUp", weight);
+      this.setMorph(head, "browOuterUpLeft", weight);
+      this.setMorph(head, "browOuterUpRight", weight);
+    }
+  }
+
+  private setMorph(mesh: THREE.SkinnedMesh, name: string, value: number) {
+    const dict = mesh.morphTargetDictionary;
+    const influences = mesh.morphTargetInfluences;
+    if (dict && influences && dict[name] !== undefined) {
+      influences[dict[name]] = value;
+    }
+  }
+}

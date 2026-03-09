@@ -1,21 +1,21 @@
 {
   "camera": {
     "position": [
-      0.57825066687378,
-      0.7263590453366481,
-      3.139169913982707
+      0.0905589808933981,
+      0.4603974139015462,
+      0.4916207529831395
     ],
     "fov": 45,
     "target": [
       0,
-      0.5,
+      0.38,
       0
     ],
-    "controlsMinDistance": 0.7,
+    "controlsMinDistance": 0.5,
     "controlsMaxDistance": 3.2,
-    "minPolarAngle": 1.5,
+    "minPolarAngle": 1.55,
     "maxPolarAngle": 1.4,
-    "zoomTargetShift": 0.6
+    "zoomTargetShift": 0.7
   },
   "avatar": {
     "position": [
@@ -29,7 +29,7 @@
       0
     ],
     "scale": 0.7,
-    "model": "male",
+    "model": "female",
     "idleAnimation": "feminine_idle_m_standing_idle_variations_003"
   },
   "lighting": {

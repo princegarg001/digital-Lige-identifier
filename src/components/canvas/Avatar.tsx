@@ -17,10 +17,13 @@ import { SkinPreset } from "@/lib/skinConfig";
 import { useSkinTexture } from "@/hooks/useSkinTexture";
 import { normaliseFbxAnimations } from "@/lib/animationUtils";
 import { type FeatureToggles } from "@/hooks/SceneConfigContext";
-import { useHeadMovement, type HeadMovementNodes } from "@/hooks/useHeadMovement";
 import { useDynamicAnimations } from "@/hooks/useDynamicAnimations";
 import { useAnimationStore } from "@/store/useAnimationStore";
-import { useIdleExpression } from "@/hooks/useIdleExpression";
+import { IdleExpressionEngine } from "@/lib/idle-expression-engine";
+import { GazeEngine } from "@/lib/gaze-engine";
+import { LipSyncEngine } from "@/lib/lipsync-engine";
+import { EmotionEngine } from "@/lib/emotion-engine";
+import { useLipSyncStore } from "@/store/useLipSyncStore";
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -157,14 +160,14 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
     };
   }, [currentAnimationName, actions, activeQueueItems]);
 
-  // Use the Visage-ported head movement hook
-  useHeadMovement({
-    nodes: nodes as unknown as HeadMovementNodes,
-    enabled: featureToggles.headMovement,
-  });
-
-  // Use the Visage-ported idle expressions (lifelike random blink/squint)
-  useIdleExpression("blink", nodes.Wolf3D_Head, featureToggles.blinking);
+  const idleEngine = useRef<IdleExpressionEngine | null>(null);
+  if (!idleEngine.current) idleEngine.current = new IdleExpressionEngine();
+  const gazeEngine = useRef<GazeEngine | null>(null);
+  if (!gazeEngine.current) gazeEngine.current = new GazeEngine();
+  const lipsyncEngine = useRef<LipSyncEngine | null>(null);
+  if (!lipsyncEngine.current) lipsyncEngine.current = new LipSyncEngine();
+  const emotionEngine = useRef<EmotionEngine | null>(null);
+  if (!emotionEngine.current) emotionEngine.current = new EmotionEngine();
 
   // Safeguard: Reset zero/NaN scales on bones to prevent mesh collapse
   React.useEffect(() => {
@@ -185,10 +188,9 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
 
   // Smoothed value for lip-sync
   const smoothedLevel = useRef(0);
-  // Gaze drift accumulators
-  const gazePhaseRef = useRef(1.57); // π/2 — fixed initial phase avoids impure Math.random
 
-  useFrame(({ camera }) => {
+  useFrame((state, delta) => {
+    const camera = state.camera;
     // Race Condition Guard: wait for the head mesh to be ready
     if (!nodes.Wolf3D_Head || !nodes.Wolf3D_Teeth) return;
 
@@ -199,107 +201,28 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
       (rawLevel - smoothedLevel.current) * PHYSICS_SMOOTHING.lerp_factor;
     const level = smoothedLevel.current;
 
-    // Drive jaw/mouth morph targets for lip-sync
-    const head = nodes.Wolf3D_Head;
-    const teeth = nodes.Wolf3D_Teeth;
-
-    if (featureToggles.lipSync && head?.morphTargetDictionary && head?.morphTargetInfluences) {
-      const jawIdx = head.morphTargetDictionary["jawOpen"];
-      const mouthIdx = head.morphTargetDictionary["mouthOpen"];
-
-      if (jawIdx !== undefined) {
-        // eslint-disable-next-line react-hooks/immutability
-        head.morphTargetInfluences[jawIdx] = Math.min(1, level * PHYSICS_SMOOTHING.jaw_mult);
-      }
-      if (mouthIdx !== undefined) {
-        head.morphTargetInfluences[mouthIdx] = Math.min(1, level * PHYSICS_SMOOTHING.mouth_mult);
-      }
+    // Drive jaw/mouth morph targets for lip-sync using LipSyncEngine
+    if (featureToggles.lipSync && lipsyncEngine.current) {
+      lipsyncEngine.current.wawaLipsync = useLipSyncStore.getState().wawaLipsync;
+      lipsyncEngine.current.updateFromAudioLevel(level, delta, nodes);
     }
 
-    // Teeth follow the jaw
-    if (featureToggles.lipSync && teeth?.morphTargetDictionary && teeth?.morphTargetInfluences) {
-      const jawIdx = teeth.morphTargetDictionary["jawOpen"];
-      if (jawIdx !== undefined) {
-        teeth.morphTargetInfluences[jawIdx] = Math.min(1, level * PHYSICS_SMOOTHING.jaw_mult);
-      }
+    // Execute Emotion Engine (handles UI override, sentiments, and hover effects)
+    if (emotionEngine.current) {
+      /* eslint-disable */
+      emotionEngine.current.update(delta, nodes, currentExpression || "idle", hovered, featureToggles as any);
+      /* eslint-enable */
     }
 
-    // ARKit Hover Smile Effect & Emotion Expressions
-    if (head?.morphTargetDictionary && head?.morphTargetInfluences) {
-      const smileLeftIdx = head.morphTargetDictionary["mouthSmileLeft"];
-      const smileRightIdx = head.morphTargetDictionary["mouthSmileRight"];
-      const cheekLeftIdx = head.morphTargetDictionary["cheekSquintLeft"];
-      const cheekRightIdx = head.morphTargetDictionary["cheekSquintRight"];
-      const browInnerUpIdx = head.morphTargetDictionary["browInnerUp"];
-      const browDownLeftIdx = head.morphTargetDictionary["browDownLeft"];
-      const browDownRightIdx = head.morphTargetDictionary["browDownRight"];
-      const mouthFrownLeftIdx = head.morphTargetDictionary["mouthFrownLeft"];
-      const mouthFrownRightIdx = head.morphTargetDictionary["mouthFrownRight"];
-      
-      // Determine targets based on currentExpression OR hoverEffect
-      let targetSmile = (hovered && featureToggles.hoverEffect) ? 0.8 : 0;
-      let targetCheek = (hovered && featureToggles.hoverEffect) ? 0.3 : 0;
-      let targetBrowInnerUp = 0;
-      let targetBrowDown = 0;
-      let targetFrown = 0;
+    const isSpeaking = level > 0.05;
 
-      if (currentExpression === "happy" || currentExpression === "smile") {
-        targetSmile = 1.0;
-        targetCheek = 0.6;
-      } else if (currentExpression === "sad") {
-        targetBrowInnerUp = 0.8;
-        targetFrown = 0.8;
-      } else if (currentExpression === "angry") {
-        targetBrowDown = 0.9;
-        targetFrown = 0.4;
-      } else if (currentExpression === "surprised") {
-        targetBrowInnerUp = 1.0;
-        targetSmile = 0.2; // slight open
-      } else if (currentExpression === "fearful") {
-        targetBrowInnerUp = 1.0;
-        targetFrown = 0.5;
-      } else if (currentExpression === "disgusted") {
-        targetBrowDown = 0.5;
-        targetFrown = 0.6;
-      }
-
-      const lerpSpeed = 0.1;
-
-      if (smileLeftIdx !== undefined) head.morphTargetInfluences[smileLeftIdx] += (targetSmile - head.morphTargetInfluences[smileLeftIdx]) * lerpSpeed;
-      if (smileRightIdx !== undefined) head.morphTargetInfluences[smileRightIdx] += (targetSmile - head.morphTargetInfluences[smileRightIdx]) * lerpSpeed;
-      if (cheekLeftIdx !== undefined) head.morphTargetInfluences[cheekLeftIdx] += (targetCheek - head.morphTargetInfluences[cheekLeftIdx]) * lerpSpeed;
-      if (cheekRightIdx !== undefined) head.morphTargetInfluences[cheekRightIdx] += (targetCheek - head.morphTargetInfluences[cheekRightIdx]) * lerpSpeed;
-      if (browInnerUpIdx !== undefined) head.morphTargetInfluences[browInnerUpIdx] += (targetBrowInnerUp - head.morphTargetInfluences[browInnerUpIdx]) * lerpSpeed;
-      if (browDownLeftIdx !== undefined) head.morphTargetInfluences[browDownLeftIdx] += (targetBrowDown - head.morphTargetInfluences[browDownLeftIdx]) * lerpSpeed;
-      if (browDownRightIdx !== undefined) head.morphTargetInfluences[browDownRightIdx] += (targetBrowDown - head.morphTargetInfluences[browDownRightIdx]) * lerpSpeed;
-      if (mouthFrownLeftIdx !== undefined) head.morphTargetInfluences[mouthFrownLeftIdx] += (targetFrown - head.morphTargetInfluences[mouthFrownLeftIdx]) * lerpSpeed;
-      if (mouthFrownRightIdx !== undefined) head.morphTargetInfluences[mouthFrownRightIdx] += (targetFrown - head.morphTargetInfluences[mouthFrownRightIdx]) * lerpSpeed;
+    // Execute new engines
+    if (idleEngine.current) {
+      idleEngine.current.update(delta, nodes);
     }
-
-    // Subtle idle breathing — small Y oscillation on Hips
-    if (featureToggles.breathing && nodes.Hips) {
-      nodes.Hips.position.y =
-        Math.sin(Date.now() * PHYSICS_SMOOTHING.idle_breath_speed) * PHYSICS_SMOOTHING.idle_breath_amp;
-    }
-
-    // ── Gaze behavior: look at camera when speaking, drift when listening ───
-    if (featureToggles.gazeDrift) {
-      const headNode = nodes.Head || scene.getObjectByName("Head");
-      if (headNode) {
-        if (level > 0.05) {
-          headNode.lookAt(camera.position.x, camera.position.y, camera.position.z);
-        } else {
-          gazePhaseRef.current += 0.003;
-          const t = gazePhaseRef.current;
-          const driftX = Math.sin(t * 1.3) * 0.04;
-          const driftY = Math.sin(t * 0.9) * 0.025;
-          headNode.lookAt(
-            camera.position.x + driftX,
-            camera.position.y + driftY,
-            camera.position.z
-          );
-        }
-      }
+    
+    if (featureToggles.gazeDrift && gazeEngine.current) {
+      gazeEngine.current.update(delta, camera, nodes, state.pointer, isSpeaking);
     }
 
   });

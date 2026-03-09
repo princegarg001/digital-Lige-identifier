@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { AUDIO_CONFIG } from "@/lib/constants";
 import { AudioStreamer } from "@/lib/audio-streamer";
+import { Lipsync } from "wawa-lipsync";
+import { useLipSyncStore } from "@/store/useLipSyncStore";
 
 /**
  * Manages microphone audio capture, Gemini audio playback, and real-time audio levels.
@@ -193,10 +195,34 @@ export function useAudioProcessor() {
           sampleRate: AUDIO_CONFIG.output_hz,
         });
       }
-      audioStreamerRef.current = new AudioStreamer(
+      const streamer = new AudioStreamer(
         playbackCtxRef.current,
         AUDIO_CONFIG.output_hz,
       );
+      audioStreamerRef.current = streamer;
+
+      // Ensure Lipsync is correctly instantiated and mapped to AudioStreamer
+      const wawa = new Lipsync();
+      
+      // Patch private properties to safely integrate without relying on HTMLAudioElement
+      // @ts-expect-error - patching private context to match AudioStreamer
+      wawa.audioContext = streamer.context;
+      // @ts-expect-error - overriding analyser with AudioStreamer context
+      wawa.analyser = streamer.context.createAnalyser();
+      // @ts-expect-error - override fftSize
+      wawa.analyser.fftSize = 2048;
+      // @ts-expect-error - reallocate dataArray for new analyser
+      wawa.dataArray = new Uint8Array(wawa.analyser.frequencyBinCount);
+      // @ts-expect-error - override sampleRate for wawa
+      wawa.sampleRate = streamer.context.sampleRate;
+      // @ts-expect-error - recompute binWidth
+      wawa.binWidth = wawa.sampleRate / 2048;
+
+      // Ensure every new buffer source node directly feeds into the LipSync analyser
+      // @ts-expect-error - accessing private analyser
+      streamer.analyserNode = wawa.analyser;
+      
+      useLipSyncStore.getState().setWawaLipsync(wawa);
     }
     return audioStreamerRef.current;
   }, []);
@@ -265,6 +291,18 @@ export function useAudioProcessor() {
   }, [getStreamer, startPlaybackLevelLoop]);
 
   /**
+   * Bind a callback to the streamer that fires whenever an audio buffer is scheduled.
+   */
+  const onAudioScheduledRef = useRef<((startMs: number, durationMs: number) => void) | null>(null);
+  useEffect(() => {
+     if (audioStreamerRef.current) {
+        audioStreamerRef.current.onAudioScheduled = (start, duration) => {
+           onAudioScheduledRef.current?.(start, duration);
+        };
+     }
+  }, []);
+
+  /**
    * Immediately stop all audio playback and clear the queue.
    * Called when the Gemini server sends an `interrupted` signal.
    *
@@ -285,5 +323,6 @@ export function useAudioProcessor() {
     stopMic,
     playAudioChunk,
     stopPlayback,
+    onAudioScheduledRef,
   };
 }

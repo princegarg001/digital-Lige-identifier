@@ -147,6 +147,9 @@ export function useSessionManager() {
     toggleCamera,
     sendText: gemini.sendText,
 
+    // Audio Scheduling Callback
+    onAudioScheduledRef: audio.onAudioScheduledRef,
+
     /**
      * Register an application-level tool handler.
      * Must be called before `toggleSession` / `connect`.

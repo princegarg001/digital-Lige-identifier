@@ -25,10 +25,17 @@ export class AudioStreamer {
   /** GainNode sits between sources and destination for clean volume control. */
   public gainNode: GainNode;
   public source: AudioBufferSourceNode;
+  public analyserNode: AnalyserNode | null = null;
   private endOfQueueAudioSource: AudioBufferSourceNode | null = null;
 
   /** Called when the queue has been fully drained and the last buffer finishes. */
   public onComplete = () => {};
+
+  /** 
+   * Fires exactly when a buffer is scheduled.
+   * Passing back the scheduled start time (in MS) and duration (in MS).
+   */
+  public onAudioScheduled: ((startTimeMs: number, durationMs: number) => void) | null = null;
 
   constructor(public context: AudioContext, sampleRate: number = 24000) {
     this.sampleRate = sampleRate;
@@ -195,10 +202,18 @@ export class AudioStreamer {
 
       source.buffer = audioBuffer;
       source.connect(this.gainNode);
+      if (this.analyserNode) {
+        source.connect(this.analyserNode);
+      }
 
       // Never schedule in the past.
       const startTime = Math.max(this.scheduledTime, this.context.currentTime);
       source.start(startTime);
+      
+      if (this.onAudioScheduled) {
+        this.onAudioScheduled(startTime * 1000, audioBuffer.duration * 1000);
+      }
+
       this.scheduledTime = startTime + audioBuffer.duration;
     }
 

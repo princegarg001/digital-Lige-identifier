@@ -34,6 +34,10 @@ import { useChatMessages } from "@/hooks/useChatMessages";
 // Skin
 import { SkinPreset, SKIN_PRESETS } from "@/lib/skinConfig";
 
+// Lip Sync & Emotion
+import { useLipSyncStore } from "@/store/useLipSyncStore";
+import { useEmotionStore } from "@/store/useEmotionStore";
+
 // Scene Config
 import { SceneConfigProvider } from "@/hooks/SceneConfigContext";
 
@@ -187,8 +191,13 @@ function HomePage() {
   useEffect(() => {
     onTranscriptRef.current = (text) => {
       chat.appendAssistantMessage(text);
+      if (text.trim()) {
+        useLipSyncStore.getState().scheduleText(text);
+        useEmotionStore.getState().analyzeText(text);
+      }
     };
   }, [onTranscriptRef, chat]);
+
 
 
 
