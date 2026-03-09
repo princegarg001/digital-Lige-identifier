@@ -28,6 +28,7 @@ export interface SceneConfig {
     rotation: [number, number, number];
     scale: number;
     model: string;
+    idleAnimation: string;
   };
   lighting: {
     keyLight: LightConfig;

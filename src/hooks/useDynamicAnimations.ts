@@ -2,6 +2,7 @@ import { useGLTF } from "@react-three/drei";
 import { useEffect, useState } from "react";
 import * as THREE from "three";
 import { useAnimationStore } from "../store/useAnimationStore";
+import { useSceneConfig } from "../hooks/SceneConfigContext";
 
 // Type definition from our registry types
 import { AnimationMeta } from "../lib/animationRegistry.types";
@@ -12,10 +13,16 @@ export function useDynamicAnimations() {
   const registry = useAnimationStore((state) => state.registry);
   const [activeClip, setActiveClip] = useState<THREE.AnimationClip | null>(null);
   
-  const activeMeta: AnimationMeta | undefined = registry[currentAnimationName];
-  const defaultIdleMeta: AnimationMeta | undefined = registry["idle_2"]; 
+  const { config } = useSceneConfig();
+  const configuredIdle = config.avatar.idleAnimation || "male-idle";
+
+  // Map "idle" to the configured idle animation. If any other animation is active, use that.
+  const resolvedAnimationName = currentAnimationName === "idle" ? configuredIdle : currentAnimationName;
   
-  const targetUrl = activeMeta?.url || defaultIdleMeta?.url || "/animations/feminine/idle/idle_2.glb"; 
+  const activeMeta: AnimationMeta | undefined = registry[resolvedAnimationName];
+  const defaultIdleMeta: AnimationMeta | undefined = registry["male-idle"]; 
+  
+  const targetUrl = activeMeta?.url || defaultIdleMeta?.url || "/animations/male-idle.glb"; 
   
   const { animations } = useGLTF(targetUrl) as { animations: THREE.AnimationClip[] };
   

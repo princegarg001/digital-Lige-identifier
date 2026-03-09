@@ -73,10 +73,10 @@ describe('Digital Persona System Health', () => {
     });
 
     it('should have correct audio configuration', async () => {
-      const { AUDIO_SAMPLE_RATE_INPUT, AUDIO_SAMPLE_RATE_OUTPUT } = await import('@/lib/constants');
+      const { AUDIO_CONFIG } = await import('@/lib/constants');
       
-      expect(AUDIO_SAMPLE_RATE_INPUT).toBe(16000);
-      expect(AUDIO_SAMPLE_RATE_OUTPUT).toBe(24000);
+      expect(AUDIO_CONFIG.input_hz).toBe(16000);
+      expect(AUDIO_CONFIG.output_hz).toBe(24000);
     });
   });
 });

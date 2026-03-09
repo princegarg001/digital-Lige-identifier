@@ -29,7 +29,8 @@
       0
     ],
     "scale": 0.7,
-    "model": "male"
+    "model": "male",
+    "idleAnimation": "feminine_idle_m_standing_idle_variations_003"
   },
   "lighting": {
     "keyLight": {

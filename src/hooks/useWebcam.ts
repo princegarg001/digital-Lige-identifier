@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { VIDEO_FPS, VIDEO_QUALITY } from "@/lib/constants";
+import { AUDIO_CONFIG } from "@/lib/constants";
 
 /**
  * Manages the webcam stream and captures frames at 1 FPS as base64 JPEG.
@@ -56,11 +56,11 @@ export function useWebcam() {
         if (!ctx) return;
 
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL("image/jpeg", VIDEO_QUALITY);
+        const dataUrl = canvas.toDataURL("image/jpeg", AUDIO_CONFIG.video_quality);
         // Strip the data:image/jpeg;base64, prefix
         const base64 = dataUrl.split(",")[1];
         onFrameRef.current?.(base64);
-      }, 1000 / VIDEO_FPS);
+      }, 1000 / AUDIO_CONFIG.video_fps);
 
       setIsActive(true);
       return true;
