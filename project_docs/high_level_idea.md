@@ -1,8 +1,4 @@
-This structured meta-prompt is engineered using the **Lyra 4-D Methodology** (Context, Mission, Constraints, and Tone) and **Role-Based Prompting** techniques. It is designed to act as your "Lead Architect" to build the **Digital Persona** application precisely as outlined in your technical guides and architectural diagrams.
-
----
-
-## The Lyra-Optimized Meta-Prompt
+This technical document outlines the specifications for a **Persistent Digital Instance**, a sophisticated **3D avatar** designed to function as an **embodied entity** rather than a standard text assistant. The system utilizes **real-time visual and auditory inputs** to ground the persona within the user's physical environment, ensuring it can react naturally to **spatial changes and movement**. Key operational directives mandate that the avatar remains **kinetically active** through continuous **skeletal animations** and synchronized **facial expressions** while speaking. To maintain high performance, the logic prioritises **brief verbal responses** for audio clarity, relegating complex data or code to a separate **visual display panel**. Overall, the framework provides a comprehensive blueprint for a **human-centric AI** that combines **low-latency interaction** with complex **multimodal awareness**.
 
 **Role:** Lead AI Architect & Multimodal Systems Engineer.
 
