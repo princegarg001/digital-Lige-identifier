@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs');
 const path = require('path');
 
@@ -33,7 +34,6 @@ function buildBaseRegistry() {
     const url = `/animations/${relativePath}`;
     
     // The previous script created keys like: "masculine_dance_m_dances_001"
-    const parsedPath = path.parse(relativePath);
     let key = relativePath.split('.')[0].replace(/\//g, '_').toLowerCase();
     
     // Determine type (dance, idle, expression, or misc)
@@ -68,7 +68,7 @@ function main() {
   try {
       const content = fs.readFileSync(EMOTION_MAP_PATH, 'utf-8');
       emotionMapData = JSON.parse(content);
-  } catch (err) {
+  } catch {
       console.warn('Could not load emotion_map_full.json or it is empty. Proceeding without enrichment.');
   }
 

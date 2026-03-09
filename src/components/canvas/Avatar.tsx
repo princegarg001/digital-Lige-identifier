@@ -12,13 +12,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { useGraph, useFrame } from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
 import { GLTF, SkeletonUtils } from "three-stdlib";
-import {
-  LIP_SYNC_SMOOTHING,
-  LIP_SYNC_JAW_MULTIPLIER,
-  LIP_SYNC_MOUTH_MULTIPLIER,
-  BREATHING_SPEED,
-  BREATHING_AMPLITUDE,
-} from "@/lib/constants";
+import { PHYSICS_SMOOTHING } from "@/lib/constants";
 import { SkinPreset } from "@/lib/skinConfig";
 import { useSkinTexture } from "@/hooks/useSkinTexture";
 import { normaliseFbxAnimations } from "@/lib/animationUtils";
@@ -202,7 +196,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
 
     // Smooth the audio level to avoid jitter
     smoothedLevel.current +=
-      (rawLevel - smoothedLevel.current) * LIP_SYNC_SMOOTHING;
+      (rawLevel - smoothedLevel.current) * PHYSICS_SMOOTHING.lerp_factor;
     const level = smoothedLevel.current;
 
     // Drive jaw/mouth morph targets for lip-sync
@@ -215,10 +209,10 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
 
       if (jawIdx !== undefined) {
         // eslint-disable-next-line react-hooks/immutability
-        head.morphTargetInfluences[jawIdx] = Math.min(1, level * LIP_SYNC_JAW_MULTIPLIER);
+        head.morphTargetInfluences[jawIdx] = Math.min(1, level * PHYSICS_SMOOTHING.jaw_mult);
       }
       if (mouthIdx !== undefined) {
-        head.morphTargetInfluences[mouthIdx] = Math.min(1, level * LIP_SYNC_MOUTH_MULTIPLIER);
+        head.morphTargetInfluences[mouthIdx] = Math.min(1, level * PHYSICS_SMOOTHING.mouth_mult);
       }
     }
 
@@ -226,7 +220,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
     if (featureToggles.lipSync && teeth?.morphTargetDictionary && teeth?.morphTargetInfluences) {
       const jawIdx = teeth.morphTargetDictionary["jawOpen"];
       if (jawIdx !== undefined) {
-        teeth.morphTargetInfluences[jawIdx] = Math.min(1, level * LIP_SYNC_JAW_MULTIPLIER);
+        teeth.morphTargetInfluences[jawIdx] = Math.min(1, level * PHYSICS_SMOOTHING.jaw_mult);
       }
     }
 
@@ -285,7 +279,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
     // Subtle idle breathing — small Y oscillation on Hips
     if (featureToggles.breathing && nodes.Hips) {
       nodes.Hips.position.y =
-        Math.sin(Date.now() * BREATHING_SPEED) * BREATHING_AMPLITUDE;
+        Math.sin(Date.now() * PHYSICS_SMOOTHING.idle_breath_speed) * PHYSICS_SMOOTHING.idle_breath_amp;
     }
 
     // ── Gaze behavior: look at camera when speaking, drift when listening ───

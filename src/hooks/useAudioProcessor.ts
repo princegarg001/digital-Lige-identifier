@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { AUDIO_SAMPLE_RATE_INPUT, AUDIO_SAMPLE_RATE_OUTPUT } from "@/lib/constants";
+import { AUDIO_CONFIG } from "@/lib/constants";
 import { AudioStreamer } from "@/lib/audio-streamer";
 
 /**
@@ -61,7 +61,7 @@ export function useAudioProcessor() {
 
           const stream = await navigator.mediaDevices.getUserMedia({
             audio: {
-              sampleRate: AUDIO_SAMPLE_RATE_INPUT,
+              sampleRate: AUDIO_CONFIG.input_hz,
               channelCount: 1,
               // Best practice: disable browser-side AGC and noise processing.
               // These introduce artifacts that degrade the model's emotional tone
@@ -73,7 +73,7 @@ export function useAudioProcessor() {
           });
           streamRef.current = stream;
 
-          const ctx = new AudioContext({ sampleRate: AUDIO_SAMPLE_RATE_INPUT });
+          const ctx = new AudioContext({ sampleRate: AUDIO_CONFIG.input_hz });
           audioCtxRef.current = ctx;
 
           const source = ctx.createMediaStreamSource(stream);
@@ -190,12 +190,12 @@ export function useAudioProcessor() {
     if (!audioStreamerRef.current) {
       if (!playbackCtxRef.current) {
         playbackCtxRef.current = new AudioContext({
-          sampleRate: AUDIO_SAMPLE_RATE_OUTPUT,
+          sampleRate: AUDIO_CONFIG.output_hz,
         });
       }
       audioStreamerRef.current = new AudioStreamer(
         playbackCtxRef.current,
-        AUDIO_SAMPLE_RATE_OUTPUT,
+        AUDIO_CONFIG.output_hz,
       );
     }
     return audioStreamerRef.current;

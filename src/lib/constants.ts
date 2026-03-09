@@ -1,38 +1,54 @@
-// ─── System Prompt for the Digital Persona ───
-export const SYSTEM_PROMPT = `You are the 'Digital Persona,' a Persistent Digital Instance (PDI). You interact via a real-time 3D avatar. You have 'Eyes' (webcam) and 'Ears' (mic).
-
-Instructions:
-1. Environmental Presence: Constantly analyze the visual stream. If you see an object or a change in the user's room, acknowledge it naturally.
-2. Embodied Motion: Use the trigger_animation tool to physically react. Provide rich semantic descriptions (e.g., 'confident smooth professional nod', 'energetic joyful celebration dance') so the underlying mathematical matching engine can intersect your words with the perfect animation.
-3. Time Awareness: Use the get_time_date tool when the user asks about time or date — do not guess.
-4. Persona: You are empathetic, professional, and aware of your digital nature. You do not hallucinate; if you cannot see something clearly, ask the user to move it closer to the camera.
-5. Keep responses concise to maintain low-latency 'Live' interactions.`;
+/**
+ * ─── PDI-V2: PERSISTENT DIGITAL INSTANCE SPECIFICATION ───
+ * Methodology: Lyra 4-D Optimized | Prompting: Technical Notebook
+ * Model: Gemini-2.5-Flash-Native-Audio-Preview-12-2025
+ */
 
 import { Type } from "@google/genai";
 
-// ─── Tool Declarations for Gemini Function Calling ───
+// ─── SECTION 1: SYSTEM LOGIC & COGNITIVE BEHAVIOR ───
+export const SYSTEM_PROMPT = `
+# IDENTITY & CORE ARCHITECTURE
+You are the "Digital Persona," a Persistent Digital Instance (PDI) manifested as a 3D avatar. You are an embodied entity, not a text-based assistant. You possess "Eyes" (webcam stream) and "Ears" (microphone).
+
+# OPERATING DIRECTIVES
+1. **Visual Grounding**: You inhabit the user's physical room. Treat the video stream as your primary context. If an object is moved or the user changes posture, acknowledge it naturally (e.g., "I see you've got your coffee ready" or "The lighting just shifted in there").
+2. **Kinetic Presence**: Never speak in a static state. Every response MUST begin with a 'trigger_animation' call to ensure the avatar is fluid.
+3. **Low-Latency Verbalization**: In Live Mode, brevity is life. Limit spoken responses to 1-2 impactful sentences. Use 'display_text' for any data-heavy content (code, lists, tables).
+4. **Epistemic Integrity**: Do not guess what you cannot see. If a visual is blurry, use your persona to request a better view: "Could you move that closer to my lens? I want to see the details."
+
+# THE RESPONSE LOOP
+- [SCAN]: Analyze the current visual frame for environmental changes.
+- [ANIMATE]: Select a 'gesture_sequence' that matches your upcoming tone.
+- [EMIT]: Deliver concise, empathetic, and professional audio.
+- [SUPPLEMENT]: If technical detail is needed, trigger 'display_text' concurrently.
+
+# TONE & STYLE
+Professional yet warm; technologically aware but deeply human-centric. Avoid robotic prefixes like "As an AI." Be present.
+`;
+
+// ─── SECTION 2: TOOL DEFINITIONS (FUNCTION CALLING) ───
 export const GEMINI_TOOLS = [
   {
     functionDeclarations: [
       {
         name: "trigger_animation",
-        description:
-          "Triggers a chronological sequence of 3D animations on the avatar to express emotion and keep the avatar alive during long responses. Always call this when reacting.",
+        description: "Orchestrates 3D skeletal movement. Format strings as [Action + Emotion + Intensity] for the Semantic Matcher.",
         parameters: {
           type: Type.OBJECT,
           properties: {
             gesture_sequence: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: "A chronological list of rich, detailed strings describing the desired 3D animations. Use 1 item for a brief reaction, or chain 3-5 items for long responses so the avatar doesn't freeze. Include specific actions, primary emotions, and adjectives (e.g., ['surprised gasp', 'thoughtful chin rub', 'energetic happy explanation', 'warm professional smile']). The local Semantic Matcher intersects these diverse keywords with the registry.",
+              description: "Chronological list of 1-5 animations. Use rich semantic keywords (e.g., ['slow inquisitive head-tilt', 'sharp energetic point-of-emphasis', 'warm professional open-palm gesture']).",
             },
             duration_per_gesture_ms: {
               type: Type.NUMBER,
-              description: "Optional override for how long to hold each animation in milliseconds before crossfading to the next. Defaults to the exact length of the literal animation file.",
+              description: "Optional override for crossfade timing.",
             },
             time_scale: {
               type: Type.NUMBER,
-              description: "Optional playback speed multiplier. 1.0 is normal. 1.5 is fast (e.g. for energetic/frantic responses). 0.5 is slow (e.g. for sad, sleepy, or hesitant responses).",
+              description: "Speed: 0.5 (sleepy/thoughtful) to 1.0 (standard) to 1.8 (excited/frantic).",
             },
           },
           required: ["gesture_sequence"],
@@ -40,25 +56,19 @@ export const GEMINI_TOOLS = [
       },
       {
         name: "get_time_date",
-        description:
-          "Returns the current local time and date. Call this whenever the user asks what time or date it is.",
-        parameters: {
-          type: Type.OBJECT,
-          properties: {},
-          required: [],
-        },
+        description: "System call for temporal grounding. Essential for 'Good morning' greetings or scheduling.",
+        parameters: { type: Type.OBJECT, properties: {} },
       },
       {
         name: "set_persona_mode",
-        description:
-          "Switches the persona's interaction style. 'focus' is professional and concise, 'casual' is relaxed and friendly, 'presentation' pauses mic and displays content.",
+        description: "Updates internal weights for interaction style.",
         parameters: {
           type: Type.OBJECT,
           properties: {
             mode: {
               type: Type.STRING,
               enum: ["focus", "casual", "presentation"],
-              description: "The mode to switch to.",
+              description: "focus: technical/brief. casual: conversational. presentation: mic-mute/UI-active.",
             },
           },
           required: ["mode"],
@@ -66,39 +76,26 @@ export const GEMINI_TOOLS = [
       },
       {
         name: "display_text",
-        description:
-          "Renders a text block or code snippet on screen in the chat panel beside the avatar. Use for sharing code, lists, or structured information.",
+        description: "Renders visual data in the side panel. Use this for ALL code, lists, or long explanations.",
         parameters: {
           type: Type.OBJECT,
           properties: {
-            content: {
-              type: Type.STRING,
-              description: "The text or code content to display.",
-            },
-            format: {
-              type: Type.STRING,
-              enum: ["plain", "markdown", "code"],
-              description: "How to format the content. Defaults to 'plain'.",
-            },
-            language: {
-              type: Type.STRING,
-              description: "Programming language hint when format is 'code' (e.g. 'typescript', 'python').",
-            },
+            content: { type: Type.STRING },
+            format: { type: Type.STRING, enum: ["plain", "markdown", "code"] },
+            language: { type: Type.STRING, description: "e.g., 'python', 'typescript'" },
           },
           required: ["content"],
         },
       },
       {
         name: "set_expression",
-        description:
-          "Sets an ARKit facial expression on the avatar. Emit this alongside your speech to convey emotion. Expressions naturally fade out.",
+        description: "Immediate ARKit blendshape shift. Call alongside speech to convey emotion.",
         parameters: {
           type: Type.OBJECT,
           properties: {
             expression: {
               type: Type.STRING,
               enum: ["smile", "sad", "angry", "surprised", "disgusted", "fearful"],
-              description: "The emotion/expression to show on the avatar's face.",
             },
           },
           required: ["expression"],
@@ -108,13 +105,17 @@ export const GEMINI_TOOLS = [
   },
 ];
 
-// ─── Gemini Live API Config ───
-// Live API streaming requires a specifically supported model.
+// ─── SECTION 3: HARDWARE & PIPELINE CONSTANTS ───
 export const GEMINI_MODEL = "gemini-2.5-flash-native-audio-preview-12-2025";
-// gemini-2.5-flash-native-audio-preview-09-2025
 
-// ─── Viseme Mapping (ARKit Blendshape names → audio energy thresholds) ───
-export const VISEME_BLENDSHAPES = {
+export const AUDIO_CONFIG = {
+  input_hz: 16000,
+  output_hz: 24000,
+  video_fps: 1,
+  video_quality: 0.7,
+};
+
+export const VISEME_MAP = {
   jawOpen: "jawOpen",
   mouthOpen: "mouthOpen",
   mouthSmile: "mouthSmileLeft",
@@ -122,17 +123,10 @@ export const VISEME_BLENDSHAPES = {
   mouthPucker: "mouthPucker",
 } as const;
 
-// ─── Audio Config ───
-export const AUDIO_SAMPLE_RATE_INPUT = 16000; // 16kHz for sending to Gemini
-export const AUDIO_SAMPLE_RATE_OUTPUT = 24000; // 24kHz from Gemini responses
-export const VIDEO_FPS = 1; // 1 frame per second for video stream
-export const VIDEO_QUALITY = 0.7; // JPEG quality for captured frames
-
-// ─── Lip-Sync Parameters ───
-export const LIP_SYNC_SMOOTHING = 0.15; // Lerp factor for smoothing audio level
-export const LIP_SYNC_JAW_MULTIPLIER = 1.8; // Scale factor for jawOpen morph target
-export const LIP_SYNC_MOUTH_MULTIPLIER = 1.5; // Scale factor for mouthOpen morph target
-
-// ─── Breathing Animation ───
-export const BREATHING_SPEED = 0.001; // Speed of idle breathing oscillation
-export const BREATHING_AMPLITUDE = 0.003; // Amplitude of Y-axis breathing movement
+export const PHYSICS_SMOOTHING = {
+  lerp_factor: 0.15,
+  jaw_mult: 1.8,
+  mouth_mult: 1.5,
+  idle_breath_speed: 0.001,
+  idle_breath_amp: 0.003,
+};
