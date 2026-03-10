@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useGeminiLive } from "./useGeminiLive";
 import { useAudioProcessor } from "./useAudioProcessor";
 import { useWebcam } from "./useWebcam";
@@ -109,14 +109,22 @@ export function useSessionManager() {
     setIsInitialized(false);
   }, [gemini, audio, webcam]);
 
+  // Synchronous lock to prevent dual invocations
+  const isTransitioning = useRef(false);
+
   const toggleSession = useCallback(() => {
+    if (isTransitioning.current) return;
+    
     // Guard against double-start: only allow starting when strictly "disconnected".
-    // Without this check, clicking Start while status === "connecting" would open
-    // a second concurrent WebSocket session.
     if (gemini.status !== "disconnected") {
+      isTransitioning.current = true;
       stopSession();
+      setTimeout(() => { isTransitioning.current = false; }, 500);
     } else {
-      startSession();
+      isTransitioning.current = true;
+      startSession().finally(() => {
+        isTransitioning.current = false;
+      });
     }
   }, [gemini.status, startSession, stopSession]);
 

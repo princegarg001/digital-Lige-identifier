@@ -382,7 +382,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
     if (statusRef.current !== "connected") return;
     try {
       sessionRef.current?.sendRealtimeInput({
-        video: {
+        media: {
           data: base64Image,
           mimeType: "image/jpeg",
         },

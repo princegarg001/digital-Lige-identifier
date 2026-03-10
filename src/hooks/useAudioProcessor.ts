@@ -68,12 +68,12 @@ export function useAudioProcessor() {
             audio: {
               sampleRate: AUDIO_CONFIG.input_hz,
               channelCount: 1,
-              // Best practice: disable browser-side AGC and noise processing.
-              // These introduce artifacts that degrade the model's emotional tone
-              // detection. The Gemini Live API processes the raw signal natively.
-              echoCancellation: false,
-              noiseSuppression: false,
-              autoGainControl: false,
+              // Enable browser-side AGC and noise processing.
+              // This is CRITICAL for speakerphone setups to prevent the speakers
+              // from feeding back into the microphone and causing Gemini to interrupt itself.
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
             },
           });
           streamRef.current = stream;
@@ -104,8 +104,14 @@ export function useAudioProcessor() {
               // ✅ Fix: Do NOT connect workletNode to ctx.destination.
               // Routing mic → destination would play the raw mic audio back
               // through the speakers, creating a feedback/echo loop.
-              workletNode.port.onmessage = (e: MessageEvent<string>) => {
-                onChunk(e.data);
+              workletNode.port.onmessage = (e: MessageEvent<ArrayBuffer>) => {
+                // e.data is an ArrayBuffer of Int16 PCM data
+                const bytes = new Uint8Array(e.data);
+                let binary = "";
+                for (let i = 0; i < bytes.length; i++) {
+                  binary += String.fromCharCode(bytes[i]);
+                }
+                onChunk(btoa(binary));
               };
               workletNodeRef.current = workletNode;
               workletLoaded = true;
@@ -219,6 +225,8 @@ export function useAudioProcessor() {
       wawa.audioContext = streamer.context;
       // @ts-expect-error - use the streamer's own analyser that's already in the audio chain
       wawa.analyser = streamer.analyserNode;
+      // @ts-expect-error - update the dataArray to identically match the analyser
+      wawa.dataArray = new Uint8Array(streamer.analyserNode.frequencyBinCount);
       // @ts-expect-error - override sampleRate for wawa
       wawa.sampleRate = streamer.context.sampleRate;
       // @ts-expect-error - recompute binWidth

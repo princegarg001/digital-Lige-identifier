@@ -28,44 +28,18 @@ class PCMCaptureProcessor extends AudioWorkletProcessor {
     // Float32 → Int16 and accumulate
     for (let i = 0; i < float32.length; i++) {
       const s = Math.max(-1, Math.min(1, float32[i]));
-      this._buffer[this._bufferIndex++] = s < 0 ? s * 0x8000 : s * 0x7fff;
+      this._buffer[this._bufferIndex++] = Math.round(s < 0 ? s * 0x8000 : s * 0x7fff);
 
-      // Once the buffer is full, post the chunk and reset
+      // Once the buffer is full, post a COPY of the buffer
       if (this._bufferIndex >= this._buffer.length) {
-        const bytes = new Uint8Array(this._buffer.buffer);
-        
-        // Efficient manual base64 conversion (AudioWorklet has no btoa)
-        const base64 = this.toBase64(bytes);
-        this.port.postMessage(base64);
+        // We must create a copy because we reuse this._buffer
+        const bufferCopy = this._buffer.slice().buffer;
+        this.port.postMessage(bufferCopy, [bufferCopy]);
         this._bufferIndex = 0;
       }
     }
 
     return true; // Keep processor alive
-  }
-
-  /** Efficient base64 encoder for Worklets */
-  toBase64(bytes) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-    let base64 = '';
-    for (let i = 0; i < bytes.length; i += 3) {
-      const v1 = bytes[i];
-      const v2 = bytes[i + 1];
-      const v3 = bytes[i + 2];
-      base64 += chars.charAt(v1 >> 2);
-      base64 += chars.charAt(((v1 & 3) << 4) | (v2 >> 4));
-      if (v2 !== undefined) {
-        base64 += chars.charAt(((v2 & 15) << 2) | (v3 >> 6));
-        if (v3 !== undefined) {
-          base64 += chars.charAt(v3 & 63);
-        } else {
-          base64 += '=';
-        }
-      } else {
-        base64 += '==';
-      }
-    }
-    return base64;
   }
 }
 

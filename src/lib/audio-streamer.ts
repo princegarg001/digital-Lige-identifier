@@ -123,7 +123,6 @@ export class AudioStreamer {
       this.gainNode.disconnect();
       this.gainNode = this.context.createGain();
       this.gainNode.connect(this.analyserNode);
-      this.analyserNode.connect(this.context.destination);
     }, 200);
   }
 
@@ -208,8 +207,12 @@ export class AudioStreamer {
       // Connect specifically through the gainNode (which feeds into analyserNode)
       source.connect(this.gainNode);
 
-      // Never schedule in the past.
-      const startTime = Math.max(this.scheduledTime, this.context.currentTime);
+      // Never schedule in the past. If we fell behind (underrun), add a buffer cushion to recover gapless playback!
+      let startTime = this.scheduledTime;
+      if (startTime < this.context.currentTime) {
+         startTime = this.context.currentTime + this.initialBufferTime;
+         this.scheduledTime = startTime;
+      }
       source.start(startTime);
       
       if (this.onAudioScheduled) {
