@@ -5,13 +5,19 @@
 
 > **Bird's Eye View:** A fully embodied 3D digital instance built for the Google Gemini Live Agent Challenge. It merges the Gemini Live Multimodal API with a React Three Fiber driven Ready Player Me avatar, achieving sub-100ms conversational latency with procedural "life-like" ARKit blendshape expressions.
 
+> [!WARNING]
+> **Active Development Warning:** This project was rapidly architected for the Gemini Live Agent Challenge and is under heavy, active development. Some configurations may break, and unstable branches might exhibit experimental behaviors. See the issues log before deploying to production.
+
 ---
 
 ## 📖 Overview
 
 Digital Persona is a state-of-the-art multimodal AI implementation. It does not simply return text; it is an **embodied entity** capable of sustaining natural face-to-face interactions. Utilizing a Next.js 16 Client-to-Server WebSockets architecture, the avatar leverages **Google's Gemini Multimodal Live API** to hear, see, and express emotions natively. 
 
-The application utilizes native audio, Voice Activity Detection (Barge-in), Session Managment, and Ephemeral Tokens for secure, low-latency browser streaming.
+The application utilizes native audio, Voice Activity Detection (Barge-in), Session Management, and Ephemeral Tokens for secure, low-latency browser streaming.
+
+### 💖 The Engineering Effort
+We poured hundreds of hours into solving complex constraints. Traditional chatbots just ping APIs, but we faced the visceral challenge of translating an LLM's text and audio output into physical 3D behaviors in under 100 milliseconds. We engineered custom real-time audio chunkers, mathematical sine-wave breathers for the 3D model, co-articulating Lip-Sync extractors, and built an entirely custom "Nervous System" that links Gemini Tool calling directly into Three.js WebGL animations. Every pixel, floating panel, and blink speed curve was obsessively tuned for maximum realism.
 
 ---
 
@@ -33,8 +39,134 @@ Text assistants are a thing of the past. The future of AI interaction requires a
 - **Affective Responses:** Gemini maps sentiment to ARKit expressions (e.g., pulling `browDownRight`, `mouthFrownLeft` for sadness) concurrently with audio delivery.
 
 ### 3. **Deep Multimodal Awareness**
-- **Video Framing (1 FPS):** Captures the user's physical environment via webcam, allowing the AI to ground its answers based on what it literally "sees".
+- **Visual Analysis (Webcam Streaming):** The frontend continuously captures the user's physical environment via the webcam (pushing Base64 JPEG frames at 1 FPS). This allows the Gemini model to literally "see" you, deeply analyze your surroundings, and ground its answers based on visual context. It can even trigger physical avatar actions based on what you hold up to the camera!
+- **Hybrid Text Chat Integration:** Don't want to speak? The system features a seamless text chat fallback. You can type messages directly into the UI, which are routed natively through the exact same real-time multimodal session, allowing for rich text-and-audio conversations.
 - **Real-Time Function Calling (The Nervous System):** Exposes `trigger_animation`, `set_persona_mode`, `set_expression`, `display_text` to the model over the WebSocket, enabling physical gesticulations based on conversational intent.
+
+### 4. **🎨 Extensive UI & Configurations Control Panel**
+We designed a glassmorphism "Control Center" providing granular runtime configurations.
+- **Floating Chatbox:** Interleave text input if you don't want to speak, complete with API debugging logs and a live transcript feed.
+- **Persona Context Configurations:** Change the prompt dynamically (e.g., Tutor, Therapist, Interviewer) at runtime.
+- **Avatar Toggles:** Dynamically select and preview the base standing/idle animations.
+- **Gemini Feature Toggles:** Dynamically enable or disable:
+  - `Google Search Grounding` (Allows the agent to pull live internet data)
+  - `Proactive Audio` (Allows the agent to interrupt you)
+- **Cinematic Camera System:** Seamless zoom framing toggles between Portrait and Full-Body views depending on the context of the conversation.
+
+---
+
+## 🏗️ High-Level Architecture
+
+The system utilizes an Ephemeral Token proxy to establish a direct, low-latency WebSocket connection to the Gemini Multi-Modal Live API directly from the browser, bypassing heavy backend routing.
+
+```mermaid
+graph TD
+    %% Styling Definition
+    classDef client fill:#f3f4f6,stroke:#374151,stroke-width:2px,color:#111827
+    classDef backend fill:#e0e7ff,stroke:#4338ca,stroke-width:2px,color:#312e81
+    classDef gemini fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px,color:#1e3a8a
+    classDef component fill:#ffffff,stroke:#9ca3af,stroke-width:1px,color:#374151,rx:8px,ry:8px
+
+    subgraph Client ["🖥️ Next.js Frontend (Browser)"]
+        A["🎙️ Webcam & Mic"]:::component
+        B["⚡ useGeminiLive Hook"]:::component
+        C["🎨 React Three Fiber Canvas"]:::component
+        D["👤 Ready Player Me Avatar"]:::component
+        
+        A --> B
+        B --> C
+        C --> D
+    end
+
+    subgraph Backend ["☁️ Google Cloud Platform / Vercel"]
+        E["🔐 Next.js Route /api/token"]:::component
+        F["🧠 Gemini 2.5 Flash Native Audio"]:::gemini
+        
+        E --> F
+    end
+
+    %% Add styling to subgraphs
+    class Client client
+    class Backend backend
+
+    %% Security & Connection Logic
+    Client -->|"1️⃣ Request Token"| E
+    E -->|"2️⃣ Ephemeral Token"| Client
+    Client <==>|"3️⃣ Bi-directional WSS"| F
+```
+
+### 🔄 Real-Time Interaction Sequence (VAD & Tool Calling)
+
+This sequence illustrates the sub-100ms latency loop natively handling interruptions (Voice Activity Detection).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    
+    participant User
+    participant Client as Frontend Client (useGeminiLive)
+    participant Avatar as R3F Avatar
+    participant API as Auth API (/api/token)
+    participant Gemini as Gemini 2.5 Live
+
+    %% -----------------------------
+    %% Authentication Phase
+    %% -----------------------------
+    rect rgb(245,245,245)
+    Note over Client,API: Authentication Phase
+    Client->>API: POST /api/token
+    API-->>Client: 200 OK (ephemeral JWT)
+    end
+
+    %% -----------------------------
+    %% Realtime Session Setup
+    %% -----------------------------
+    rect rgb(230,240,255)
+    Note over Client,Gemini: Realtime WebSocket Session
+    Client->>Gemini: Establish Live Connection
+    end
+
+    %% -----------------------------
+    %% Multimodal User Interaction
+    %% -----------------------------
+    par Audio & Video Streaming
+        User->>Client: Speak: "What am I holding?"
+        Client->>Gemini: sendRealtimeInput (16kHz PCM audio stream)
+    and
+        Client->>Gemini: sendRealtimeInput (Base64 JPEG @ 1fps)
+    and Text Chat Fallback
+        User->>Client: Types: "Explain quantum physics."
+        Client->>Gemini: send({ clientContent: { text } })
+    end
+
+    Note right of Gemini: Multimodal processing (Audio + Video + Text)
+
+    Gemini-->>Client: serverContent (audio response stream)
+    Gemini-->>Client: toolCall(trigger_animation: point)
+
+    %% -----------------------------
+    %% Parallel Processing
+    %% -----------------------------
+    par Avatar Rendering
+        Client->>Avatar: Stream audio + visemes
+        Client->>Avatar: Trigger animation "point"
+    and Tool Response
+        Client->>Gemini: sendToolResponse(result: ok)
+    end
+
+    Avatar-->>User: Avatar gestures and speaks
+
+    %% -----------------------------
+    %% Barge-in / Interruption
+    %% -----------------------------
+    rect rgb(255,240,240)
+    Note over User,Gemini: Interruption Handling (Barge-in)
+    User->>Client: "Stop, that's enough"
+    Client->>Gemini: Stream new audio input
+    Gemini-->>Client: serverContent(interrupted=true)
+    Client->>Avatar: Drop current audio queue
+    end
+```
 
 ---
 
