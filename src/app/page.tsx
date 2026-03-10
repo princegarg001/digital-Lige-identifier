@@ -217,7 +217,7 @@ function HomePage() {
           <h2 className="text-xl font-semibold mb-4 text-red-500">
             Connection Error
           </h2>
-          <p className="text-sm text-muted-foreground mb-4">{anyError}</p>
+          <p className="text-sm text-muted-foreground mb-4">{anyError instanceof Error ? anyError.message : String(anyError)}</p>
           <button
             onClick={() => window.location.reload()}
             className="w-full px-4 py-2 bg-cyan-500 text-primary-foreground rounded-lg font-medium hover:bg-cyan-400 transition-colors"

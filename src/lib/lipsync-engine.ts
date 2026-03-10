@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { PHYSICS_SMOOTHING } from "@/lib/constants";
 import { OCULUS_VISEMES } from './viseme-map';
 import { Lipsync } from 'wawa-lipsync';
+import { createLogger } from '@/lib/logging/logger';
+
+const log = createLogger("lipsync-engine");
 
 export class LipSyncEngine {
   public wawaLipsync: Lipsync | null = null;
@@ -38,8 +41,12 @@ export class LipSyncEngine {
                    this.applyMorph(teeth, viseme, target * 1.1, delta);
                 }
              }
+
+             if (level > 0.05) {
+               // log.debug({ activeViseme, level }, "Lipsync viseme evaluated"); // Uncomment for super deep debugging
+             }
           } catch (e) {
-             console.warn("Wawa Lipsync evaluation failed", e);
+             log.error({ err: e }, "Wawa Lipsync evaluation failed");
              this.applyVolumeFallback(head, teeth, level, delta);
           }
        } else {
@@ -54,6 +61,10 @@ export class LipSyncEngine {
 
       this.applyMorph(head, "jawOpen", targetJaw, delta);
       this.applyMorph(head, "mouthOpen", targetMouth, delta);
+      
+      if (level > 0.1) {
+        log.warn({ level }, "Using volume fallback for lipsync");
+      }
       
       if (teeth && teeth.morphTargetDictionary && teeth.morphTargetInfluences) {
         this.applyMorph(teeth, "jawOpen", targetJaw * 1.1, delta);

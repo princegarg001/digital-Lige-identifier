@@ -5,6 +5,9 @@ import { AUDIO_CONFIG } from "@/lib/constants";
 import { AudioStreamer } from "@/lib/audio-streamer";
 import { Lipsync } from "wawa-lipsync";
 import { useLipSyncStore } from "@/store/useLipSyncStore";
+import { createLogger } from "@/lib/logging/logger";
+
+const log = createLogger("useAudioProcessor");
 
 /**
  * Manages microphone audio capture, Gemini audio playback, and real-time audio levels.
@@ -80,7 +83,7 @@ export function useAudioProcessor() {
           
           if (ctx.state === "suspended") {
             await ctx.resume();
-            console.log("[AudioProcessor] Input AudioContext resumed.");
+            log.info("[AudioProcessor] Input AudioContext resumed.");
           }
 
           const source = ctx.createMediaStreamSource(stream);
@@ -106,9 +109,9 @@ export function useAudioProcessor() {
               };
               workletNodeRef.current = workletNode;
               workletLoaded = true;
-              console.log("[AudioProcessor] Using AudioWorklet for PCM capture.");
+              log.info("[AudioProcessor] Using AudioWorklet for PCM capture.");
             } catch (workletErr) {
-              console.warn("[AudioProcessor] AudioWorklet failed, falling back to ScriptProcessor:", workletErr);
+              log.warn({ err: workletErr }, "AudioWorklet failed, falling back to ScriptProcessor");
             }
           }
 
@@ -135,7 +138,7 @@ export function useAudioProcessor() {
               }
               onChunk(btoa(binary));
             };
-            console.log("[AudioProcessor] Using ScriptProcessorNode fallback for PCM capture.");
+            log.info("[AudioProcessor] Using ScriptProcessorNode fallback for PCM capture.");
           }
 
           // rAF loop for audio level → ref (not state)
@@ -151,7 +154,7 @@ export function useAudioProcessor() {
 
           setIsMicActive(true);
         } catch (err) {
-          console.error("[AudioProcessor] Mic error:", err);
+          log.error({ err }, "Failed to acquire user media or start AudioContext");
           let errorMsg = "Could not access microphone.";
           if (err instanceof DOMException) {
             if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
@@ -186,6 +189,7 @@ export function useAudioProcessor() {
     processorRef.current = null;
     setIsMicActive(false);
     audioLevelRef.current = 0;
+    log.info("Stopped audio processor and released microphone");
   }, []);
 
   // ── Playback via AudioStreamer ────────────────────────────────────────────
@@ -199,6 +203,7 @@ export function useAudioProcessor() {
         playbackCtxRef.current = new AudioContext({
           sampleRate: AUDIO_CONFIG.output_hz,
         });
+        log.info("Initialized AudioContext (Playback)");
       }
       const streamer = new AudioStreamer(
         playbackCtxRef.current,
@@ -235,6 +240,11 @@ export function useAudioProcessor() {
         const vol = audioStreamerRef.current.getVolume();
         // Map streamer RMS (0-1 float) → audioLevelRef (0-1) with a boost
         audioLevelRef.current = Math.min(1, vol * 4);
+        
+        // Output trace when the volume changes significantly, throttle with frame count
+        if (vol > 0.01 && playbackAnimFrameRef.current % 30 === 0) {
+           log.trace({ rms: vol }, "AudioStreamer volumetric output");
+        }
       }
       playbackAnimFrameRef.current = requestAnimationFrame(tick);
     };
@@ -264,7 +274,7 @@ export function useAudioProcessor() {
         // ✅ Fix: Resume suspended AudioContext (browser autoplay policy).
         if (ctx.state === "suspended") {
           await ctx.resume();
-          console.log("[AudioProcessor] AudioContext resumed from suspended state.");
+          log.info("[AudioProcessor] AudioContext resumed from suspended state.");
         }
 
         // base64 → Uint8Array (PCM16 bytes)
@@ -281,8 +291,8 @@ export function useAudioProcessor() {
         // lip-sync between packets), start a continuous rAF loop that
         // samples the streamer volume at 60fps.
         startPlaybackLevelLoop();
-      } catch (err) {
-        console.warn("[AudioProcessor] Playback error:", err);
+      } catch (error) {
+        log.error({ err: error }, "Microphone worklet initialization failed");
       }
     })();
   }, [getStreamer, startPlaybackLevelLoop]);

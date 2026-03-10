@@ -24,6 +24,9 @@ import { GazeEngine } from "@/lib/gaze-engine";
 import { LipSyncEngine } from "@/lib/lipsync-engine";
 import { EmotionEngine } from "@/lib/emotion-engine";
 import { useLipSyncStore } from "@/store/useLipSyncStore";
+import { createLogger } from "@/lib/logging/logger";
+
+const log = createLogger("Avatar");
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -142,10 +145,12 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
     currentAction.clampWhenFinished = true;
 
     currentAction.reset().play();
+    log.debug({ animation: actionName, speed }, "Playing Avatar animation");
 
     // If there is an active animation currently playing, cross-fade to the new one!
     // The `true` flag enables time-warping so mismatched length loops don't warp scale.
     if (previousActionRef.current && previousActionRef.current !== currentAction) {
+      log.debug({ from: previousActionRef.current.getClip().name, to: actionName }, "Crossfading Avatar animation");
       currentAction.crossFadeFrom(previousActionRef.current, 0.5, true);
     } else {
       currentAction.fadeIn(0.5);
@@ -200,6 +205,11 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
     smoothedLevel.current +=
       (rawLevel - smoothedLevel.current) * PHYSICS_SMOOTHING.lerp_factor;
     const level = smoothedLevel.current;
+    
+    // Trace high-frequency volumetric changes periodically if moving significantly
+    if (level > 0.05 && Math.random() < 0.05) {
+       log.trace({ level, rawLevel }, "Audio volume trace for Lipsync");
+    }
 
     // Drive jaw/mouth morph targets for lip-sync using LipSyncEngine
     if (featureToggles.lipSync && lipsyncEngine.current) {

@@ -33,19 +33,39 @@ class PCMCaptureProcessor extends AudioWorkletProcessor {
       // Once the buffer is full, post the chunk and reset
       if (this._bufferIndex >= this._buffer.length) {
         const bytes = new Uint8Array(this._buffer.buffer);
-
-        // Build base64 string
-        let binary = '';
-        for (let j = 0; j < bytes.length; j++) {
-          binary += String.fromCharCode(bytes[j]);
-        }
-
-        this.port.postMessage(btoa(binary));
+        
+        // Efficient manual base64 conversion (AudioWorklet has no btoa)
+        const base64 = this.toBase64(bytes);
+        this.port.postMessage(base64);
         this._bufferIndex = 0;
       }
     }
 
     return true; // Keep processor alive
+  }
+
+  /** Efficient base64 encoder for Worklets */
+  toBase64(bytes) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    let base64 = '';
+    for (let i = 0; i < bytes.length; i += 3) {
+      const v1 = bytes[i];
+      const v2 = bytes[i + 1];
+      const v3 = bytes[i + 2];
+      base64 += chars.charAt(v1 >> 2);
+      base64 += chars.charAt(((v1 & 3) << 4) | (v2 >> 4));
+      if (v2 !== undefined) {
+        base64 += chars.charAt(((v2 & 15) << 2) | (v3 >> 6));
+        if (v3 !== undefined) {
+          base64 += chars.charAt(v3 & 63);
+        } else {
+          base64 += '=';
+        }
+      } else {
+        base64 += '==';
+      }
+    }
+    return base64;
   }
 }
 

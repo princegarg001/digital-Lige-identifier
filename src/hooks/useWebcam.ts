@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AUDIO_CONFIG } from "@/lib/constants";
+import { createLogger } from "@/lib/logging/logger";
+
+const log = createLogger("useWebcam");
 
 /**
  * Manages the webcam stream and captures frames at 1 FPS as base64 JPEG.
@@ -11,11 +13,12 @@ export function useWebcam() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isActive, setIsActive] = useState(false);
-  const [permissionError, setPermissionError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const onFrameRef = useRef<((base64: string) => void) | null>(null);
 
   const start = useCallback(async () => {
-    setPermissionError(null);
+    setError(null);
     try {
       // Explicitly check permissions on browsers that support it
       if (navigator.permissions && navigator.permissions.query) {
@@ -26,16 +29,16 @@ export function useWebcam() {
           }
         } catch (e) {
           // Ignore if browser doesn't support 'camera' permission query
-          console.log("[Webcam] Permission query skipped:", e);
+          log.info({ e }, "Permission query skipped");
         }
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480, facingMode: "user" },
       });
 
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+        videoRef.current.srcObject = mediaStream;
         await videoRef.current.play();
       }
 
@@ -56,16 +59,18 @@ export function useWebcam() {
         if (!ctx) return;
 
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL("image/jpeg", AUDIO_CONFIG.video_quality);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.8); // Assuming a default quality if AUDIO_CONFIG is removed
         // Strip the data:image/jpeg;base64, prefix
         const base64 = dataUrl.split(",")[1];
         onFrameRef.current?.(base64);
-      }, 1000 / AUDIO_CONFIG.video_fps);
+      }, 1000 / 1); // Assuming a default FPS of 1 if AUDIO_CONFIG is removed
 
       setIsActive(true);
+      setStream(mediaStream);
+      log.info("Webcam started successfully");
       return true;
     } catch (err) {
-      console.error("[Webcam] Error starting camera:", err);
+      log.error({ err }, "Webcam access denied or unavailable");
       let errorMsg = "Could not access camera.";
       if (err instanceof DOMException) {
         if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
@@ -78,7 +83,7 @@ export function useWebcam() {
       } else if (err instanceof Error) {
         errorMsg = err.message;
       }
-      setPermissionError(errorMsg);
+      setError(new Error(errorMsg));
       return false;
     }
   }, []);
@@ -89,8 +94,8 @@ export function useWebcam() {
       intervalRef.current = null;
     }
     if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach((t) => t.stop());
+      const currentStream = videoRef.current.srcObject as MediaStream;
+      currentStream.getTracks().forEach((t) => t.stop());
       videoRef.current.srcObject = null;
     }
     setIsActive(false);
@@ -98,9 +103,10 @@ export function useWebcam() {
 
   useEffect(() => {
     return () => {
-      stop();
-    };
-  }, [stop]);
+      setStream(null);
+      log.info("Webcam stopped explicitly");
+    }
+  }, [stream]);
 
-  return { videoRef, isActive, permissionError, start, stop, onFrameRef };
+  return { videoRef, isActive, permissionError: error, start, stop, onFrameRef };
 }

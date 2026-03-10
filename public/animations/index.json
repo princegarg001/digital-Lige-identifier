@@ -601,7 +601,7 @@
   },
   "idle": {
     "name": "idle",
-    "url": "/animations/idle.glb",
+    "url": "/animations/male-idle.glb",
     "type": "idle"
   },
   "male-idle": {

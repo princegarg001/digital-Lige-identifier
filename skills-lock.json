@@ -21,6 +21,16 @@
       "sourceType": "github",
       "computedHash": "ccf048790f240a55a29bf7513d946d2591f87ae399de5e0291ea58211ed9b30d"
     },
+    "logging-best-practices": {
+      "source": "aj-geddes/useful-ai-prompts",
+      "sourceType": "github",
+      "computedHash": "e7fd822c9e40d192715e3e82e3dd3cb9152a554f1bf323bc9aedffa3801d5ba4"
+    },
+    "pino-logging-setup": {
+      "source": "andrelandgraf/fullstackrecipes",
+      "sourceType": "github",
+      "computedHash": "fabc496867eba7c001049d024fa9276e96a2aa3a34d010046e6b80d955696118"
+    },
     "r3f-animation": {
       "source": "enzed/r3f-skills",
       "sourceType": "github",

@@ -7,6 +7,9 @@ import {
   GEMINI_TOOLS,
   SYSTEM_PROMPT,
 } from "@/lib/constants";
+import { createLogger } from "@/lib/logging/logger";
+
+const log = createLogger("useGeminiLive");
 
 /** Maximum time (ms) to wait for a tool handler before returning a timeout error. */
 const TOOL_HANDLER_TIMEOUT_MS = 10_000;
@@ -145,7 +148,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
         httpOptions: { apiVersion: "v1alpha" }
       });
     } catch (err) {
-      console.error("[GeminiLive] Token error:", err);
+      log.error({ err }, "Authentication failed during token fetch");
       setErrorMessage(
         `Authentication failed: ${
           err instanceof Error ? err.message : String(err)
@@ -164,7 +167,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
       try {
         // Setup complete acknowledgement
         if (message.setupComplete) {
-          console.log("[GeminiLive] Setup complete.");
+          log.info("Setup complete.");
           return;
         }
 
@@ -173,13 +176,13 @@ export function useGeminiLive(): UseGeminiLiveReturn {
         const resumption = (message as any).sessionResumptionUpdate;
         if (resumption?.handle) {
           sessionHandleRef.current = resumption.handle as string;
-          console.log("[GeminiLive] Session resumption handle updated.");
+          log.info({ handle: resumption.handle }, "Session resumption handle updated.");
         }
 
         // Tool call cancellation (interruption cancelled pending tool calls)
         if (message.toolCallCancellation) {
           const cancelledIds = message.toolCallCancellation.ids ?? [];
-          console.log("[GeminiLive] Tool calls cancelled:", cancelledIds);
+          log.info({ cancelledIds }, "Tool calls cancelled.");
           onToolCallCancellation.current?.(cancelledIds);
           return;
         }
@@ -188,20 +191,21 @@ export function useGeminiLive(): UseGeminiLiveReturn {
         if (message.serverContent) {
           // Interruption — stop and empty playback queue
           if (message.serverContent.interrupted) {
-            console.log("[GeminiLive] Interrupted by user speech — stopping playback.");
+            log.info("Interrupted by user speech — stopping playback.");
             onInterrupted.current?.();
             return;
           }
 
           // Turn complete
           if (message.serverContent.turnComplete) {
-            console.log("[GeminiLive] Turn complete.");
+            log.info("Turn complete.");
           }
 
           // Transcription events (input or output)
+          // We prioritize part.text for streaming, so we ignore outputTranscription 
+          // to avoid "dual responses" in the chat UI.
           if (message.serverContent.outputTranscription?.text) {
-            console.log(`[GeminiLive] Official Transcript: "${message.serverContent.outputTranscription.text}"`);
-            onTranscript.current?.(message.serverContent.outputTranscription.text);
+            log.debug({ transcript: message.serverContent.outputTranscription.text }, "Official Transcript (ignored for UI).");
           }
 
           const parts = message.serverContent.modelTurn?.parts;
@@ -209,11 +213,11 @@ export function useGeminiLive(): UseGeminiLiveReturn {
             for (const part of parts) {
               if (part.inlineData?.mimeType?.startsWith("audio/")) {
                 const audioData = part.inlineData.data as string;
-                console.debug(`[GeminiLive] Audio chunk received: ${audioData.length} bytes`);
+                log.debug({ audioDataLength: audioData.length }, "Audio chunk received.");
                 onAudioData.current?.(audioData);
               }
               if (part.text) {
-                console.log(`[GeminiLive] Part Transcript: "${part.text}"`);
+                log.debug({ transcript: part.text }, "Part Transcript.");
                 onTranscript.current?.(part.text);
               }
             }
@@ -230,7 +234,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
             const callArgs = (call.args ?? {}) as Record<string, unknown>;
             const callId = call.id ?? "";
 
-            console.log("[GeminiLive] Tool call:", callName, callArgs);
+            log.info({ callName, callArgs, callId }, "Tool call received.");
 
             // Notify application (e.g. to trigger avatar animation)
             onToolCall.current?.({ name: callName, args: callArgs, id: callId });
@@ -256,9 +260,9 @@ export function useGeminiLive(): UseGeminiLiveReturn {
                     timeoutPromise,
                   ]);
                 } catch (handlerErr) {
-                  console.error(
-                    `[GeminiLive] Handler for "${callName}" threw:`,
-                    handlerErr
+                  log.error(
+                    { err: handlerErr, toolName: callName },
+                    "Handler for tool threw an error."
                   );
                   result = {
                     error: `Handler failed: ${
@@ -270,10 +274,9 @@ export function useGeminiLive(): UseGeminiLiveReturn {
                 }
               } else {
                 // Backward-compatible fallback — warn so developers know to register
-                console.warn(
-                  `[GeminiLive] No handler registered for tool "${callName}". ` +
-                    `Register one via registerTool("${callName}", handler). ` +
-                    `Returning { result: "ok" } as fallback.`
+                log.warn(
+                  { toolName: callName },
+                  "No handler registered for tool. Returning { result: 'ok' } as fallback."
                 );
                 result = { result: "ok" };
               }
@@ -294,7 +297,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
           }
         }
       } catch (err) {
-        console.warn("[GeminiLive] Failed to handle message:", err);
+        log.warn({ err }, "Failed to handle incoming message.");
       }
     };
 
@@ -337,13 +340,13 @@ export function useGeminiLive(): UseGeminiLiveReturn {
         },
         callbacks: {
           onopen: () => {
-            console.log("[GeminiLive] Connected via SDK.");
+            log.info("Gemini Live connection opened.");
             statusRef.current = "connected";
             setStatus("connected");
           },
           onmessage: handleMessage,
           onerror: (e: ErrorEvent) => {
-            console.error("[GeminiLive] SDK error:", e.message);
+            log.error({ err: e }, "SDK connection error.");
             setErrorMessage(
               `Connection error: ${e.message || "Check API Key and network."}`
             );
@@ -351,7 +354,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
             setStatus("error");
           },
           onclose: (e: CloseEvent) => {
-            console.log("[GeminiLive] Session closed:", e.code, e.reason);
+            log.info({ code: e.code, reason: e.reason }, "Session closed.");
             if (statusRef.current !== "disconnected") {
               statusRef.current = "disconnected";
               setStatus("disconnected");
@@ -361,9 +364,9 @@ export function useGeminiLive(): UseGeminiLiveReturn {
       });
 
       sessionRef.current = session;
-      console.log("[GeminiLive] Session established.");
+      log.info("GeminiLive Session established.");
     } catch (err) {
-      console.error("[GeminiLive] Failed to connect:", err);
+      log.error({ err }, "GeminiLive Failed to connect");
       setErrorMessage(
         `Failed to connect: ${err instanceof Error ? err.message : String(err)}`
       );
@@ -384,8 +387,9 @@ export function useGeminiLive(): UseGeminiLiveReturn {
           mimeType: "image/jpeg",
         },
       });
+      log.trace("GeminiLive sent video frame");
     } catch (e) {
-      console.warn("[GeminiLive] Failed to send video frame:", e);
+      log.warn({ err: e }, "Failed to send video frame");
     }
   }, []);
 
@@ -399,8 +403,9 @@ export function useGeminiLive(): UseGeminiLiveReturn {
           mimeType: "audio/pcm;rate=16000",
         },
       });
+      log.trace({ bytes: base64Audio.length }, "GeminiLive sent audio chunk");
     } catch (e) {
-      console.warn("[GeminiLive] Failed to send audio chunk:", e);
+      log.warn({ err: e }, "Failed to send audio chunk");
     }
   }, []);
 
@@ -412,8 +417,9 @@ export function useGeminiLive(): UseGeminiLiveReturn {
         turns: [{ role: "user", parts: [{ text }] }],
         turnComplete: true,
       });
+      log.info({ textLength: text.length }, "GeminiLive sent text payload");
     } catch (e) {
-      console.warn("[GeminiLive] Failed to send text:", e);
+      log.warn({ err: e }, "Failed to send text payload");
     }
   }, []);
 
