@@ -107,18 +107,21 @@ function LiquidButton({
       <Comp
         data-slot="button"
         className={cn(
-          "relative overflow-hidden group/liquid",
+          "relative overflow-hidden group/liquid transition-all duration-300",
           liquidbuttonVariants({ variant, size, className })
         )}
         {...props}
       >
-        <div className="absolute top-0 left-0 z-0 h-full w-full rounded-[inherit] shadow-[0_0_6px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3px_rgba(0,0,0,0.9),inset_-3px_-3px_0.5px_-3px_rgba(0,0,0,0.85),inset_1px_1px_1px_-0.5px_rgba(0,0,0,0.6),inset_-1px_-1px_1px_-0.5px_rgba(0,0,0,0.6),inset_0_0_6px_6px_rgba(0,0,0,0.12),inset_0_0_2px_2px_rgba(0,0,0,0.06),0_0_12px_rgba(255,255,255,0.15)] transition-all duration-300 dark:shadow-[0_0_8px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.08),inset_3px_3px_0.5px_-3.5px_rgba(255,255,255,0.09),inset_-3px_-3px_0.5px_-3.5px_rgba(255,255,255,0.85),inset_1px_1px_1px_-0.5px_rgba(255,255,255,0.6),inset_-1px_-1px_1px_-0.5px_rgba(255,255,255,0.6),inset_0_0_6px_6px_rgba(255,255,255,0.12),inset_0_0_2px_2px_rgba(255,255,255,0.06),0_0_12px_rgba(0,0,0,0.15)]" />
+        {/* Simplified Soft Shadow Layer */}
+        <div className="absolute inset-0 z-0 rounded-[inherit] shadow-[0_4px_12px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.1)] transition-all duration-300 dark:shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.05)]" />
+        
+        {/* Backdrop Blur Layer */}
         <div
-          className="absolute top-0 left-0 isolate -z-10 h-full w-full overflow-hidden rounded-[inherit]"
+          className="absolute inset-0 isolate -z-10 overflow-hidden rounded-[inherit] backdrop-blur-md"
           style={{ backdropFilter: 'url("#container-glass")' }}
         />
 
-        <div className="pointer-events-none z-10 ">
+        <div className="relative z-10 pointer-events-none flex items-center justify-center">
           {children}
         </div>
         <GlassFilter />
@@ -134,39 +137,32 @@ function GlassFilter() {
       <defs>
         <filter
           id="container-glass"
-          x="0%"
-          y="0%"
-          width="100%"
-          height="100%"
+          x="-20%"
+          y="-20%"
+          width="140%"
+          height="140%"
           colorInterpolationFilters="sRGB"
         >
-          {/* Generate turbulent noise for distortion */}
           <feTurbulence
             type="fractalNoise"
-            baseFrequency="0.05 0.05"
-            numOctaves="1"
+            baseFrequency="0.03 0.03"
+            numOctaves="2"
             seed="1"
             result="turbulence"
           />
 
-          {/* Blur the turbulence pattern slightly */}
-          <feGaussianBlur in="turbulence" stdDeviation="2" result="blurredNoise" />
+          <feGaussianBlur in="turbulence" stdDeviation="1" result="blurredNoise" />
 
-          {/* Displace the source graphic with the noise */}
           <feDisplacementMap
             in="SourceGraphic"
             in2="blurredNoise"
-            scale="70"
+            scale="15"
             xChannelSelector="R"
             yChannelSelector="B"
             result="displaced"
           />
 
-          {/* Apply overall blur on the final result */}
-          <feGaussianBlur in="displaced" stdDeviation="4" result="finalBlur" />
-
-          {/* Output the result */}
-          <feComposite in="finalBlur" in2="finalBlur" operator="over" />
+          <feComposite in="displaced" in2="SourceGraphic" operator="in" />
         </filter>
       </defs>
     </svg>

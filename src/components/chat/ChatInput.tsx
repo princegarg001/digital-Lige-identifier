@@ -30,8 +30,16 @@ export function ChatInput({
   };
 
   return (
-    <div className={cn("flex items-center gap-3", className)}>
-      <div className="flex-1 flex items-center gap-2 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-full px-4 py-2.5 focus-within:border-cyan-500/40 focus-within:ring-1 focus-within:ring-cyan-500/20 focus-within:shadow-[0_0_15px_rgba(34,211,238,0.1)] transition-all duration-300">
+    <div className={cn("flex items-center gap-2", className)}>
+      <div className="flex-1 flex items-center bg-white/5 backdrop-blur-2xl border border-white/10 rounded-full px-3 py-2 focus-within:border-cyan-500/40 focus-within:ring-1 focus-within:ring-cyan-500/20 transition-all duration-300">
+        <button
+          type="button"
+          className="p-2 text-muted-foreground hover:text-white hover:bg-white/10 rounded-full transition-colors shrink-0 disabled:opacity-50"
+          disabled={disabled}
+          title="Attach file"
+        >
+          <Paperclip className="w-4 h-4" />
+        </button>
         <input
           ref={inputRef}
           type="text"
@@ -40,21 +48,15 @@ export function ChatInput({
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
           placeholder={placeholder}
           disabled={disabled}
-          className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none disabled:opacity-50 ml-2"
+          className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none disabled:opacity-50 px-2 min-w-0"
         />
-        <LiquidButton
-          className="w-8 h-8 text-muted-foreground hover:text-white hover:bg-white/10 shrink-0 rounded-full transition-colors flex items-center justify-center border border-transparent p-0"
-          disabled={disabled}
-        >
-          <Paperclip className="w-4 h-4" />
-        </LiquidButton>
       </div>
       <LiquidButton
         onClick={handleSend}
         disabled={disabled || !value.trim()}
-        className="size-11 rounded-full bg-linear-to-r from-cyan-500 to-emerald-500 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:scale-105 border-0 text-white shrink-0 transition-all duration-500 active:scale-95 flex items-center justify-center p-0"
+        className="size-10 rounded-full bg-linear-to-r from-cyan-500 to-emerald-500 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)] border-0 text-white shrink-0 flex items-center justify-center p-0"
       >
-        <Send className="w-5 h-5 ml-1" />
+        <Send className="w-4 h-4" />
       </LiquidButton>
     </div>
   );

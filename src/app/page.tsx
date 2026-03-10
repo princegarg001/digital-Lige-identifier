@@ -230,7 +230,6 @@ function HomePage() {
   }
 
   return (
-    <SceneConfigProvider>
     <VideoCallLayout
       isChatOpen={isChatOpen}
       chatPanel={
@@ -308,7 +307,6 @@ function HomePage() {
         </div>
       </div>
     </VideoCallLayout>
-    </SceneConfigProvider>
   );
 }
 
@@ -317,7 +315,9 @@ function HomePage() {
 export default function Home() {
   return (
     <ErrorBoundary>
-      <HomePage />
+      <SceneConfigProvider>
+        <HomePage />
+      </SceneConfigProvider>
     </ErrorBoundary>
   );
 }

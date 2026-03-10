@@ -54,30 +54,22 @@ export function CallControls({
         <IconButton
           icon={isMicActive ? Mic : MicOff}
           label={isMicActive ? "Mute microphone" : "Unmute microphone"}
-          active={isMicActive}
-          variant="ghost"
+          active={!isMicActive}
+          variant={isMicActive ? "ghost" : "danger"}
           size="sm"
           onClick={onToggleMic}
-          className={cn(
-            "rounded-full transition-all duration-300", 
-            !isMicActive && "bg-destructive/20 text-destructive hover:bg-destructive/30",
-            isMicActive && "hover:bg-emerald-500/10 text-emerald-100"
-          )}
+          className="rounded-full"
         />
 
         {/* Camera */}
         <IconButton
           icon={isCameraActive ? Video : VideoOff}
           label={isCameraActive ? "Turn off camera" : "Turn on camera"}
-          active={isCameraActive}
-          variant="ghost"
+          active={!isCameraActive}
+          variant={isCameraActive ? "ghost" : "danger"}
           size="sm"
           onClick={onToggleCamera}
-          className={cn(
-            "rounded-full transition-all duration-300", 
-            !isCameraActive && "bg-destructive/20 text-destructive hover:bg-destructive/30",
-            isCameraActive && "hover:bg-emerald-500/10 text-emerald-100"
-          )}
+          className="rounded-full"
         />
 
         {/* Connect / Disconnect */}

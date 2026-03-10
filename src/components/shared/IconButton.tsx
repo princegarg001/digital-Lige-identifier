@@ -24,27 +24,27 @@ interface IconButtonProps {
 const variantStyles = {
   ghost: {
     active:
-      "bg-white/10 hover:bg-white/15 text-white border border-white/10 shadow-lg",
+      "bg-white/10 hover:bg-white/15 text-white border border-white/20 shadow-lg",
     inactive:
       "bg-white/5 hover:bg-white/10 text-muted-foreground border border-white/5",
   },
   danger: {
     active:
-      "bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.2)]",
+      "bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.1)]",
     inactive:
-      "bg-red-500/10 hover:bg-red-500/20 text-red-400/60 border border-red-500/10",
+      "bg-red-500/5 hover:bg-red-500/10 text-red-400/50 border border-red-500/5",
   },
   success: {
     active:
-      "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/20 shadow-[0_0_20px_rgba(52,211,153,0.15)]",
+      "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 shadow-[0_0_20px_rgba(52,211,153,0.1)]",
     inactive:
-      "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400/60 border border-emerald-500/10",
+      "bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-400/50 border border-emerald-500/5",
   },
   primary: {
     active:
-      "bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/20 shadow-[0_0_20px_rgba(34,211,238,0.15)]",
+      "bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 shadow-[0_0_20px_rgba(34,211,238,0.1)]",
     inactive:
-      "bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400/60 border border-cyan-500/10",
+      "bg-cyan-500/5 hover:bg-cyan-500/10 text-cyan-400/50 border border-cyan-500/5",
   },
 };
 
