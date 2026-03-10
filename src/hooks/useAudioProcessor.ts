@@ -77,6 +77,11 @@ export function useAudioProcessor() {
 
           const ctx = new AudioContext({ sampleRate: AUDIO_CONFIG.input_hz });
           audioCtxRef.current = ctx;
+          
+          if (ctx.state === "suspended") {
+            await ctx.resume();
+            console.log("[AudioProcessor] Input AudioContext resumed.");
+          }
 
           const source = ctx.createMediaStreamSource(stream);
 
@@ -207,21 +212,13 @@ export function useAudioProcessor() {
       // Patch private properties to safely integrate without relying on HTMLAudioElement
       // @ts-expect-error - patching private context to match AudioStreamer
       wawa.audioContext = streamer.context;
-      // @ts-expect-error - overriding analyser with AudioStreamer context
-      wawa.analyser = streamer.context.createAnalyser();
-      // @ts-expect-error - override fftSize
-      wawa.analyser.fftSize = 2048;
-      // @ts-expect-error - reallocate dataArray for new analyser
-      wawa.dataArray = new Uint8Array(wawa.analyser.frequencyBinCount);
+      // @ts-expect-error - use the streamer's own analyser that's already in the audio chain
+      wawa.analyser = streamer.analyserNode;
       // @ts-expect-error - override sampleRate for wawa
       wawa.sampleRate = streamer.context.sampleRate;
       // @ts-expect-error - recompute binWidth
       wawa.binWidth = wawa.sampleRate / 2048;
 
-      // Ensure every new buffer source node directly feeds into the LipSync analyser
-      // @ts-expect-error - accessing private analyser
-      streamer.analyserNode = wawa.analyser;
-      
       useLipSyncStore.getState().setWawaLipsync(wawa);
     }
     return audioStreamerRef.current;
@@ -323,6 +320,7 @@ export function useAudioProcessor() {
     stopMic,
     playAudioChunk,
     stopPlayback,
+    ensureStreamer: getStreamer,
     onAudioScheduledRef,
   };
 }

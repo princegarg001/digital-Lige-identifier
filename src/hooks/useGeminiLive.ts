@@ -200,6 +200,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
 
           // Transcription events (input or output)
           if (message.serverContent.outputTranscription?.text) {
+            console.log(`[GeminiLive] Official Transcript: "${message.serverContent.outputTranscription.text}"`);
             onTranscript.current?.(message.serverContent.outputTranscription.text);
           }
 
@@ -207,9 +208,12 @@ export function useGeminiLive(): UseGeminiLiveReturn {
           if (parts) {
             for (const part of parts) {
               if (part.inlineData?.mimeType?.startsWith("audio/")) {
-                onAudioData.current?.(part.inlineData.data as string);
+                const audioData = part.inlineData.data as string;
+                console.debug(`[GeminiLive] Audio chunk received: ${audioData.length} bytes`);
+                onAudioData.current?.(audioData);
               }
               if (part.text) {
+                console.log(`[GeminiLive] Part Transcript: "${part.text}"`);
                 onTranscript.current?.(part.text);
               }
             }
@@ -295,8 +299,8 @@ export function useGeminiLive(): UseGeminiLiveReturn {
     };
 
     // ── Connect using the official SDK ────────────────────────────────────
-    ai.live
-      .connect({
+    try {
+      const session = await ai.live.connect({
         model: GEMINI_MODEL,
         config: {
           responseModalities: [Modality.AUDIO],
@@ -316,8 +320,8 @@ export function useGeminiLive(): UseGeminiLiveReturn {
               // Use defaults: server-side VAD with HIGH sensitivity
             },
           },
-  // We no longer trigger text visemes here since LipSync relies entirely on flawless streaming hardware audio
-        // The Lipsync engine now listens to the live volume frequency of the `AudioStreamer`
+          // We no longer trigger text visemes here since LipSync relies entirely on flawless streaming hardware audio
+          // The Lipsync engine now listens to the live volume frequency of the `AudioStreamer`
           // Context window compression — prevents long sessions from crashing.
           // Native audio generates ~25 tokens/sec; without this a 10-minute
           // session hits the context limit and the server terminates the session.
@@ -354,19 +358,18 @@ export function useGeminiLive(): UseGeminiLiveReturn {
             }
           },
         },
-      })
-      .then((session) => {
-        sessionRef.current = session;
-        console.log("[GeminiLive] Session established.");
-      })
-      .catch((err) => {
-        console.error("[GeminiLive] Failed to connect:", err);
-        setErrorMessage(
-          `Failed to connect: ${err instanceof Error ? err.message : String(err)}`
-        );
-        statusRef.current = "error";
-        setStatus("error");
       });
+
+      sessionRef.current = session;
+      console.log("[GeminiLive] Session established.");
+    } catch (err) {
+      console.error("[GeminiLive] Failed to connect:", err);
+      setErrorMessage(
+        `Failed to connect: ${err instanceof Error ? err.message : String(err)}`
+      );
+      statusRef.current = "error";
+      setStatus("error");
+    }
   }, [disconnect]);
 
   // ── Send helpers ──────────────────────────────────────────────────────────

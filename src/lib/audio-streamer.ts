@@ -40,8 +40,11 @@ export class AudioStreamer {
   constructor(public context: AudioContext, sampleRate: number = 24000) {
     this.sampleRate = sampleRate;
     this.gainNode = this.context.createGain();
+    this.analyserNode = this.context.createAnalyser();
+    this.analyserNode.fftSize = 2048;
     this.source = this.context.createBufferSource();
-    this.gainNode.connect(this.context.destination);
+    this.gainNode.connect(this.analyserNode);
+    this.analyserNode.connect(this.context.destination);
     this.addPCM16 = this.addPCM16.bind(this);
   }
 
@@ -120,6 +123,7 @@ export class AudioStreamer {
       this.gainNode.disconnect();
       this.gainNode = this.context.createGain();
       this.gainNode.connect(this.analyserNode);
+      this.analyserNode.connect(this.context.destination);
     }, 200);
   }
 

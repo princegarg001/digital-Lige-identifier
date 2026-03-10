@@ -82,7 +82,16 @@ export function useSessionManager() {
   const startSession = useCallback(async () => {
     try {
       setIsInitialized(true);
-      gemini.connect();
+      
+      // Proactively initialize and resume the playback AudioContext during 
+      // the user gesture to satisfy browser autoplay policies.
+      const streamer = audio.ensureStreamer();
+      if (streamer.context.state === "suspended") {
+        await streamer.context.resume();
+        console.log("[SessionManager] Playback AudioContext resumed via user gesture.");
+      }
+
+      await gemini.connect();
       audio.startMic((chunk) => {
         gemini.sendAudioChunk(chunk);
       });

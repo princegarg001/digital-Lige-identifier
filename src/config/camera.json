@@ -8,14 +8,14 @@
     "fov": 45,
     "target": [
       0,
-      0.45,
+      0.44,
       0
     ],
     "controlsMinDistance": 0.5,
     "controlsMaxDistance": 3.2,
-    "minPolarAngle": 1.55,
+    "minPolarAngle": 1.5,
     "maxPolarAngle": 1.4,
-    "zoomTargetShift": 0.7
+    "zoomTargetShift": 0
   },
   "avatar": {
     "position": [
@@ -30,7 +30,7 @@
     ],
     "scale": 0.7,
     "model": "male",
-    "idleAnimation": "masculine_idle_m_standing_idle_variations_007"
+    "idleAnimation": "feminine_idle_f_standing_idle_001"
   },
   "lighting": {
     "keyLight": {
