@@ -8,6 +8,7 @@ import {
   SYSTEM_PROMPT,
 } from "@/lib/constants";
 import { createLogger } from "@/lib/logging/logger";
+import { useSceneConfig } from "@/hooks/SceneConfigContext";
 
 const log = createLogger("useGeminiLive");
 
@@ -87,6 +88,7 @@ export interface UseGeminiLiveReturn {
  * @see https://ai.google.dev/gemini-api/docs/function-calling
  */
 export function useGeminiLive(): UseGeminiLiveReturn {
+  const { config } = useSceneConfig();
   const sessionRef = useRef<Session | null>(null);
   const [status, setStatus] = useState<GeminiStatus>("disconnected");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -315,8 +317,17 @@ export function useGeminiLive(): UseGeminiLiveReturn {
             },
           },
           systemInstruction: SYSTEM_PROMPT,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          tools: GEMINI_TOOLS as any,
+          tools: config.features.googleSearch 
+             ? GEMINI_TOOLS 
+             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+             : GEMINI_TOOLS.filter((t: any) => !t.googleSearch),
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048,
+          },
+          proactivity: {
+            proactiveAudio: config.features.proactiveAudio,
+          },
           // VAD configuration — uses server-side automatic activity detection
           realtimeInputConfig: {
             automaticActivityDetection: {
@@ -328,13 +339,11 @@ export function useGeminiLive(): UseGeminiLiveReturn {
           // Context window compression — prevents long sessions from crashing.
           // Native audio generates ~25 tokens/sec; without this a 10-minute
           // session hits the context limit and the server terminates the session.
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          contextWindowCompression: { slidingWindow: {} } as any,
+          contextWindowCompression: { slidingWindow: {} },
           // Session resumption — reconnect with prior context if a handle exists
           ...(sessionHandleRef.current
             ? {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                sessionResumption: { handle: sessionHandleRef.current } as any,
+                sessionResumption: { handle: sessionHandleRef.current },
               }
             : {}),
         },
@@ -373,7 +382,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
       statusRef.current = "error";
       setStatus("error");
     }
-  }, [disconnect]);
+  }, [disconnect, config.features.googleSearch, config.features.proactiveAudio]);
 
   // ── Send helpers ──────────────────────────────────────────────────────────
 

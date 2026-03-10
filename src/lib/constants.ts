@@ -4,7 +4,7 @@
  * Model: Gemini-2.5-Flash-Native-Audio-Preview-12-2025
  */
 
-import { Type } from "@google/genai";
+import { Type, type Tool } from "@google/genai";
 
 // ─── SECTION 1: SYSTEM LOGIC & COGNITIVE BEHAVIOR ───
 export const SYSTEM_PROMPT = `
@@ -28,7 +28,7 @@ Professional yet warm; technologically aware but deeply human-centric. Avoid rob
 `;
 
 // ─── SECTION 2: TOOL DEFINITIONS (FUNCTION CALLING) ───
-export const GEMINI_TOOLS = [
+export const GEMINI_TOOLS: Tool[] = [
   {
     functionDeclarations: [
       {
@@ -103,6 +103,7 @@ export const GEMINI_TOOLS = [
       },
     ],
   },
+  { googleSearch: {} },
 ];
 
 // ─── SECTION 3: HARDWARE & PIPELINE CONSTANTS ───

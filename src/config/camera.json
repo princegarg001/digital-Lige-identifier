@@ -67,6 +67,8 @@
     "gazeDrift": false,
     "blinking": true,
     "hoverEffect": false,
-    "headMovement": false
+    "headMovement": false,
+    "googleSearch": true,
+    "proactiveAudio": true
   }
 }

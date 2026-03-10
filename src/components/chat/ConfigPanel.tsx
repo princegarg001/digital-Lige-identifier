@@ -445,6 +445,8 @@ export function ConfigPanel() {
             blinking: "Replaced by Randomized Idle Expressions.",
             hoverEffect: "Float the avatar slightly on the Y axis.",
             headMovement: "Neck and eyes follow the mouse cursor.",
+            googleSearch: "Enable native Google Search grounding via the Live API.",
+            proactiveAudio: "Allow spontaneous AI responses based on vision (Proactivity).",
           };
           return (
             <ToggleSwitch

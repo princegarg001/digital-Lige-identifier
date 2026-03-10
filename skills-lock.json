@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "crafting-effective-readmes": {
+      "source": "softaworks/agent-toolkit",
+      "sourceType": "github",
+      "computedHash": "cb11facecbb4a15f7ca6cfac2e740ac66798676c246c057879a71babb27c9a4f"
+    },
     "fuzzy-matching": {
       "source": "dadbodgeoff/drift",
       "sourceType": "github",
@@ -55,6 +60,11 @@
       "source": "enzed/r3f-skills",
       "sourceType": "github",
       "computedHash": "0c3021872a32f7ce3a87d0ab1a260380de0b21b0d13a2ac64108ff1db13aaa5f"
+    },
+    "readme-blueprint-generator": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "e2c7dabf2e455794260f1516e2ceda6a82dc92a409578cc184fcb0f45bddca54"
     }
   }
 }

@@ -45,6 +45,8 @@ export interface FeatureToggles {
   blinking: boolean;
   hoverEffect: boolean;
   headMovement: boolean;
+  googleSearch: boolean;
+  proactiveAudio: boolean;
 }
 
 interface SceneConfigContextValue {
@@ -64,6 +66,8 @@ const DEFAULT_FEATURES: FeatureToggles = {
   blinking: true,
   hoverEffect: true,
   headMovement: true,
+  googleSearch: true,
+  proactiveAudio: true,
 };
 
 const SceneConfigCtx = createContext<SceneConfigContextValue | null>(null);

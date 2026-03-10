@@ -56,13 +56,13 @@ describe('Digital Persona System Health', () => {
       expect(GEMINI_TOOLS).toHaveLength(1);
       expect(GEMINI_TOOLS[0].functionDeclarations).toBeDefined();
       
-      const triggerAnim = GEMINI_TOOLS[0].functionDeclarations.find(
+      const triggerAnim = GEMINI_TOOLS[0].functionDeclarations?.find(
         (f) => f.name === 'trigger_animation'
       );
       
       expect(triggerAnim).toBeDefined();
-      expect(triggerAnim?.parameters.properties.gesture_sequence).toBeDefined();
-      expect(triggerAnim?.parameters.properties.gesture_sequence?.description).toContain('list of rich');
+      expect(triggerAnim?.parameters?.properties?.gesture_sequence).toBeDefined();
+      expect(triggerAnim?.parameters?.properties?.gesture_sequence?.description).toContain('list of rich');
     });
 
     it('should use correct Gemini model (SDK format)', async () => {

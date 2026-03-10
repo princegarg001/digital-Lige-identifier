@@ -72,6 +72,8 @@ const DEFAULT_FEATURES: FeatureToggles = {
   blinking: true,
   hoverEffect: true,
   headMovement: true,
+  googleSearch: true,
+  proactiveAudio: true,
 };
 
 /**
