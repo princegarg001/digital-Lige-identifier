@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useState, memo } from "react";
+import { useCallback, useEffect, useState, memo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
@@ -36,9 +36,12 @@ import { SkinPreset, SKIN_PRESETS } from "@/lib/skinConfig";
 
 // Emotion
 import { useEmotionStore } from "@/store/useEmotionStore";
+import { createLogger } from "@/lib/logging/logger";
 
 // Scene Config
 import { SceneConfigProvider } from "@/hooks/SceneConfigContext";
+
+const log = createLogger("app/page");
 
 
 // 3D Scene (lazy, no SSR)
@@ -113,9 +116,15 @@ function HomePage() {
   const [selectedSkin, setSelectedSkin] = useState<SkinPreset>(SKIN_PRESETS[0]);
   // Debug mode — enables OrbitControls + live camera panel
   const [debugMode, setDebugMode] = useState(false);
+  const expressionResetTimeoutRef = useRef<number | null>(null);
 
   // Session management
-  const { onTranscript: onTranscriptRef, registerTool, ...session } = useSessionManager();
+  const {
+    onTranscript: onTranscriptRef,
+    onToolCall: onToolCallRef,
+    registerTool,
+    ...session
+  } = useSessionManager();
   const timer = useSessionTimer(session.isConnected);
   const chat = useChatMessages();
 
@@ -125,34 +134,58 @@ function HomePage() {
   // These run ONCE on mount so they are available before the first connect().
 
   useEffect(() => {
-    // trigger_animation — play a sequence of gestures on the 3D avatar
+    log.info("Registering page-level tool handlers.");
+
+    // trigger_animation - play a sequence of gestures on the 3D avatar
     registerTool("trigger_animation", (args) => {
       const gestures = (args.gesture_sequence as string[]) || [];
       const durationPerGesture = args.duration_per_gesture_ms as number | undefined;
       const timeScale = args.time_scale as number | undefined;
+      log.info(
+        {
+          requestedGestures: gestures,
+          durationPerGesture,
+          timeScale,
+        },
+        "Tool override: trigger_animation",
+      );
 
       if (gestures.length > 0) {
         const state = useAnimationStore.getState();
-        
-        // Resolve all gestures using the advanced Semantic Matcher
-        const resolvedSequence = gestures.map(g => findBestAnimationMatch(g, state.registry));
-        
-        // Dispatch to the chronological queue
-        state.playSequence(resolvedSequence.map(name => ({
-           name,
-           durationMs: durationPerGesture,
-           timeScale: timeScale
-        })));
+
+        // Resolve all gestures using the advanced semantic matcher.
+        const resolvedSequence = gestures.map((g) => findBestAnimationMatch(g, state.registry));
+        log.debug(
+          {
+            requested: gestures,
+            resolved: resolvedSequence,
+          },
+          "Resolved animation gestures.",
+        );
+
+        // Dispatch to the chronological queue.
+        state.playSequence(
+          resolvedSequence.map((name) => ({
+            name,
+            durationMs: durationPerGesture,
+            timeScale,
+          })),
+        );
       }
 
-      return { acknowledged: true, gesture_sequence: gestures, duration_per_gesture_ms: durationPerGesture, time_scale: timeScale };
+      return {
+        acknowledged: true,
+        gesture_sequence: gestures,
+        duration_per_gesture_ms: durationPerGesture,
+        time_scale: timeScale,
+      };
     });
 
-    // set_persona_mode — switch interaction style
+    // set_persona_mode - switch interaction style
     registerTool("set_persona_mode", (args) => {
       const mode = args.mode as "focus" | "casual" | "presentation";
+      log.info({ mode }, "Tool override: set_persona_mode");
       setPersonaMode(mode);
-      console.log(`[Page] Persona mode switched to: ${mode}`);
       return { acknowledged: true, active_mode: mode };
     });
 
@@ -160,41 +193,90 @@ function HomePage() {
     registerTool("set_expression", (args) => {
       const expr = args.expression as string;
       if (expr) {
+        if (expressionResetTimeoutRef.current) {
+          clearTimeout(expressionResetTimeoutRef.current);
+          expressionResetTimeoutRef.current = null;
+          log.debug("Cleared previous expression reset timer.");
+        }
+
+        log.info({ expression: expr }, "Tool override: set_expression");
         setCurrentExpression(expr);
-        // Automatically fade out expression after 4 seconds
-        setTimeout(() => setCurrentExpression("idle"), 4000);
+
+        // Automatically fade out expression after 4 seconds.
+        expressionResetTimeoutRef.current = window.setTimeout(() => {
+          setCurrentExpression("idle");
+          expressionResetTimeoutRef.current = null;
+          log.info("Expression override reset to idle.");
+        }, 4000);
       }
       return { acknowledged: true, expression: expr };
     });
 
-    // display_text — push content into the chat panel as an assistant message
+    // display_text - push content into the chat panel as an assistant message
     registerTool("display_text", (args) => {
       const content = args.content as string;
       const format = (args.format as string) ?? "plain";
       const lang = (args.language as string | undefined) ?? "";
 
-      // Wrap code blocks for markdown rendering
+      // Wrap code blocks for markdown rendering.
       const displayContent =
         format === "code" && lang
           ? `\`\`\`${lang}\n${content}\n\`\`\``
           : format === "code"
-          ? `\`\`\`\n${content}\n\`\`\``
-          : content;
+            ? `\`\`\`\n${content}\n\`\`\``
+            : content;
 
       chat.appendAssistantMessage(displayContent);
+      log.info(
+        {
+          contentLength: content.length,
+          format,
+          language: lang || null,
+        },
+        "Tool override: display_text",
+      );
       return { acknowledged: true, characters_displayed: content.length };
     });
   }, [registerTool, chat]);
 
+  useEffect(() => {
+    onToolCallRef.current = ({ name, id, args }) => {
+      log.debug(
+        {
+          toolName: name,
+          callId: id ?? null,
+          argKeys: Object.keys(args ?? {}),
+        },
+        "Tool call surfaced to page.",
+      );
+    };
+    return () => {
+      onToolCallRef.current = null;
+    };
+  }, [onToolCallRef]);
+
   // Wire up transcript handler
   useEffect(() => {
     onTranscriptRef.current = (text) => {
+      log.debug({ chunkLength: text.length }, "Transcript chunk received.");
       chat.appendAssistantMessage(text);
       if (text.trim()) {
         useEmotionStore.getState().analyzeText(text);
       }
     };
+    return () => {
+      onTranscriptRef.current = null;
+    };
   }, [onTranscriptRef, chat]);
+
+  useEffect(() => {
+    return () => {
+      if (expressionResetTimeoutRef.current) {
+        clearTimeout(expressionResetTimeoutRef.current);
+        expressionResetTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
 
 
@@ -202,6 +284,7 @@ function HomePage() {
   // Send chat text
   const handleSendText = useCallback(
     (text: string) => {
+      log.info({ textLength: text.length }, "User text sent from chat panel.");
       chat.addUserMessage(text);
       session.sendText(text);
     },
@@ -321,3 +404,4 @@ export default function Home() {
     </ErrorBoundary>
   );
 }
+

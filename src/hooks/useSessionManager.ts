@@ -4,6 +4,9 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import { useGeminiLive } from "./useGeminiLive";
 import { useAudioProcessor } from "./useAudioProcessor";
 import { useWebcam } from "./useWebcam";
+import { createLogger } from "@/lib/logging/logger";
+
+const log = createLogger("useSessionManager");
 
 /**
  * Centralized session management hook.
@@ -24,6 +27,8 @@ export function useSessionManager() {
 
   const [isInitialized, setIsInitialized] = useState(false);
   const isConnected = gemini.status === "connected";
+  const micSuppressedChunksRef = useRef(0);
+  const micForwardedChunksRef = useRef(0);
 
   // ── Wire up built-in tool handlers ────────────────────────────────────────
   // Registered once; stable because `registerTool` is memoised with useCallback.
@@ -40,11 +45,55 @@ export function useSessionManager() {
     });
   }, [registerTool]);
 
+  const forwardMicChunk = useCallback((chunk: string) => {
+    const inputLevel = audio.inputAudioLevelRef.current ?? 0;
+    if (audio.isAssistantSpeakingRef.current && inputLevel < 0.2) {
+      micSuppressedChunksRef.current += 1;
+      if (
+        micSuppressedChunksRef.current === 1 ||
+        micSuppressedChunksRef.current % 80 === 0
+      ) {
+        log.debug(
+          {
+            suppressedChunks: micSuppressedChunksRef.current,
+            forwardedChunks: micForwardedChunksRef.current,
+            inputLevel,
+          },
+          "Suppressed microphone chunk to prevent assistant self-interruption.",
+        );
+      }
+      return;
+    }
+
+    micForwardedChunksRef.current += 1;
+    if (
+      micForwardedChunksRef.current === 1 ||
+      micForwardedChunksRef.current % 120 === 0
+    ) {
+      log.debug(
+        {
+          forwardedChunks: micForwardedChunksRef.current,
+          suppressedChunks: micSuppressedChunksRef.current,
+          inputLevel,
+        },
+        "Forwarded microphone chunk to Gemini.",
+      );
+    }
+    gemini.sendAudioChunk(chunk);
+  }, [audio, gemini]);
+
   // ── Wire Gemini audio output → speaker ───────────────────────────────────
   useEffect(() => {
     if (!isInitialized) return;
+    log.debug("Attached Gemini audio callback.");
     onAudioDataRef.current = (b64) => {
       audio.playAudioChunk(b64);
+    };
+    return () => {
+      if (onAudioDataRef.current) {
+        onAudioDataRef.current = null;
+      }
+      log.debug("Detached Gemini audio callback.");
     };
   }, [onAudioDataRef, audio, isInitialized]);
 
@@ -52,18 +101,32 @@ export function useSessionManager() {
   // Official docs: "stop and empty the current playback queue"
   useEffect(() => {
     if (!isInitialized) return;
+    log.debug("Attached interruption callback.");
     onInterruptedRef.current = () => {
       audio.stopPlayback();
+    };
+    return () => {
+      if (onInterruptedRef.current) {
+        onInterruptedRef.current = null;
+      }
+      log.debug("Detached interruption callback.");
     };
   }, [onInterruptedRef, audio, isInitialized]);
 
   // ── Wire webcam frames → Gemini ───────────────────────────────────────────
   useEffect(() => {
     if (!isInitialized) return;
+    log.debug("Attached webcam frame callback.");
     onFrameRef.current = (base64) => {
       if (isConnected) {
         gemini.sendVideoFrame(base64);
       }
+    };
+    return () => {
+      if (onFrameRef.current) {
+        onFrameRef.current = null;
+      }
+      log.debug("Detached webcam frame callback.");
     };
   }, [onFrameRef, isConnected, gemini, isInitialized]);
 
@@ -73,6 +136,7 @@ export function useSessionManager() {
   useEffect(() => {
     if (!isInitialized) return;
     if (gemini.status === "disconnected" || gemini.status === "error") {
+      log.warn({ status: gemini.status }, "Gemini session dropped; stopping media devices.");
       audio.stopMic();
       webcam.stop();
       setTimeout(() => setIsInitialized(false), 0);
@@ -82,53 +146,62 @@ export function useSessionManager() {
   const startSession = useCallback(async () => {
     try {
       setIsInitialized(true);
+      micSuppressedChunksRef.current = 0;
+      micForwardedChunksRef.current = 0;
+      log.info("Starting session.");
       
       // Proactively initialize and resume the playback AudioContext during 
       // the user gesture to satisfy browser autoplay policies.
       const streamer = audio.ensureStreamer();
       if (streamer.context.state === "suspended") {
         await streamer.context.resume();
-        console.log("[SessionManager] Playback AudioContext resumed via user gesture.");
+        log.info("Playback AudioContext resumed via user gesture.");
       }
 
       await gemini.connect();
-      audio.startMic((chunk) => {
-        // While assistant audio is playing, suppress low-level mic bleed to avoid echo loops.
-        if (
-          audio.isAssistantSpeakingRef.current &&
-          (audio.inputAudioLevelRef.current ?? 0) < 0.2
-        ) {
-          return;
-        }
-        gemini.sendAudioChunk(chunk);
-      });
+      audio.startMic(forwardMicChunk);
+      log.info("Session started.");
     } catch (error) {
-      console.error("[SessionManager] Failed to start session:", error);
+      log.error({ err: error }, "Failed to start session.");
       setIsInitialized(false);
     }
-  }, [gemini, audio]);
+  }, [gemini, audio, forwardMicChunk]);
 
   const stopSession = useCallback(() => {
+    log.info(
+      {
+        forwardedMicChunks: micForwardedChunksRef.current,
+        suppressedMicChunks: micSuppressedChunksRef.current,
+      },
+      "Stopping session.",
+    );
     gemini.disconnect();
     audio.stopPlayback();
     audio.stopMic();
     webcam.stop();
     setIsInitialized(false);
+    micSuppressedChunksRef.current = 0;
+    micForwardedChunksRef.current = 0;
   }, [gemini, audio, webcam]);
 
   // Synchronous lock to prevent dual invocations
   const isTransitioning = useRef(false);
 
   const toggleSession = useCallback(() => {
-    if (isTransitioning.current) return;
+    if (isTransitioning.current) {
+      log.debug({ status: gemini.status }, "Session toggle ignored while transitioning.");
+      return;
+    }
     
     // Guard against double-start: only allow starting when strictly "disconnected".
     if (gemini.status !== "disconnected") {
       isTransitioning.current = true;
+      log.info({ status: gemini.status }, "Stopping active session via toggle.");
       stopSession();
       setTimeout(() => { isTransitioning.current = false; }, 500);
     } else {
       isTransitioning.current = true;
+      log.info("Starting session via toggle.");
       startSession().finally(() => {
         isTransitioning.current = false;
       });
@@ -137,19 +210,13 @@ export function useSessionManager() {
 
   const toggleMic = useCallback(() => {
     if (audio.isMicActive) {
+      log.info("Muting microphone.");
       audio.stopMic();
     } else {
-      audio.startMic((chunk) => {
-        if (
-          audio.isAssistantSpeakingRef.current &&
-          (audio.inputAudioLevelRef.current ?? 0) < 0.2
-        ) {
-          return;
-        }
-        gemini.sendAudioChunk(chunk);
-      });
+      log.info("Unmuting microphone.");
+      audio.startMic(forwardMicChunk);
     }
-  }, [audio, gemini]);
+  }, [audio, forwardMicChunk]);
 
   const toggleCamera = useCallback(() => {
     if (webcam.isActive) {

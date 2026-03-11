@@ -35,6 +35,9 @@ export function useAudioProcessor() {
   const isAssistantSpeakingRef = useRef(false);
   const lastOutputSignalAtRef = useRef(0);
   const recentChunkSignaturesRef = useRef<Map<string, number>>(new Map());
+  const micChunkCountRef = useRef(0);
+  const queuedPlaybackChunkCountRef = useRef(0);
+  const droppedPlaybackChunkCountRef = useRef(0);
 
   // Mic capture refs
   const streamRef = useRef<MediaStream | null>(null);
@@ -42,6 +45,7 @@ export function useAudioProcessor() {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number>(0);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const processorSilentGainRef = useRef<GainNode | null>(null);
   const workletNodeRef = useRef<AudioWorkletNode | null>(null);
 
   // Playback via AudioStreamer
@@ -73,7 +77,7 @@ export function useAudioProcessor() {
               }
             } catch (e) {
               // Ignore if browser doesn't support 'microphone' permission query (e.g. Firefox)
-              console.log("[AudioProcessor] Permission query skipped:", e);
+              log.debug({ err: e }, "Microphone permission query unsupported; continuing.");
             }
           }
 
@@ -124,6 +128,13 @@ export function useAudioProcessor() {
                 for (let i = 0; i < bytes.length; i++) {
                   binary += String.fromCharCode(bytes[i]);
                 }
+                micChunkCountRef.current += 1;
+                if (micChunkCountRef.current % 120 === 0) {
+                  log.debug(
+                    { chunksCaptured: micChunkCountRef.current, capturePath: "AudioWorklet" },
+                    "Captured microphone chunks.",
+                  );
+                }
                 onChunk(btoa(binary));
               };
               workletNodeRef.current = workletNode;
@@ -138,8 +149,14 @@ export function useAudioProcessor() {
             // Fallback: deprecated ScriptProcessorNode (still widely supported)
             const processor = ctx.createScriptProcessor(4096, 1, 1);
             source.connect(processor);
-            processor.connect(ctx.destination);
+            // Keep ScriptProcessor active without audible loopback.
+            // Direct processor -> destination causes users to hear their own mic.
+            const silentGain = ctx.createGain();
+            silentGain.gain.value = 0;
+            processor.connect(silentGain);
+            silentGain.connect(ctx.destination);
             processorRef.current = processor;
+            processorSilentGainRef.current = silentGain;
 
             processor.onaudioprocess = (e) => {
               const float32 = e.inputBuffer.getChannelData(0);
@@ -155,9 +172,18 @@ export function useAudioProcessor() {
               for (let i = 0; i < bytes.length; i++) {
                 binary += String.fromCharCode(bytes[i]);
               }
+              micChunkCountRef.current += 1;
+              if (micChunkCountRef.current % 120 === 0) {
+                log.debug(
+                  { chunksCaptured: micChunkCountRef.current, capturePath: "ScriptProcessorNode" },
+                  "Captured microphone chunks.",
+                );
+              }
               onChunk(btoa(binary));
             };
-            log.info("[AudioProcessor] Using ScriptProcessorNode fallback for PCM capture.");
+            log.warn(
+              "[AudioProcessor] Using ScriptProcessorNode fallback for PCM capture with muted monitor path.",
+            );
           }
 
           // rAF loop for audio level → ref (not state)
@@ -203,6 +229,10 @@ export function useAudioProcessor() {
       workletNodeRef.current.disconnect();
       workletNodeRef.current = null;
     }
+    if (processorSilentGainRef.current) {
+      processorSilentGainRef.current.disconnect();
+      processorSilentGainRef.current = null;
+    }
     streamRef.current = null;
     audioCtxRef.current = null;
     analyserRef.current = null;
@@ -210,7 +240,8 @@ export function useAudioProcessor() {
     setIsMicActive(false);
     inputAudioLevelRef.current = 0;
     syncCombinedLevel();
-    log.info("Stopped audio processor and released microphone");
+    log.info({ totalMicChunksCaptured: micChunkCountRef.current }, "Stopped audio processor and released microphone");
+    micChunkCountRef.current = 0;
   }, [syncCombinedLevel]);
 
   // ── Playback via AudioStreamer ────────────────────────────────────────────
@@ -310,7 +341,14 @@ export function useAudioProcessor() {
 
         const seenAt = recentChunkSignaturesRef.current.get(signature);
         if (seenAt !== undefined && now - seenAt < DUPLICATE_CHUNK_WINDOW_MS) {
-          log.debug("Skipping duplicate audio chunk.");
+          droppedPlaybackChunkCountRef.current += 1;
+          log.debug(
+            {
+              droppedDuplicates: droppedPlaybackChunkCountRef.current,
+              duplicateWindowMs: DUPLICATE_CHUNK_WINDOW_MS,
+            },
+            "Skipping duplicate audio chunk.",
+          );
           return;
         }
 
@@ -339,6 +377,20 @@ export function useAudioProcessor() {
 
         // Feed to AudioStreamer for gapless scheduling.
         streamer.addPCM16(bytes);
+        queuedPlaybackChunkCountRef.current += 1;
+        if (
+          queuedPlaybackChunkCountRef.current === 1 ||
+          queuedPlaybackChunkCountRef.current % 30 === 0
+        ) {
+          log.debug(
+            {
+              queuedChunks: queuedPlaybackChunkCountRef.current,
+              droppedDuplicates: droppedPlaybackChunkCountRef.current,
+              pcmBytes: bytes.length,
+            },
+            "Queued assistant audio chunk for playback.",
+          );
+        }
         isAssistantSpeakingRef.current = true;
         lastOutputSignalAtRef.current = performance.now();
 
@@ -347,7 +399,7 @@ export function useAudioProcessor() {
         // samples the streamer volume at 60fps.
         startPlaybackLevelLoop();
       } catch (error) {
-        log.error({ err: error }, "Microphone worklet initialization failed");
+        log.error({ err: error }, "Failed to queue assistant audio chunk");
       }
     })();
   }, [getStreamer, startPlaybackLevelLoop]);
@@ -362,6 +414,15 @@ export function useAudioProcessor() {
     if (audioStreamerRef.current) {
       audioStreamerRef.current.stop();
     }
+    log.info(
+      {
+        queuedChunks: queuedPlaybackChunkCountRef.current,
+        droppedDuplicates: droppedPlaybackChunkCountRef.current,
+      },
+      "Stopped assistant playback and cleared queue.",
+    );
+    queuedPlaybackChunkCountRef.current = 0;
+    droppedPlaybackChunkCountRef.current = 0;
     recentChunkSignaturesRef.current.clear();
     stopPlaybackLevelLoop();
   }, [stopPlaybackLevelLoop]);
