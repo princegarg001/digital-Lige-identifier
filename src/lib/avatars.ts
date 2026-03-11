@@ -31,13 +31,16 @@ function isReadyPlayerHost(hostname: string): boolean {
   return hostname.includes("readyplayer.me");
 }
 
-function withReadyPlayerParams(url: URL): URL {
-  if (!isReadyPlayerHost(url.hostname)) return url;
+function withReadyPlayerParams(url: URL): string {
+  if (!isReadyPlayerHost(url.hostname)) return url.toString();
+  // Use literal space to avoid double encoding if we manually added %20
   url.searchParams.set("morphTargets", "ARKit,Oculus Visemes");
   url.searchParams.set("lod", "0");
-  url.searchParams.set("pose", "S");
+  url.searchParams.set("pose", "A");
   url.searchParams.set("textureAtlas", "none");
-  return url;
+  
+  // RPM API often expects literal commas in the query string and %20 for spaces
+  return url.toString().replace(/%2C/g, ",").replace(/\+/g, "%20");
 }
 
 function getAvatarIdFromInput(input: string): string | null {
@@ -117,7 +120,7 @@ export function normalizeAvatarUrl(input: string): string {
 
   const maybeId = getAvatarIdFromInput(raw);
   if (maybeId) {
-    return withReadyPlayerParams(new URL(`https://models.readyplayer.me/${maybeId}.glb`)).toString();
+    return withReadyPlayerParams(new URL(`https://models.readyplayer.me/${maybeId}.glb`));
   }
 
   let candidate = raw;
@@ -133,7 +136,7 @@ export function normalizeAvatarUrl(input: string): string {
 
   try {
     const url = new URL(candidate);
-    return withReadyPlayerParams(url).toString();
+    return withReadyPlayerParams(url);
   } catch {
     throw new Error("Avatar URL is invalid.");
   }
@@ -208,7 +211,7 @@ export function getAvatarUrl(id: string, registry: AvatarEntry[]): string {
 
   if (isHttpUrl(file)) {
     try {
-      return withReadyPlayerParams(new URL(file)).toString();
+      return withReadyPlayerParams(new URL(file));
     } catch {
       return file;
     }
