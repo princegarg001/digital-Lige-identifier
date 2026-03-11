@@ -19,8 +19,12 @@ export class AudioStreamer {
   private isStreamComplete: boolean = false;
 
   private checkInterval: ReturnType<typeof setInterval> | null = null;
+  private scheduleTimeout: ReturnType<typeof setTimeout> | null = null;
   private scheduledTime: number = 0;
   private initialBufferTime: number = 0.1; // 100ms initial buffer
+  private activeSources = new Set<AudioBufferSourceNode>();
+  private schedulerGeneration = 0;
+  private queueCompleteNotified = false;
 
   /** GainNode sits between sources and destination for clean volume control. */
   public gainNode: GainNode;
@@ -75,6 +79,7 @@ export class AudioStreamer {
   addPCM16(chunk: Uint8Array) {
     // A new chunk means the stream hasn't finished yet.
     this.isStreamComplete = false;
+    this.queueCompleteNotified = false;
 
     let processingBuffer = this._processPCM16Chunk(chunk);
 
@@ -93,7 +98,10 @@ export class AudioStreamer {
     if (!this.isPlaying) {
       this.isPlaying = true;
       this.scheduledTime = this.context.currentTime + this.initialBufferTime;
-      this.scheduleNextBuffer();
+      this.schedulerGeneration += 1;
+      this.scheduleNextBuffer(this.schedulerGeneration);
+    } else {
+      this.scheduleNextBuffer(this.schedulerGeneration);
     }
   }
 
@@ -102,17 +110,35 @@ export class AudioStreamer {
    * to avoid audio pops.
    */
   stop() {
+    this.schedulerGeneration += 1;
     this.isPlaying = false;
     this.isStreamComplete = true;
+    this.queueCompleteNotified = false;
     this.audioQueue = [];
     this.scheduledTime = this.context.currentTime;
 
+    if (this.scheduleTimeout) {
+      clearTimeout(this.scheduleTimeout);
+      this.scheduleTimeout = null;
+    }
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
       this.checkInterval = null;
     }
 
+    for (const source of this.activeSources) {
+      try {
+        source.stop();
+      } catch {
+        // Source may already be ended/stopped.
+      }
+      source.disconnect();
+    }
+    this.activeSources.clear();
+    this.endOfQueueAudioSource = null;
+
     // Smooth gain ramp-down over 100ms to prevent click/pop.
+    this.gainNode.gain.cancelScheduledValues(this.context.currentTime);
     this.gainNode.gain.linearRampToValueAtTime(
       0,
       this.context.currentTime + 0.1,
@@ -144,7 +170,7 @@ export class AudioStreamer {
    */
   complete() {
     this.isStreamComplete = true;
-    this.onComplete();
+    this.scheduleNextBuffer(this.schedulerGeneration);
   }
 
   /** Gets real-time volume (0 to 1) from the hardware AnalyserNode */
@@ -175,10 +201,21 @@ export class AudioStreamer {
     return audioBuffer;
   }
 
-  private scheduleNextBuffer() {
+  private scheduleNextBuffer(generation: number) {
+    if (!this.isPlaying || generation !== this.schedulerGeneration) {
+      return;
+    }
+
+    if (this.scheduleTimeout) {
+      clearTimeout(this.scheduleTimeout);
+      this.scheduleTimeout = null;
+    }
+
     const SCHEDULE_AHEAD_TIME = 0.2; // schedule 200ms ahead
 
     while (
+      this.isPlaying &&
+      generation === this.schedulerGeneration &&
       this.audioQueue.length > 0 &&
       this.scheduledTime < this.context.currentTime + SCHEDULE_AHEAD_TIME
     ) {
@@ -192,20 +229,27 @@ export class AudioStreamer {
           this.endOfQueueAudioSource.onended = null;
         }
         this.endOfQueueAudioSource = source;
-        source.onended = () => {
-          if (
-            !this.audioQueue.length &&
-            this.endOfQueueAudioSource === source
-          ) {
-            this.endOfQueueAudioSource = null;
+      }
+
+      source.onended = () => {
+        this.activeSources.delete(source);
+        if (
+          !this.audioQueue.length &&
+          this.endOfQueueAudioSource === source
+        ) {
+          this.endOfQueueAudioSource = null;
+          if (this.isStreamComplete && !this.queueCompleteNotified) {
+            this.queueCompleteNotified = true;
+            this.isPlaying = false;
             this.onComplete();
           }
-        };
-      }
+        }
+      };
 
       source.buffer = audioBuffer;
       // Connect specifically through the gainNode (which feeds into analyserNode)
       source.connect(this.gainNode);
+      this.activeSources.add(source);
 
       // Never schedule in the past. If we fell behind (underrun), add a buffer cushion to recover gapless playback!
       let startTime = this.scheduledTime;
@@ -225,7 +269,11 @@ export class AudioStreamer {
     // If queue is empty, either we're done or we poll for more chunks.
     if (this.audioQueue.length === 0) {
       if (this.isStreamComplete) {
-        this.isPlaying = false;
+        if (!this.activeSources.size && !this.queueCompleteNotified) {
+          this.queueCompleteNotified = true;
+          this.isPlaying = false;
+          this.onComplete();
+        }
         if (this.checkInterval) {
           clearInterval(this.checkInterval);
           this.checkInterval = null;
@@ -234,8 +282,12 @@ export class AudioStreamer {
         // Poll for new chunks (they arrive asynchronously from the server).
         if (!this.checkInterval) {
           this.checkInterval = setInterval(() => {
-            if (this.audioQueue.length > 0) {
-              this.scheduleNextBuffer();
+            if (
+              this.audioQueue.length > 0 &&
+              this.isPlaying &&
+              generation === this.schedulerGeneration
+            ) {
+              this.scheduleNextBuffer(generation);
             }
           }, 100);
         }
@@ -245,9 +297,9 @@ export class AudioStreamer {
       // batch finishes playing.
       const nextCheckTime =
         (this.scheduledTime - this.context.currentTime) * 1000;
-      setTimeout(
-        () => this.scheduleNextBuffer(),
-        Math.max(0, nextCheckTime - 50),
+      this.scheduleTimeout = setTimeout(
+        () => this.scheduleNextBuffer(generation),
+        Math.max(10, nextCheckTime - 50),
       );
     }
   }

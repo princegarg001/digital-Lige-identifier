@@ -21,7 +21,13 @@ const log = createLogger("useSessionManager");
  * `registerTool` function BEFORE calling `toggleSession`.
  */
 export function useSessionManager() {
-  const { onAudioData: onAudioDataRef, onInterrupted: onInterruptedRef, registerTool, ...gemini } = useGeminiLive();
+  const {
+    onAudioData: onAudioDataRef,
+    onInterrupted: onInterruptedRef,
+    onTurnComplete: onTurnCompleteRef,
+    registerTool,
+    ...gemini
+  } = useGeminiLive();
   const audio = useAudioProcessor();
   const { onFrameRef, ...webcam } = useWebcam();
 
@@ -112,6 +118,20 @@ export function useSessionManager() {
       log.debug("Detached interruption callback.");
     };
   }, [onInterruptedRef, audio, isInitialized]);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+    log.debug("Attached turn-complete callback.");
+    onTurnCompleteRef.current = () => {
+      audio.markAssistantTurnComplete();
+    };
+    return () => {
+      if (onTurnCompleteRef.current) {
+        onTurnCompleteRef.current = null;
+      }
+      log.debug("Detached turn-complete callback.");
+    };
+  }, [onTurnCompleteRef, audio, isInitialized]);
 
   // ── Wire webcam frames → Gemini ───────────────────────────────────────────
   useEffect(() => {

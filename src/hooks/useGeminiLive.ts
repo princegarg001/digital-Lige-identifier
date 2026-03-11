@@ -42,6 +42,7 @@ export interface UseGeminiLiveReturn {
   onToolCall: React.RefObject<((tc: ToolCallPayload) => void) | null>;
   onTranscript: React.RefObject<((text: string) => void) | null>;
   onInterrupted: React.RefObject<(() => void) | null>;
+  onTurnComplete: React.RefObject<(() => void) | null>;
   onToolCallCancellation: React.RefObject<((ids: string[]) => void) | null>;
   lastSessionHandle: React.RefObject<string | null>;
   errorMessage: string | null;
@@ -62,6 +63,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
   const onToolCall = useRef<((tc: ToolCallPayload) => void) | null>(null);
   const onTranscript = useRef<((text: string) => void) | null>(null);
   const onInterrupted = useRef<(() => void) | null>(null);
+  const onTurnComplete = useRef<(() => void) | null>(null);
   const onToolCallCancellation = useRef<((ids: string[]) => void) | null>(null);
 
   const recentAudioSignaturesRef = useRef<Map<string, number>>(new Map());
@@ -73,6 +75,19 @@ export function useGeminiLive(): UseGeminiLiveReturn {
   const activeConnectionIdRef = useRef<number | null>(null);
   const forwardedAudioChunkCountRef = useRef(0);
   const droppedAudioChunkCountRef = useRef(0);
+  const turnGuardRef = useRef<{
+    inTurn: boolean;
+    suppressCurrentTurn: boolean;
+    currentSignatures: string[];
+    previousSignatures: string[];
+    previousCompletedAt: number;
+  }>({
+    inTurn: false,
+    suppressCurrentTurn: false,
+    currentSignatures: [],
+    previousSignatures: [],
+    previousCompletedAt: 0,
+  });
 
   const registerTool = useCallback((name: string, handler: ToolHandler) => {
     toolRegistryRef.current.set(name, handler);
@@ -90,6 +105,11 @@ export function useGeminiLive(): UseGeminiLiveReturn {
     recentAudioSignaturesRef.current.clear();
     forwardedAudioChunkCountRef.current = 0;
     droppedAudioChunkCountRef.current = 0;
+    turnGuardRef.current.inTurn = false;
+    turnGuardRef.current.suppressCurrentTurn = false;
+    turnGuardRef.current.currentSignatures = [];
+    turnGuardRef.current.previousSignatures = [];
+    turnGuardRef.current.previousCompletedAt = 0;
 
     statusRef.current = "disconnected";
     setStatus("disconnected");
@@ -111,6 +131,9 @@ export function useGeminiLive(): UseGeminiLiveReturn {
     recentAudioSignaturesRef.current.clear();
     forwardedAudioChunkCountRef.current = 0;
     droppedAudioChunkCountRef.current = 0;
+    turnGuardRef.current.inTurn = false;
+    turnGuardRef.current.suppressCurrentTurn = false;
+    turnGuardRef.current.currentSignatures = [];
 
     log.info(
       {
@@ -187,19 +210,33 @@ export function useGeminiLive(): UseGeminiLiveReturn {
         if (message.serverContent) {
           if (message.serverContent.interrupted) {
             log.info({ connectionId }, "Interrupted by user speech; stopping playback.");
+            turnGuardRef.current.inTurn = false;
+            turnGuardRef.current.suppressCurrentTurn = false;
+            turnGuardRef.current.currentSignatures = [];
             onInterrupted.current?.();
             return;
           }
 
           if (message.serverContent.turnComplete) {
+            const guard = turnGuardRef.current;
+            if (guard.inTurn) {
+              guard.previousSignatures = guard.currentSignatures.slice();
+              guard.previousCompletedAt = performance.now();
+              guard.inTurn = false;
+              guard.suppressCurrentTurn = false;
+              guard.currentSignatures = [];
+            }
+
             log.info(
               {
                 connectionId,
                 forwardedAudioChunks: forwardedAudioChunkCountRef.current,
                 droppedAudioDuplicates: droppedAudioChunkCountRef.current,
+                previousTurnSignatureCount: turnGuardRef.current.previousSignatures.length,
               },
               "Turn complete.",
             );
+            onTurnComplete.current?.();
           }
 
           if (message.serverContent.outputTranscription?.text) {
@@ -221,6 +258,13 @@ export function useGeminiLive(): UseGeminiLiveReturn {
                 const signature = `${audioData.length}:${audioData.slice(0, 48)}:${audioData.slice(-48)}`;
                 const seenAt = recentAudioSignaturesRef.current.get(signature);
 
+                const guard = turnGuardRef.current;
+                if (!guard.inTurn) {
+                  guard.inTurn = true;
+                  guard.suppressCurrentTurn = false;
+                  guard.currentSignatures = [];
+                }
+
                 if (seenAt !== undefined && now - seenAt < DUPLICATE_AUDIO_WINDOW_MS) {
                   droppedAudioChunkCountRef.current += 1;
                   log.debug(
@@ -231,6 +275,50 @@ export function useGeminiLive(): UseGeminiLiveReturn {
                     },
                     "Skipping duplicate audio chunk from Live API stream.",
                   );
+                  continue;
+                }
+
+                const MAX_TRACKED_SIGNATURES = 24;
+                const MIN_PREFIX_MATCH_CHUNKS = 3;
+                const DUPLICATE_TURN_WINDOW_MS = 12_000;
+
+                if (guard.currentSignatures.length < MAX_TRACKED_SIGNATURES) {
+                  guard.currentSignatures.push(signature);
+                }
+
+                if (
+                  !guard.suppressCurrentTurn &&
+                  guard.previousSignatures.length >= MIN_PREFIX_MATCH_CHUNKS &&
+                  guard.currentSignatures.length >= MIN_PREFIX_MATCH_CHUNKS &&
+                  now - guard.previousCompletedAt < DUPLICATE_TURN_WINDOW_MS
+                ) {
+                  let prefixMatch = true;
+                  for (let i = 0; i < guard.currentSignatures.length; i++) {
+                    if (guard.currentSignatures[i] !== guard.previousSignatures[i]) {
+                      prefixMatch = false;
+                      break;
+                    }
+                  }
+
+                  if (prefixMatch) {
+                    guard.suppressCurrentTurn = true;
+                    droppedAudioChunkCountRef.current += 1;
+                    log.warn(
+                      {
+                        connectionId,
+                        duplicateTurnWindowMs: DUPLICATE_TURN_WINDOW_MS,
+                        matchedPrefixChunks: guard.currentSignatures.length,
+                        previousTurnSignatureCount: guard.previousSignatures.length,
+                      },
+                      "Detected repeated audio-turn prefix. Dropping duplicated turn audio.",
+                    );
+                    onInterrupted.current?.();
+                    continue;
+                  }
+                }
+
+                if (guard.suppressCurrentTurn) {
+                  droppedAudioChunkCountRef.current += 1;
                   continue;
                 }
 
@@ -572,6 +660,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
     onToolCall,
     onTranscript,
     onInterrupted,
+    onTurnComplete,
     onToolCallCancellation,
     lastSessionHandle: sessionHandleRef,
     errorMessage,

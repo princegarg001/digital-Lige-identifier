@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AUDIO_CONFIG } from "@/lib/constants";
 import { AudioStreamer } from "@/lib/audio-streamer";
 import { Lipsync } from "wawa-lipsync";
@@ -262,6 +262,14 @@ export function useAudioProcessor() {
         AUDIO_CONFIG.output_hz,
       );
       audioStreamerRef.current = streamer;
+      streamer.onComplete = () => {
+        cancelAnimationFrame(playbackAnimFrameRef.current);
+        outputAudioLevelRef.current = 0;
+        isAssistantSpeakingRef.current = false;
+        lastOutputSignalAtRef.current = 0;
+        syncCombinedLevel();
+        log.debug("Assistant playback turn completed.");
+      };
 
       // Ensure Lipsync is correctly instantiated and mapped to AudioStreamer
       const wawa = new Lipsync();
@@ -284,7 +292,7 @@ export function useAudioProcessor() {
       onAudioScheduledRef.current?.(start, duration);
     };
     return audioStreamerRef.current;
-  }, []);
+  }, [syncCombinedLevel]);
 
   /**
    * Continuous rAF loop that keeps audioLevelRef updated from the streamer
@@ -427,6 +435,30 @@ export function useAudioProcessor() {
     stopPlaybackLevelLoop();
   }, [stopPlaybackLevelLoop]);
 
+  /**
+   * Mark the current assistant turn as complete. This allows AudioStreamer
+   * to stop polling for additional chunks when the Live API emits turnComplete.
+   */
+  const markAssistantTurnComplete = useCallback(() => {
+    if (!audioStreamerRef.current) return;
+    audioStreamerRef.current.complete();
+    log.debug("Marked assistant turn complete.");
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopPlayback();
+      stopMic();
+      cancelAnimationFrame(playbackAnimFrameRef.current);
+      if (playbackCtxRef.current) {
+        void playbackCtxRef.current.close();
+        playbackCtxRef.current = null;
+      }
+      audioStreamerRef.current = null;
+      log.info("AudioProcessor unmounted and audio contexts were cleaned up.");
+    };
+  }, [stopMic, stopPlayback]);
+
   return {
     isMicActive,
     permissionError,
@@ -438,6 +470,7 @@ export function useAudioProcessor() {
     stopMic,
     playAudioChunk,
     stopPlayback,
+    markAssistantTurnComplete,
     ensureStreamer: getStreamer,
     onAudioScheduledRef,
   };
