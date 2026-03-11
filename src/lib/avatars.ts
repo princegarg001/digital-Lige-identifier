@@ -22,7 +22,7 @@ export interface AvatarEntry {
 
 /** Fallback used before the fetch completes or if it fails */
 export const DEFAULT_AVATARS: AvatarEntry[] = [
-  { id: "female", label: "Female", file: "69aaa1126e4b038c0e57c67a.glb" },
+  { id: "male", label: "Male", file: "69aaa1126e4b038c0e57c672.glb" },
 ];
 
 /** Fetch the avatar registry from public/avatars/index.json */
@@ -44,8 +44,12 @@ export function getAvatarUrl(id: string, registry: AvatarEntry[]): string {
   if (file.startsWith("http://") || file.startsWith("https://")) {
     try {
       const url = new URL(file);
-      // Ensure morphTargets are requested for ARKit blendshapes
-      url.searchParams.set("morphTargets", "ARKit");
+      // Latest RPM API Parameters for max quality and tracking
+      url.searchParams.set("morphTargets", "ARKit,Oculus Visemes");
+      url.searchParams.set("lod", "0");
+      url.searchParams.set("pose", "T");
+      url.searchParams.set("textureAtlas", "none");
+      
       // Cache buster for inconsistent browsers
       url.searchParams.set("random", Math.random().toString(36).substring(7));
       return url.toString();

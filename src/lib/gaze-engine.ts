@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import { createNoise2D } from 'simplex-noise';
 
+interface GazeOptions {
+  eyeDrift?: boolean;
+  headMovement?: boolean;
+}
+
 /**
  * GazeEngine
  * Replaces the old useHeadMovement hook.
@@ -12,8 +17,17 @@ export class GazeEngine {
   private currentPos = new THREE.Vector2(0, 0);
   private targetPos = new THREE.Vector2(0, 0);
 
-  update(delta: number, camera: THREE.Camera, nodes: Record<string, THREE.Object3D>, pointer: THREE.Vector2, isSpeaking: boolean) {
+  update(
+    delta: number,
+    camera: THREE.Camera,
+    nodes: Record<string, THREE.Object3D>,
+    pointer: THREE.Vector2,
+    isSpeaking: boolean,
+    options: GazeOptions = {},
+  ) {
     this.time += delta;
+    const eyeDrift = options.eyeDrift ?? true;
+    const headMovement = options.headMovement ?? true;
 
     const head = nodes.Head as THREE.Bone;
     const neck = nodes.Neck as THREE.Bone;
@@ -23,13 +37,17 @@ export class GazeEngine {
     if (!head || !neck || !rightEye || !leftEye) return;
 
     // Saccade noise for eyes (1/f simulated)
-    const eyeJitterX = (this.noise2D(this.time * 2, 0) * 0.5 + this.noise2D(this.time * 5, 10) * 0.1) * 0.03;
-    const eyeJitterY = (this.noise2D(10, this.time * 2) * 0.5 + this.noise2D(0, this.time * 5) * 0.1) * 0.03;
+    const eyeJitterX = eyeDrift
+      ? (this.noise2D(this.time * 2, 0) * 0.5 + this.noise2D(this.time * 5, 10) * 0.1) * 0.03
+      : 0;
+    const eyeJitterY = eyeDrift
+      ? (this.noise2D(10, this.time * 2) * 0.5 + this.noise2D(0, this.time * 5) * 0.1) * 0.03
+      : 0;
 
     // Head movement driven by noise during speech
     let speechHeadMotionX = 0;
     let speechHeadMotionY = 0;
-    if (isSpeaking) {
+    if (isSpeaking && headMovement) {
       speechHeadMotionX = Math.sin(this.time * 2) * 0.01;
       speechHeadMotionY = Math.sin(this.time * 1.5) * 0.015;
     }
@@ -39,8 +57,12 @@ export class GazeEngine {
     const rotationMargin = new THREE.Vector2(5, 10);
 
     // Follow pointer slightly
-    this.targetPos.x = THREE.MathUtils.clamp(pointer.y, -0.5, 1) * (-rotationMargin.x * rad);
-    this.targetPos.y = THREE.MathUtils.clamp(pointer.x, -0.5, 0.5) * (rotationMargin.y * rad);
+    if (eyeDrift || headMovement) {
+      this.targetPos.x = THREE.MathUtils.clamp(pointer.y, -0.5, 1) * (-rotationMargin.x * rad);
+      this.targetPos.y = THREE.MathUtils.clamp(pointer.x, -0.5, 0.5) * (rotationMargin.y * rad);
+    } else {
+      this.targetPos.set(0, 0);
+    }
 
     // Smoothly interpolate current head rotation towards target
     this.currentPos.x = THREE.MathUtils.damp(this.currentPos.x, this.targetPos.x, 3, delta);
@@ -49,17 +71,31 @@ export class GazeEngine {
     // Apply rotations
     const neckBoneRotationOffsetX = 10 * rad;
 
-    neck.rotation.x = this.currentPos.x + neckBoneRotationOffsetX;
-    neck.rotation.y = this.currentPos.y;
+    if (headMovement) {
+      neck.rotation.x = this.currentPos.x + neckBoneRotationOffsetX;
+      neck.rotation.y = this.currentPos.y;
 
-    head.rotation.x = this.currentPos.x + speechHeadMotionX;
-    head.rotation.y = this.currentPos.y + speechHeadMotionY;
+      head.rotation.x = this.currentPos.x + speechHeadMotionX;
+      head.rotation.y = this.currentPos.y + speechHeadMotionY;
+    } else {
+      neck.rotation.x = THREE.MathUtils.damp(neck.rotation.x, neckBoneRotationOffsetX, 6, delta);
+      neck.rotation.y = THREE.MathUtils.damp(neck.rotation.y, 0, 6, delta);
+      head.rotation.x = THREE.MathUtils.damp(head.rotation.x, 0, 6, delta);
+      head.rotation.y = THREE.MathUtils.damp(head.rotation.y, 0, 6, delta);
+    }
 
-    // Eyes follow head but have independent jitter
-    rightEye.rotation.x = this.currentPos.x + eyeJitterX;
-    rightEye.rotation.y = this.currentPos.y * 2 + eyeJitterY;
+    if (eyeDrift) {
+      // Eyes follow head but have independent jitter.
+      rightEye.rotation.x = this.currentPos.x + eyeJitterX;
+      rightEye.rotation.y = this.currentPos.y * 2 + eyeJitterY;
 
-    leftEye.rotation.x = this.currentPos.x + eyeJitterX;
-    leftEye.rotation.y = this.currentPos.y * 2 + eyeJitterY;
+      leftEye.rotation.x = this.currentPos.x + eyeJitterX;
+      leftEye.rotation.y = this.currentPos.y * 2 + eyeJitterY;
+    } else {
+      rightEye.rotation.x = THREE.MathUtils.damp(rightEye.rotation.x, 0, 8, delta);
+      rightEye.rotation.y = THREE.MathUtils.damp(rightEye.rotation.y, 0, 8, delta);
+      leftEye.rotation.x = THREE.MathUtils.damp(leftEye.rotation.x, 0, 8, delta);
+      leftEye.rotation.y = THREE.MathUtils.damp(leftEye.rotation.y, 0, 8, delta);
+    }
   }
 }

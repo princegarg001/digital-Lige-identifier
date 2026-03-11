@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     "temp-visage/**",
     "temp-avatar-creator/**",
     "temp-animations/**",
+    "temp-wawa/**",
   ]),
 ]);
 

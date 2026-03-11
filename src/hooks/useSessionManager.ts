@@ -93,6 +93,13 @@ export function useSessionManager() {
 
       await gemini.connect();
       audio.startMic((chunk) => {
+        // While assistant audio is playing, suppress low-level mic bleed to avoid echo loops.
+        if (
+          audio.isAssistantSpeakingRef.current &&
+          (audio.inputAudioLevelRef.current ?? 0) < 0.2
+        ) {
+          return;
+        }
         gemini.sendAudioChunk(chunk);
       });
     } catch (error) {
@@ -133,6 +140,12 @@ export function useSessionManager() {
       audio.stopMic();
     } else {
       audio.startMic((chunk) => {
+        if (
+          audio.isAssistantSpeakingRef.current &&
+          (audio.inputAudioLevelRef.current ?? 0) < 0.2
+        ) {
+          return;
+        }
         gemini.sendAudioChunk(chunk);
       });
     }
@@ -154,6 +167,7 @@ export function useSessionManager() {
     micError: audio.permissionError,
     cameraError: webcam.permissionError,
     audioLevelRef: audio.audioLevelRef,
+    assistantAudioLevelRef: audio.outputAudioLevelRef,
     isMicActive: audio.isMicActive,
     isCameraActive: webcam.isActive,
     videoRef: webcam.videoRef,

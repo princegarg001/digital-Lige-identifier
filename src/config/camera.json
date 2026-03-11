@@ -8,8 +8,8 @@
     "fov": 45,
     "target": [
       0,
-      0.44,
-      0
+      0.46,
+      0.01
     ],
     "controlsMinDistance": 0.5,
     "controlsMaxDistance": 3.2,
@@ -21,16 +21,16 @@
     "position": [
       0,
       0,
-      0
+      0.01
     ],
     "rotation": [
-      0,
+      0.02,
       0.09,
       0
     ],
     "scale": 0.7,
     "model": "male",
-    "idleAnimation": "feminine_idle_f_standing_idle_001"
+    "idleAnimation": "masculine_idle_m_standing_idle_001"
   },
   "lighting": {
     "keyLight": {

@@ -62,10 +62,10 @@ interface SceneConfigContextValue {
 const DEFAULT_FEATURES: FeatureToggles = {
   lipSync: true,
   breathing: true,
-  gazeDrift: true,
+  gazeDrift: false,
   blinking: true,
-  hoverEffect: true,
-  headMovement: true,
+  hoverEffect: false,
+  headMovement: false,
   googleSearch: true,
   proactiveAudio: true,
 };

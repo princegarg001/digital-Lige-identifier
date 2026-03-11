@@ -1,6 +1,12 @@
 import * as THREE from 'three';
 import { createNoise2D } from 'simplex-noise';
 
+interface IdleExpressionOptions {
+  breathing?: boolean;
+  blinking?: boolean;
+  browTwitch?: boolean;
+}
+
 /**
  * IdleExpressionEngine
  * Handles involuntary procedural "life" movements:
@@ -27,11 +33,19 @@ export class IdleExpressionEngine {
   private isBrowTwitching = false;
   private browProgress = 0;
 
-  update(delta: number, nodes: Record<string, THREE.Object3D>) {
+  update(
+    delta: number,
+    nodes: Record<string, THREE.Object3D>,
+    options: IdleExpressionOptions = {},
+  ) {
+    const breathing = options.breathing ?? true;
+    const blinking = options.blinking ?? true;
+    const browTwitch = options.browTwitch ?? false;
+
     this.time += delta;
 
     // 1. Spines Breathing (Hips/Spine)
-    if (nodes.Hips) {
+    if (breathing && nodes.Hips) {
       // ~6 cycles per minute = ~0.628 rad/sec
       nodes.Hips.position.y = Math.sin(this.time * 0.628) * 0.01;
     }
@@ -54,8 +68,24 @@ export class IdleExpressionEngine {
     const head = nodes.Wolf3D_Head as THREE.SkinnedMesh;
     if (!head || !head.morphTargetDictionary || !head.morphTargetInfluences) return;
 
-    this.updateBlinking(delta, head);
-    this.updateBrows(delta, head);
+    if (blinking) {
+      this.updateBlinking(delta, head);
+    } else {
+      this.setMorph(head, "eyeBlinkLeft", 0);
+      this.setMorph(head, "eyeBlinkRight", 0);
+      this.setMorph(head, "cheekSquintLeft", 0);
+      this.setMorph(head, "cheekSquintRight", 0);
+    }
+
+    if (browTwitch) {
+      this.updateBrows(delta, head);
+    } else {
+      this.isBrowTwitching = false;
+      this.browProgress = 0;
+      this.setMorph(head, "browInnerUp", 0);
+      this.setMorph(head, "browOuterUpLeft", 0);
+      this.setMorph(head, "browOuterUpRight", 0);
+    }
   }
 
   private updateBlinking(delta: number, head: THREE.SkinnedMesh) {

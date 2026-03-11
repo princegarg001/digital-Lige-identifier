@@ -246,7 +246,7 @@ function HomePage() {
     >
       <div className="absolute inset-0 scan-line z-0" data-persona-mode={personaMode}>
           <Scene
-            audioLevelRef={session.audioLevelRef}
+            audioLevelRef={session.assistantAudioLevelRef}
             currentExpression={currentExpression}
             skinPreset={selectedSkin}
             debug={debugMode}
@@ -279,7 +279,7 @@ function HomePage() {
       {/* Persona overlay (Waveform) */}
       <div className="absolute bottom-24 left-6 z-10 pointer-events-none">
         <PersonaOverlay
-          audioLevelRef={session.audioLevelRef}
+          audioLevelRef={session.assistantAudioLevelRef}
           isConnected={session.isConnected}
         />
       </div>

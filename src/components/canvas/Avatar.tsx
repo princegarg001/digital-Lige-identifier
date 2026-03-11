@@ -68,10 +68,10 @@ interface AvatarProps {
 const DEFAULT_FEATURES: FeatureToggles = {
   lipSync: true,
   breathing: true,
-  gazeDrift: true,
+  gazeDrift: false,
   blinking: true,
-  hoverEffect: true,
-  headMovement: true,
+  hoverEffect: false,
+  headMovement: false,
   googleSearch: true,
   proactiveAudio: true,
 };
@@ -207,11 +207,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
     smoothedLevel.current +=
       (rawLevel - smoothedLevel.current) * PHYSICS_SMOOTHING.lerp_factor;
     const level = smoothedLevel.current;
-    
-    // Trace high-frequency volumetric changes periodically if moving significantly
-    if (level > 0.05 && Math.random() < 0.05) {
-       log.trace({ level, rawLevel }, "Audio volume trace for Lipsync");
-    }
+    const isSpeaking = level > 0.05;
 
     // Drive jaw/mouth morph targets for lip-sync using LipSyncEngine
     if (featureToggles.lipSync && lipsyncEngine.current) {
@@ -226,15 +222,20 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
       /* eslint-enable */
     }
 
-    const isSpeaking = level > 0.05;
-
-    // Execute new engines
+    // Execute procedural idle engines only for enabled channels.
     if (idleEngine.current) {
-      idleEngine.current.update(delta, nodes);
+      idleEngine.current.update(delta, nodes, {
+        breathing: featureToggles.breathing,
+        blinking: featureToggles.blinking,
+        browTwitch: false,
+      });
     }
     
-    if (featureToggles.gazeDrift && gazeEngine.current) {
-      gazeEngine.current.update(delta, camera, nodes, state.pointer, isSpeaking);
+    if ((featureToggles.gazeDrift || featureToggles.headMovement) && gazeEngine.current) {
+      gazeEngine.current.update(delta, camera, nodes, state.pointer, isSpeaking, {
+        eyeDrift: featureToggles.gazeDrift,
+        headMovement: featureToggles.headMovement,
+      });
     }
 
   });
@@ -255,14 +256,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
         setHovered(false);
         document.body.style.cursor = "default";
       }}
-      onClick={(e) => {
-        e.stopPropagation();
-        if (actions && actions["wave"]) {
-          actions["wave"].reset().fadeIn(0.5).play();
-          setTimeout(() => actions["wave"]?.fadeOut(0.5), 2000);
-        }
-      }}
-      scale={(hovered && featureToggles.hoverEffect) ? 1.05 : 1}
+      scale={1}
     >
       <primitive object={nodes.Hips} />
       <skinnedMesh

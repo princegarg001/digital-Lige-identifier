@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState, useEffect } from "react";
+import { useCallback, useRef, useState } from "react";
 import { AUDIO_CONFIG } from "@/lib/constants";
 import { AudioStreamer } from "@/lib/audio-streamer";
 import { Lipsync } from "wawa-lipsync";
@@ -30,6 +30,12 @@ export function useAudioProcessor() {
    * Read this inside `useFrame` / `requestAnimationFrame`.
    */
   const audioLevelRef = useRef(0);
+  const inputAudioLevelRef = useRef(0);
+  const outputAudioLevelRef = useRef(0);
+  const isAssistantSpeakingRef = useRef(false);
+  const lastOutputSignalAtRef = useRef(0);
+  const lastChunkSignatureRef = useRef("");
+  const lastChunkAtRef = useRef(0);
 
   // Mic capture refs
   const streamRef = useRef<MediaStream | null>(null);
@@ -44,6 +50,14 @@ export function useAudioProcessor() {
   const audioStreamerRef = useRef<AudioStreamer | null>(null);
   // rAF handle for playback-level animation loop
   const playbackAnimFrameRef = useRef<number>(0);
+  const onAudioScheduledRef = useRef<((startMs: number, durationMs: number) => void) | null>(null);
+
+  const syncCombinedLevel = useCallback(() => {
+    audioLevelRef.current = Math.max(
+      inputAudioLevelRef.current,
+      outputAudioLevelRef.current,
+    );
+  }, []);
 
   // ── Mic capture ──────────────────────────────────────────────────────────
   const startMic = useCallback(
@@ -153,7 +167,8 @@ export function useAudioProcessor() {
             const data = new Uint8Array(analyserRef.current.frequencyBinCount);
             analyserRef.current.getByteFrequencyData(data);
             const avg = data.reduce((sum, v) => sum + v, 0) / data.length;
-            audioLevelRef.current = avg / 255;
+            inputAudioLevelRef.current = avg / 255;
+            syncCombinedLevel();
             animFrameRef.current = requestAnimationFrame(updateLevel);
           };
           updateLevel();
@@ -177,7 +192,7 @@ export function useAudioProcessor() {
         }
       })();
     },
-    [],
+    [syncCombinedLevel],
   );
 
   const stopMic = useCallback(() => {
@@ -194,9 +209,10 @@ export function useAudioProcessor() {
     analyserRef.current = null;
     processorRef.current = null;
     setIsMicActive(false);
-    audioLevelRef.current = 0;
+    inputAudioLevelRef.current = 0;
+    syncCombinedLevel();
     log.info("Stopped audio processor and released microphone");
-  }, []);
+  }, [syncCombinedLevel]);
 
   // ── Playback via AudioStreamer ────────────────────────────────────────────
 
@@ -234,6 +250,9 @@ export function useAudioProcessor() {
 
       useLipSyncStore.getState().setWawaLipsync(wawa);
     }
+    audioStreamerRef.current.onAudioScheduled = (start, duration) => {
+      onAudioScheduledRef.current?.(start, duration);
+    };
     return audioStreamerRef.current;
   }, []);
 
@@ -246,11 +265,17 @@ export function useAudioProcessor() {
     const tick = () => {
       if (audioStreamerRef.current) {
         const vol = audioStreamerRef.current.getVolume();
-        // Map streamer RMS (0-1 float) → audioLevelRef (0-1) with a boost
-        audioLevelRef.current = Math.min(1, vol * 4);
+        // Map streamer RMS (0-1 float) → output level (0-1) with a boost.
+        outputAudioLevelRef.current = Math.min(1, vol * 4);
+        if (outputAudioLevelRef.current > 0.01) {
+          lastOutputSignalAtRef.current = performance.now();
+        }
+        isAssistantSpeakingRef.current =
+          performance.now() - lastOutputSignalAtRef.current < 180;
+        syncCombinedLevel();
         
         // Output trace when the volume changes significantly, throttle with frame count
-        if (vol > 0.01 && playbackAnimFrameRef.current % 30 === 0) {
+        if (vol > 0.01 && Math.random() < 0.03) {
            log.trace({ rms: vol }, "AudioStreamer volumetric output");
         }
       }
@@ -258,12 +283,15 @@ export function useAudioProcessor() {
     };
     cancelAnimationFrame(playbackAnimFrameRef.current);
     playbackAnimFrameRef.current = requestAnimationFrame(tick);
-  }, [audioLevelRef]);
+  }, [syncCombinedLevel]);
 
   const stopPlaybackLevelLoop = useCallback(() => {
     cancelAnimationFrame(playbackAnimFrameRef.current);
-    audioLevelRef.current = 0;
-  }, [audioLevelRef]);
+    outputAudioLevelRef.current = 0;
+    isAssistantSpeakingRef.current = false;
+    lastOutputSignalAtRef.current = 0;
+    syncCombinedLevel();
+  }, [syncCombinedLevel]);
 
   /**
    * Queue a base64-encoded PCM16 audio chunk for time-scheduled playback.
@@ -276,6 +304,18 @@ export function useAudioProcessor() {
   const playAudioChunk = useCallback((base64: string) => {
     (async () => {
       try {
+        const now = performance.now();
+        const signature = `${base64.length}:${base64.slice(0, 24)}:${base64.slice(-24)}`;
+        if (
+          signature === lastChunkSignatureRef.current &&
+          now - lastChunkAtRef.current < 300
+        ) {
+          log.debug("Skipping duplicate audio chunk.");
+          return;
+        }
+        lastChunkSignatureRef.current = signature;
+        lastChunkAtRef.current = now;
+
         const streamer = getStreamer();
         const ctx = playbackCtxRef.current!;
 
@@ -294,6 +334,8 @@ export function useAudioProcessor() {
 
         // Feed to AudioStreamer for gapless scheduling.
         streamer.addPCM16(bytes);
+        isAssistantSpeakingRef.current = true;
+        lastOutputSignalAtRef.current = performance.now();
 
         // ✅ Fix: Instead of computing per-chunk bulk RMS (which freezes
         // lip-sync between packets), start a continuous rAF loop that
@@ -306,18 +348,6 @@ export function useAudioProcessor() {
   }, [getStreamer, startPlaybackLevelLoop]);
 
   /**
-   * Bind a callback to the streamer that fires whenever an audio buffer is scheduled.
-   */
-  const onAudioScheduledRef = useRef<((startMs: number, durationMs: number) => void) | null>(null);
-  useEffect(() => {
-     if (audioStreamerRef.current) {
-        audioStreamerRef.current.onAudioScheduled = (start, duration) => {
-           onAudioScheduledRef.current?.(start, duration);
-        };
-     }
-  }, []);
-
-  /**
    * Immediately stop all audio playback and clear the queue.
    * Called when the Gemini server sends an `interrupted` signal.
    *
@@ -327,6 +357,8 @@ export function useAudioProcessor() {
     if (audioStreamerRef.current) {
       audioStreamerRef.current.stop();
     }
+    lastChunkSignatureRef.current = "";
+    lastChunkAtRef.current = 0;
     stopPlaybackLevelLoop();
   }, [stopPlaybackLevelLoop]);
 
@@ -334,6 +366,9 @@ export function useAudioProcessor() {
     isMicActive,
     permissionError,
     audioLevelRef,
+    inputAudioLevelRef,
+    outputAudioLevelRef,
+    isAssistantSpeakingRef,
     startMic,
     stopMic,
     playAudioChunk,
