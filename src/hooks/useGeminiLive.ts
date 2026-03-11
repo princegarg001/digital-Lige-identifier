@@ -105,6 +105,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
   const onTranscript = useRef<((text: string) => void) | null>(null);
   const onInterrupted = useRef<(() => void) | null>(null);
   const onToolCallCancellation = useRef<((ids: string[]) => void) | null>(null);
+  const recentAudioSignaturesRef = useRef<Map<string, number>>(new Map());
 
   // ── Function tool registry ────────────────────────────────────────────────
   // Stores handlers registered by the application for each declared tool.
@@ -126,6 +127,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
       sessionRef.current.close();
       sessionRef.current = null;
     }
+    recentAudioSignaturesRef.current.clear();
     statusRef.current = "disconnected";
     setStatus("disconnected");
   }, []);
@@ -136,6 +138,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
     statusRef.current = "connecting";
     setStatus("connecting");
     setErrorMessage(null);
+    recentAudioSignaturesRef.current.clear();
 
     // 1. Fetch ephemeral token from the Next.js backend proxy
     try {
@@ -215,6 +218,21 @@ export function useGeminiLive(): UseGeminiLiveReturn {
             for (const part of parts) {
               if (part.inlineData?.mimeType?.startsWith("audio/")) {
                 const audioData = part.inlineData.data as string;
+                const now = performance.now();
+                const signature = `${audioData.length}:${audioData.slice(0, 48)}:${audioData.slice(-48)}`;
+                const DUPLICATE_WINDOW_MS = 2500;
+                const TTL_MS = 10000;
+                const seenAt = recentAudioSignaturesRef.current.get(signature);
+                if (seenAt !== undefined && now - seenAt < DUPLICATE_WINDOW_MS) {
+                  log.debug("Skipping duplicate audio chunk from Live API stream.");
+                  continue;
+                }
+                recentAudioSignaturesRef.current.set(signature, now);
+                for (const [seenSignature, seenTime] of recentAudioSignaturesRef.current) {
+                  if (now - seenTime > TTL_MS) {
+                    recentAudioSignaturesRef.current.delete(seenSignature);
+                  }
+                }
                 log.debug({ audioDataLength: audioData.length }, "Audio chunk received.");
                 onAudioData.current?.(audioData);
               }

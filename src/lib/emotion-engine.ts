@@ -6,17 +6,19 @@ export class EmotionEngine {
 
   update(
     delta: number, 
-    nodes: Record<string, THREE.Object3D>, 
+    nodes: Record<string, THREE.Object3D | undefined>, 
     currentExpression: string, 
     hovered: boolean, 
-    featureToggles: Record<string, boolean>
+    featureToggles: Record<string, boolean>,
+    isSpeaking: boolean = false,
   ) {
     const head = nodes.Wolf3D_Head as THREE.SkinnedMesh;
     if (!head || !head.morphTargetDictionary || !head.morphTargetInfluences) return;
 
     // Base target values determined by UI or interactions
-    let targetSmile = (hovered && featureToggles.hoverEffect) ? 0.8 : 0;
-    let targetCheek = (hovered && featureToggles.hoverEffect) ? 0.3 : 0;
+    const allowHoverFace = !isSpeaking && hovered && featureToggles.hoverEffect;
+    let targetSmile = allowHoverFace ? 0.8 : 0;
+    let targetCheek = allowHoverFace ? 0.3 : 0;
     let targetBrowInnerUp = 0;
     let targetBrowDown = 0;
     let targetFrown = 0;
@@ -28,16 +30,16 @@ export class EmotionEngine {
     // Dampen the score so emotions drift naturally rather than snapping
     this.smoothedScore = THREE.MathUtils.damp(this.smoothedScore, sentimentScore, 2, delta);
 
-    if (this.smoothedScore > 0.2) {
+    if (!isSpeaking && this.smoothedScore > 0.2) {
       targetSmile = Math.min(1, targetSmile + this.smoothedScore * 0.8);
       targetCheek = Math.min(1, targetCheek + this.smoothedScore * 0.5);
-    } else if (this.smoothedScore < -0.2) {
+    } else if (!isSpeaking && this.smoothedScore < -0.2) {
       targetFrown = Math.min(1, targetFrown + Math.abs(this.smoothedScore) * 0.7);
       targetBrowDown = Math.min(1, targetBrowDown + Math.abs(this.smoothedScore) * 0.5);
     }
 
     // UI Expression Overrides (highest priority)
-    if (currentExpression === "happy" || currentExpression === "smile") {
+    if ((currentExpression === "happy" || currentExpression === "smile") && !isSpeaking) {
       targetSmile = 1.0; targetCheek = 0.6;
     } else if (currentExpression === "sad") {
       targetBrowInnerUp = 0.8; targetFrown = 0.8;
@@ -49,6 +51,13 @@ export class EmotionEngine {
       targetBrowInnerUp = 1.0; targetFrown = 0.5;
     } else if (currentExpression === "disgusted") {
       targetBrowDown = 0.5; targetFrown = 0.6;
+    }
+
+    if (isSpeaking) {
+      // Keep talking frames clean for visemes/jaw; avoid smile/frown conflict.
+      targetSmile = 0;
+      targetCheek = 0;
+      targetFrown = 0;
     }
 
     const dict = head.morphTargetDictionary;
@@ -73,3 +82,4 @@ export class EmotionEngine {
     apply("mouthFrownRight", targetFrown);
   }
 }
+

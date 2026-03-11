@@ -22,25 +22,30 @@ const ARKIT_MOUTH_TARGETS = [
 ] as const;
 
 const ARKIT_VISEME_MAP: Record<string, Partial<Record<(typeof ARKIT_MOUTH_TARGETS)[number], number>>> = {
-  viseme_sil: { mouthClose: 0.2 },
-  viseme_PP: { mouthClose: 1.0, mouthPressLeft: 0.5, mouthPressRight: 0.5 },
-  viseme_FF: { mouthFunnel: 0.65, jawOpen: 0.15 },
-  viseme_TH: { jawOpen: 0.35, mouthFunnel: 0.35 },
-  viseme_DD: { jawOpen: 0.3, mouthClose: 0.3 },
-  viseme_kk: { jawOpen: 0.45 },
-  viseme_CH: { mouthPucker: 0.7, jawOpen: 0.25 },
-  viseme_SS: { mouthStretchLeft: 0.8, mouthStretchRight: 0.8, jawOpen: 0.2 },
-  viseme_nn: { mouthClose: 0.55, jawOpen: 0.2 },
-  viseme_RR: { mouthFunnel: 0.5, mouthPucker: 0.4, jawOpen: 0.25 },
-  viseme_aa: { jawOpen: 1.0 },
-  viseme_E: { mouthStretchLeft: 0.6, mouthStretchRight: 0.6, jawOpen: 0.35 },
-  viseme_I: { mouthSmileLeft: 0.65, mouthSmileRight: 0.65, jawOpen: 0.4 },
-  viseme_O: { mouthFunnel: 0.85, jawOpen: 0.35 },
-  viseme_U: { mouthPucker: 0.85, jawOpen: 0.25 },
+  viseme_sil: { mouthClose: 0.28 },
+  viseme_PP: { mouthClose: 1.0, mouthPressLeft: 0.45, mouthPressRight: 0.45 },
+  viseme_FF: { mouthFunnel: 0.5, jawOpen: 0.08 },
+  viseme_TH: { jawOpen: 0.22, mouthFunnel: 0.3 },
+  viseme_DD: { jawOpen: 0.18, mouthClose: 0.45 },
+  viseme_kk: { jawOpen: 0.28 },
+  viseme_CH: { mouthPucker: 0.6, jawOpen: 0.18 },
+  viseme_SS: { mouthStretchLeft: 0.65, mouthStretchRight: 0.65, jawOpen: 0.1 },
+  viseme_nn: { mouthClose: 0.6, jawOpen: 0.12 },
+  viseme_RR: { mouthFunnel: 0.42, mouthPucker: 0.34, jawOpen: 0.16 },
+  viseme_aa: { jawOpen: 0.62 },
+  viseme_E: { mouthStretchLeft: 0.55, mouthStretchRight: 0.55, jawOpen: 0.2 },
+  viseme_I: { mouthSmileLeft: 0.55, mouthSmileRight: 0.55, jawOpen: 0.18 },
+  viseme_O: { mouthFunnel: 0.72, jawOpen: 0.23 },
+  viseme_U: { mouthPucker: 0.72, jawOpen: 0.14 },
 };
 
+const LIPSYNC_LEVEL_FLOOR = 0.03;
+const LIPSYNC_LEVEL_RANGE = 0.26;
+const ACTIVE_VOWEL_WEIGHT = 0.58;
+const ACTIVE_CONSONANT_WEIGHT = 0.5;
+const ACTIVE_WEIGHT_BOOST = 0.2;
+
 export class LipSyncEngine {
-  public wawaLipsync: Lipsync | null = null;
   private lastViseme = 'viseme_sil';
   private previousViseme = 'viseme_sil';
   private transitionCarry = 0;
@@ -49,18 +54,29 @@ export class LipSyncEngine {
    * Native audio fallback: Maps raw volume level to basic jaw and mouth shapes.
    * Dampens the movement for smoother "co-articulation".
    */
-  updateFromAudioLevel(level: number, delta: number, nodes: Record<string, THREE.Object3D>) {
+  updateFromAudioLevel(
+    level: number,
+    delta: number,
+    nodes: Record<string, THREE.Object3D | undefined>,
+    wawaLipsync: Lipsync | null = null,
+  ) {
     const head = nodes.Wolf3D_Head as THREE.SkinnedMesh;
     const teeth = nodes.Wolf3D_Teeth as THREE.SkinnedMesh;
     
     if (!head || !head.morphTargetDictionary || !head.morphTargetInfluences) return;
 
-    if (this.wawaLipsync) {
+    if (wawaLipsync) {
       try {
-        this.wawaLipsync.processAudio();
-        const activeViseme = (this.wawaLipsync.viseme as string) || "viseme_sil";
-        const state = (this.wawaLipsync as unknown as { state?: string }).state ?? "vowel";
-        const speakingGain = THREE.MathUtils.clamp((level - 0.01) * 2.4, 0, 1);
+        wawaLipsync.processAudio();
+        const detectedViseme = (wawaLipsync.viseme as string) || "viseme_sil";
+        const state = (wawaLipsync as unknown as { state?: string }).state ?? "vowel";
+        const levelNorm = THREE.MathUtils.clamp(
+          (level - LIPSYNC_LEVEL_FLOOR) / LIPSYNC_LEVEL_RANGE,
+          0,
+          1,
+        );
+        const speakingGain = Math.pow(levelNorm, 0.85);
+        const activeViseme = speakingGain < 0.04 ? "viseme_sil" : detectedViseme;
 
         if (activeViseme !== this.lastViseme) {
           this.previousViseme = this.lastViseme;
@@ -71,11 +87,19 @@ export class LipSyncEngine {
         const carryLambda = state === "vowel" ? 8 : 14;
         this.transitionCarry = THREE.MathUtils.damp(this.transitionCarry, 0, carryLambda, delta);
 
-        const activeWeight = speakingGain;
+        const baseWeight =
+          state === "vowel" ? ACTIVE_VOWEL_WEIGHT : ACTIVE_CONSONANT_WEIGHT;
+        const activeWeight = activeViseme === "viseme_sil"
+          ? 0.22 * (1 - speakingGain * 0.4)
+          : THREE.MathUtils.clamp(
+              baseWeight + speakingGain * ACTIVE_WEIGHT_BOOST,
+              0,
+              0.82,
+            );
         const carryWeight = this.previousViseme === "viseme_sil"
           ? 0
-          : speakingGain * 0.35 * this.transitionCarry;
-        const visemeLambda = state === "vowel" ? 16 : 24;
+          : activeWeight * (state === "vowel" ? 0.22 : 0.16) * this.transitionCarry;
+        const visemeLambda = state === "vowel" ? 14 : 22;
         const useNativeVisemes = this.hasNativeVisemes(head);
         if (!useNativeVisemes && !this.warnedNoNativeVisemes) {
           this.warnedNoNativeVisemes = true;
@@ -90,18 +114,11 @@ export class LipSyncEngine {
 
             this.applyMorph(head, viseme, target, delta, visemeLambda);
             if (teeth && teeth.morphTargetDictionary && teeth.morphTargetInfluences) {
-              this.applyMorph(teeth, viseme, target * 1.1, delta, visemeLambda);
+              this.applyMorph(teeth, viseme, target * 0.95, delta, visemeLambda);
             }
           }
         } else {
           this.applyArkitFromVisemes(head, this.lastViseme, this.previousViseme, activeWeight, carryWeight, delta, visemeLambda);
-        }
-
-        // Layer tiny jaw support so closed-mouth visemes still read as speech.
-        this.applyMorph(head, "jawOpen", activeWeight * 0.55, delta, 18);
-        this.applyMorph(head, "mouthFunnel", activeWeight * 0.2, delta, 18);
-        if (teeth && teeth.morphTargetDictionary && teeth.morphTargetInfluences) {
-          this.applyMorph(teeth, "jawOpen", activeWeight * 0.6, delta, 18);
         }
         return;
       } catch (e) {
@@ -114,8 +131,9 @@ export class LipSyncEngine {
 
   private applyVolumeFallback(head: THREE.SkinnedMesh, teeth: THREE.SkinnedMesh, level: number, delta: number) {
       // Absolute fallback: Volume-based jaw/mouth (if wawa isn't ready or volume is extremely low)
-      const targetJaw = Math.min(1, level * PHYSICS_SMOOTHING.jaw_mult);
-      const targetMouth = Math.min(1, level * PHYSICS_SMOOTHING.mouth_mult);
+      const normalizedLevel = THREE.MathUtils.clamp((level - 0.03) / 0.3, 0, 1);
+      const targetJaw = Math.min(0.45, normalizedLevel * PHYSICS_SMOOTHING.jaw_mult * 0.28);
+      const targetMouth = Math.min(0.4, normalizedLevel * PHYSICS_SMOOTHING.mouth_mult * 0.24);
 
       this.applyMorph(head, "jawOpen", targetJaw, delta);
       this.applyMorph(head, "mouthFunnel", targetMouth * 0.6, delta);
@@ -178,3 +196,4 @@ export class LipSyncEngine {
     }
   }
 }
+

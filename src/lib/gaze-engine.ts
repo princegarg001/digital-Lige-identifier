@@ -20,7 +20,7 @@ export class GazeEngine {
   update(
     delta: number,
     camera: THREE.Camera,
-    nodes: Record<string, THREE.Object3D>,
+    nodes: Record<string, THREE.Object3D | undefined>,
     pointer: THREE.Vector2,
     isSpeaking: boolean,
     options: GazeOptions = {},
@@ -99,3 +99,4 @@ export class GazeEngine {
     }
   }
 }
+

@@ -7,6 +7,9 @@ import { useSceneConfig } from "../hooks/SceneConfigContext";
 // Type definition from our registry types
 import { AnimationMeta } from "../lib/animationRegistry.types";
 
+const DEFAULT_IDLE_ANIMATION = "masculine_idle_f_standing_idle_001";
+const DEFAULT_IDLE_URL = "/animations/masculine/idle/F_Standing_Idle_001.glb";
+
 export function useDynamicAnimations() {
   const currentAnimationName = useAnimationStore((state) => state.currentAnimation);
   const animationQueue = useAnimationStore((state) => state.animationQueue);
@@ -14,15 +17,16 @@ export function useDynamicAnimations() {
   const [activeClip, setActiveClip] = useState<THREE.AnimationClip | null>(null);
   
   const { config } = useSceneConfig();
-  const configuredIdle = config.avatar.idleAnimation || "male-idle";
+  const configuredIdle = config.avatar.idleAnimation || DEFAULT_IDLE_ANIMATION;
 
   // Map "idle" to the configured idle animation. If any other animation is active, use that.
   const resolvedAnimationName = currentAnimationName === "idle" ? configuredIdle : currentAnimationName;
   
   const activeMeta: AnimationMeta | undefined = registry[resolvedAnimationName];
-  const defaultIdleMeta: AnimationMeta | undefined = registry["male-idle"]; 
+  const defaultIdleMeta: AnimationMeta | undefined =
+    registry[DEFAULT_IDLE_ANIMATION] ?? registry["male-idle"] ?? registry.idle;
   
-  const targetUrl = activeMeta?.url || defaultIdleMeta?.url || "/animations/male-idle.glb"; 
+  const targetUrl = activeMeta?.url || defaultIdleMeta?.url || DEFAULT_IDLE_URL;
   
   const { animations } = useGLTF(targetUrl) as { animations: THREE.AnimationClip[] };
   

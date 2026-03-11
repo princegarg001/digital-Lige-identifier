@@ -8,6 +8,7 @@ import { ChatInput } from "./ChatInput";
 import { ParticipantsList } from "./ParticipantsList";
 import { SkinSelector } from "./SkinSelector";
 import { ConfigPanel } from "./ConfigPanel";
+import { AvatarManager } from "./AvatarManager";
 import { Separator } from "@/components/ui/separator";
 import { type ChatMessageData } from "./ChatMessage";
 import { cn } from "@/lib/utils";
@@ -92,10 +93,15 @@ export function ChatPanel({
           </div>
         </>
       ) : activeTab === "skins" ? (
-        <SkinSelector
-          selectedSkinId={selectedSkinId}
-          onSkinChange={onSkinChange}
-        />
+        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="px-4 pt-4 pb-0">
+            <AvatarManager />
+          </div>
+          <SkinSelector
+            selectedSkinId={selectedSkinId}
+            onSkinChange={onSkinChange}
+          />
+        </div>
       ) : activeTab === "config" ? (
         <ConfigPanel />
       ) : (

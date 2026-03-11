@@ -1,8 +1,15 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from "react";
 import initialConfig from "@/config/camera.json";
-import { type AvatarEntry, DEFAULT_AVATARS, fetchAvatarRegistry } from "@/lib/avatars";
+import {
+  type AvatarEntry,
+  DEFAULT_AVATARS,
+  fetchAvatarRegistry,
+  loadClientAvatars,
+  upsertClientAvatar,
+  removeClientAvatar as removeClientAvatarFromStorage,
+} from "@/lib/avatars";
 
 /* ─── Types ────────────────────────────────────────────────────────────────── */
 
@@ -55,6 +62,8 @@ interface SceneConfigContextValue {
   setConfig: (full: SceneConfig) => void;
   toggleFeature: (key: keyof FeatureToggles) => void;
   avatarRegistry: AvatarEntry[];
+  addClientAvatar: (entry: AvatarEntry) => void;
+  removeClientAvatar: (id: string) => void;
 }
 
 /* ─── Defaults ─────────────────────────────────────────────────────────────── */
@@ -108,15 +117,49 @@ export function SceneConfigProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  // Load avatar registry from public/avatars/index.json
-  const [avatarRegistry, setAvatarRegistry] = useState<AvatarEntry[]>(DEFAULT_AVATARS);
+  // Load base avatar registry from public/avatars/index.json
+  const [baseAvatarRegistry, setBaseAvatarRegistry] = useState<AvatarEntry[]>(DEFAULT_AVATARS);
   useEffect(() => {
-    fetchAvatarRegistry().then(setAvatarRegistry);
+    fetchAvatarRegistry().then(setBaseAvatarRegistry);
+  }, []);
+
+  // Load client-imported avatars from localStorage
+  const [clientAvatarRegistry, setClientAvatarRegistry] = useState<AvatarEntry[]>(
+    () => loadClientAvatars(),
+  );
+
+  const avatarRegistry = useMemo(() => {
+    const byId = new Map<string, AvatarEntry>();
+    for (const avatar of baseAvatarRegistry) {
+      byId.set(avatar.id, avatar);
+    }
+    for (const avatar of clientAvatarRegistry) {
+      byId.set(avatar.id, { ...avatar, isCustom: true });
+    }
+    return Array.from(byId.values());
+  }, [baseAvatarRegistry, clientAvatarRegistry]);
+
+  const addClientAvatar = useCallback((entry: AvatarEntry) => {
+    const saved = upsertClientAvatar({ ...entry, isCustom: true });
+    setClientAvatarRegistry(saved);
+  }, []);
+
+  const removeClientAvatar = useCallback((id: string) => {
+    const saved = removeClientAvatarFromStorage(id);
+    setClientAvatarRegistry(saved);
   }, []);
 
   return (
     <SceneConfigCtx.Provider
-      value={{ config, updateConfig, setConfig, toggleFeature, avatarRegistry }}
+      value={{
+        config,
+        updateConfig,
+        setConfig,
+        toggleFeature,
+        avatarRegistry,
+        addClientAvatar,
+        removeClientAvatar,
+      }}
     >
       {children}
     </SceneConfigCtx.Provider>

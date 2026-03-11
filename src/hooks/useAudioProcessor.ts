@@ -34,8 +34,7 @@ export function useAudioProcessor() {
   const outputAudioLevelRef = useRef(0);
   const isAssistantSpeakingRef = useRef(false);
   const lastOutputSignalAtRef = useRef(0);
-  const lastChunkSignatureRef = useRef("");
-  const lastChunkAtRef = useRef(0);
+  const recentChunkSignaturesRef = useRef<Map<string, number>>(new Map());
 
   // Mic capture refs
   const streamRef = useRef<MediaStream | null>(null);
@@ -305,16 +304,22 @@ export function useAudioProcessor() {
     (async () => {
       try {
         const now = performance.now();
-        const signature = `${base64.length}:${base64.slice(0, 24)}:${base64.slice(-24)}`;
-        if (
-          signature === lastChunkSignatureRef.current &&
-          now - lastChunkAtRef.current < 300
-        ) {
+        const signature = `${base64.length}:${base64.slice(0, 48)}:${base64.slice(-48)}`;
+        const DUPLICATE_CHUNK_WINDOW_MS = 2500;
+        const SIGNATURE_TTL_MS = 10000;
+
+        const seenAt = recentChunkSignaturesRef.current.get(signature);
+        if (seenAt !== undefined && now - seenAt < DUPLICATE_CHUNK_WINDOW_MS) {
           log.debug("Skipping duplicate audio chunk.");
           return;
         }
-        lastChunkSignatureRef.current = signature;
-        lastChunkAtRef.current = now;
+
+        recentChunkSignaturesRef.current.set(signature, now);
+        for (const [seenSignature, seenTime] of recentChunkSignaturesRef.current) {
+          if (now - seenTime > SIGNATURE_TTL_MS) {
+            recentChunkSignaturesRef.current.delete(seenSignature);
+          }
+        }
 
         const streamer = getStreamer();
         const ctx = playbackCtxRef.current!;
@@ -357,8 +362,7 @@ export function useAudioProcessor() {
     if (audioStreamerRef.current) {
       audioStreamerRef.current.stop();
     }
-    lastChunkSignatureRef.current = "";
-    lastChunkAtRef.current = 0;
+    recentChunkSignaturesRef.current.clear();
     stopPlaybackLevelLoop();
   }, [stopPlaybackLevelLoop]);
 

@@ -20,17 +20,17 @@
   "avatar": {
     "position": [
       0,
-      0,
+      0.09,
       0.01
     ],
     "rotation": [
       0.02,
-      0.09,
+      0.1,
       0
     ],
     "scale": 0.7,
-    "model": "male",
-    "idleAnimation": "masculine_idle_m_standing_idle_001"
+    "model": "female2",
+    "idleAnimation": "masculine_idle_f_standing_idle_001"
   },
   "lighting": {
     "keyLight": {

@@ -1,14 +1,5 @@
 /**
- * Avatar Registry — types and helpers for the avatar system.
- *
- * The source of truth is `public/avatars/index.json`.
- * At runtime the app fetches that file so any new entries
- * added there automatically appear in the UI dropdown.
- *
- * To add a new avatar:
- *   1. Drop the .glb file into public/avatars/
- *   2. Add an entry to public/avatars/index.json
- *   3. Done — restart dev server if needed.
+ * Avatar registry and client-side avatar helpers.
  */
 
 export interface AvatarEntry {
@@ -16,52 +7,217 @@ export interface AvatarEntry {
   id: string;
   /** Human-readable name shown in the UI dropdown */
   label: string;
-  /** Filename inside public/avatars/ (e.g. "avatar.glb") */
+  /** Filename in public/avatars, full URL, data URL, or blob URL */
   file: string;
+  /** Original source URL used for imported avatars */
+  sourceUrl?: string;
+  /** True when avatar came from local client import */
+  isCustom?: boolean;
 }
 
-/** Fallback used before the fetch completes or if it fails */
+const CLIENT_AVATARS_STORAGE_KEY = "digital-persona.client-avatars.v1";
+
+/** Fallback used before fetch completes or if it fails */
 export const DEFAULT_AVATARS: AvatarEntry[] = [
+  { id: "female", label: "Female", file: "69b1976bf005c9608fd1e704.glb" },
   { id: "male", label: "Male", file: "69aaa1126e4b038c0e57c672.glb" },
 ];
+
+function isHttpUrl(value: string): boolean {
+  return value.startsWith("http://") || value.startsWith("https://");
+}
+
+function isReadyPlayerHost(hostname: string): boolean {
+  return hostname.includes("readyplayer.me");
+}
+
+function withReadyPlayerParams(url: URL): URL {
+  if (!isReadyPlayerHost(url.hostname)) return url;
+  url.searchParams.set("morphTargets", "ARKit,Oculus Visemes");
+  url.searchParams.set("lod", "0");
+  url.searchParams.set("pose", "S");
+  url.searchParams.set("textureAtlas", "none");
+  return url;
+}
+
+function getAvatarIdFromInput(input: string): string | null {
+  const trimmed = input.trim();
+
+  if (/^[a-zA-Z0-9_-]{16,64}$/.test(trimmed) && !trimmed.includes(".") && !trimmed.includes("/")) {
+    return trimmed;
+  }
+
+  try {
+    const url = new URL(trimmed);
+    const fromQuery = url.searchParams.get("id");
+    if (fromQuery) return fromQuery.trim();
+
+    const fromPath = url.pathname.match(/\/avatar\/([a-zA-Z0-9_-]+)/i)?.[1];
+    if (fromPath) return fromPath.trim();
+  } catch {
+    // Not a URL. Ignore.
+  }
+
+  return null;
+}
+
+function sanitiseAvatarEntry(value: unknown): AvatarEntry | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  const id = typeof record.id === "string" ? record.id.trim() : "";
+  const label = typeof record.label === "string" ? record.label.trim() : "";
+  const file = typeof record.file === "string" ? record.file.trim() : "";
+  if (!id || !label || !file) return null;
+
+  return {
+    id,
+    label,
+    file,
+    sourceUrl: typeof record.sourceUrl === "string" ? record.sourceUrl : undefined,
+    isCustom: Boolean(record.isCustom),
+  };
+}
+
+function toDataUrl(blob: Blob): Promise<string> {
+  return blob.arrayBuffer().then((arrayBuffer) => {
+    const bytes = new Uint8Array(arrayBuffer);
+    const chunkSize = 0x8000;
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      binary += String.fromCharCode(...chunk);
+    }
+    const mime = blob.type || "model/gltf-binary";
+    return `data:${mime};base64,${btoa(binary)}`;
+  });
+}
 
 /** Fetch the avatar registry from public/avatars/index.json */
 export async function fetchAvatarRegistry(): Promise<AvatarEntry[]> {
   try {
     const res = await fetch("/avatars/index.json");
     if (!res.ok) return DEFAULT_AVATARS;
-    return await res.json();
+    const raw = await res.json();
+    if (!Array.isArray(raw)) return DEFAULT_AVATARS;
+    const parsed = raw
+      .map(sanitiseAvatarEntry)
+      .filter((entry): entry is AvatarEntry => Boolean(entry));
+    return parsed.length > 0 ? parsed : DEFAULT_AVATARS;
   } catch {
     return DEFAULT_AVATARS;
   }
 }
 
-/** Resolve an avatar ID to the full public URL path */
+/** Normalize Ready Player Me URL, direct GLB URL, or plain avatar ID into fetchable URL. */
+export function normalizeAvatarUrl(input: string): string {
+  const raw = input.trim();
+  if (!raw) {
+    throw new Error("Avatar URL is empty.");
+  }
+
+  const maybeId = getAvatarIdFromInput(raw);
+  if (maybeId) {
+    return withReadyPlayerParams(new URL(`https://models.readyplayer.me/${maybeId}.glb`)).toString();
+  }
+
+  let candidate = raw;
+  if (!candidate.startsWith("data:") && !candidate.startsWith("blob:") && !isHttpUrl(candidate)) {
+    if (candidate.endsWith(".glb") || candidate.includes("readyplayer.me")) {
+      candidate = `https://${candidate.replace(/^\/+/, "")}`;
+    }
+  }
+
+  if (!isHttpUrl(candidate)) {
+    throw new Error("Provide a Ready Player Me URL, direct .glb URL, or avatar ID.");
+  }
+
+  try {
+    const url = new URL(candidate);
+    return withReadyPlayerParams(url).toString();
+  } catch {
+    throw new Error("Avatar URL is invalid.");
+  }
+}
+
+/** Download a remote avatar and convert it to a local data URL for persistence. */
+export async function downloadAvatarAsDataUrl(input: string): Promise<{ sourceUrl: string; dataUrl: string }> {
+  const sourceUrl = normalizeAvatarUrl(input);
+  const response = await fetch(sourceUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to download avatar (${response.status}).`);
+  }
+
+  const blob = await response.blob();
+  if (!blob.size) {
+    throw new Error("Avatar download returned an empty file.");
+  }
+
+  const dataUrl = await toDataUrl(blob);
+  return { sourceUrl, dataUrl };
+}
+
+export function loadClientAvatars(): AvatarEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(CLIENT_AVATARS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map(sanitiseAvatarEntry)
+      .filter((entry): entry is AvatarEntry => Boolean(entry))
+      .map((entry) => ({ ...entry, isCustom: true }));
+  } catch {
+    return [];
+  }
+}
+
+function persistClientAvatars(entries: AvatarEntry[]): AvatarEntry[] {
+  if (typeof window === "undefined") return entries;
+  try {
+    localStorage.setItem(CLIENT_AVATARS_STORAGE_KEY, JSON.stringify(entries));
+  } catch {
+    throw new Error("Unable to save avatar locally. Browser storage may be full.");
+  }
+  return entries;
+}
+
+export function upsertClientAvatar(entry: AvatarEntry): AvatarEntry[] {
+  const current = loadClientAvatars();
+  const next = [
+    ...current.filter((avatar) => avatar.id !== entry.id),
+    { ...entry, isCustom: true },
+  ];
+  return persistClientAvatars(next);
+}
+
+export function removeClientAvatar(id: string): AvatarEntry[] {
+  const current = loadClientAvatars();
+  const next = current.filter((avatar) => avatar.id !== id);
+  return persistClientAvatars(next);
+}
+
+/** Resolve an avatar ID to a final URL or data URL. */
 export function getAvatarUrl(id: string, registry: AvatarEntry[]): string {
-  const entry = registry.find((a) => a.id === id);
+  const entry = registry.find((avatar) => avatar.id === id);
   const file = entry?.file ?? registry[0]?.file ?? DEFAULT_AVATARS[0].file;
-  
-  if (file.startsWith("http://") || file.startsWith("https://")) {
+
+  if (file.startsWith("data:") || file.startsWith("blob:")) {
+    return file;
+  }
+
+  if (isHttpUrl(file)) {
     try {
-      const url = new URL(file);
-      // Latest RPM API Parameters for max quality and tracking
-      url.searchParams.set("morphTargets", "ARKit,Oculus Visemes");
-      url.searchParams.set("lod", "0");
-      url.searchParams.set("pose", "T");
-      url.searchParams.set("textureAtlas", "none");
-      
-      // Cache buster for inconsistent browsers
-      url.searchParams.set("random", Math.random().toString(36).substring(7));
-      return url.toString();
+      return withReadyPlayerParams(new URL(file)).toString();
     } catch {
       return file;
     }
   }
-  
+
   return `/avatars/${file}`;
 }
 
-/** Resolve an avatar ID to its registry entry (falls back to first) */
+/** Resolve an avatar ID to its registry entry (falls back to first). */
 export function getAvatarEntry(id: string, registry: AvatarEntry[]): AvatarEntry {
-  return registry.find((a) => a.id === id) ?? registry[0] ?? DEFAULT_AVATARS[0];
+  return registry.find((avatar) => avatar.id === id) ?? registry[0] ?? DEFAULT_AVATARS[0];
 }

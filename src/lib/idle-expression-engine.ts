@@ -35,7 +35,7 @@ export class IdleExpressionEngine {
 
   update(
     delta: number,
-    nodes: Record<string, THREE.Object3D>,
+    nodes: Record<string, THREE.Object3D | undefined>,
     options: IdleExpressionOptions = {},
   ) {
     const breathing = options.breathing ?? true;
@@ -163,3 +163,4 @@ export class IdleExpressionEngine {
     }
   }
 }
+

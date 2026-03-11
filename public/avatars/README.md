@@ -8,7 +8,7 @@ All Ready Player Me `.glb` avatar files live here.
 2. **Copy** the avatar's `.glb` URL from the dashboard.
 3. **Append** `?morphTargets=ARKit` to the URL so facial expressions work:
    ```
-   https://models.readyplayer.me/<AVATAR_ID>.glb?morphTargets=ARKit
+   https://models.readyplayer.me/69aaa1126e4b038c0e57c67a.glb?morphTargets=ARKit,Oculus%20Visemes&lod=0
    ```
 4. **Download** the file and save it into this `public/avatars/` folder.
 5. **Register** the avatar in `src/lib/avatars.ts` — add an entry to the `AVATAR_REGISTRY` array:

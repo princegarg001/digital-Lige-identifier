@@ -121,4 +121,8 @@ Ensure your code follows this sequence:
 **Would you like me to generate the specific `Avatar.tsx` file now that utilizes the Ready Player Me morph targets for the lip-syncing logic we defined?**
 
 # Avatar link
-https://models.readyplayer.me/69aaa1126e4b038c0e57c67a.glb?morphTargets=ARKit,Oculus%20Visemes&lod=0&pose=A&textureAtlas=none
+https://models.readyplayer.me/69aaa1126e4b038c0e57c67a.glb?morphTargets=ARKit,Oculus%20Visemes&lod=0
+
+
+use if needed
+&pose=A&textureAtlas=none

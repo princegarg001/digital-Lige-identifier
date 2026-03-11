@@ -29,30 +29,30 @@ import { createLogger } from "@/lib/logging/logger";
 const log = createLogger("Avatar");
 
 type GLTFResult = GLTF & {
-  nodes: {
-    Wolf3D_Hair: THREE.SkinnedMesh;
-    Wolf3D_Glasses: THREE.SkinnedMesh;
-    Wolf3D_Outfit_Top: THREE.SkinnedMesh;
-    Wolf3D_Outfit_Bottom: THREE.SkinnedMesh;
-    Wolf3D_Outfit_Footwear: THREE.SkinnedMesh;
-    Wolf3D_Body: THREE.SkinnedMesh;
-    EyeLeft: THREE.SkinnedMesh;
-    EyeRight: THREE.SkinnedMesh;
-    Wolf3D_Head: THREE.SkinnedMesh;
-    Wolf3D_Teeth: THREE.SkinnedMesh;
-    Hips: THREE.Bone;
+  nodes: Partial<Record<string, THREE.Object3D>> & {
+    Wolf3D_Hair?: THREE.SkinnedMesh;
+    Wolf3D_Glasses?: THREE.SkinnedMesh;
+    Wolf3D_Outfit_Top?: THREE.SkinnedMesh;
+    Wolf3D_Outfit_Bottom?: THREE.SkinnedMesh;
+    Wolf3D_Outfit_Footwear?: THREE.SkinnedMesh;
+    Wolf3D_Body?: THREE.SkinnedMesh;
+    EyeLeft?: THREE.SkinnedMesh;
+    EyeRight?: THREE.SkinnedMesh;
+    Wolf3D_Head?: THREE.SkinnedMesh;
+    Wolf3D_Teeth?: THREE.SkinnedMesh;
+    Hips?: THREE.Bone;
     Head?: THREE.Bone;
   };
-  materials: {
-    Wolf3D_Hair: THREE.MeshStandardMaterial;
-    Wolf3D_Glasses: THREE.MeshStandardMaterial;
-    Wolf3D_Outfit_Top: THREE.MeshStandardMaterial;
-    Wolf3D_Outfit_Bottom: THREE.MeshStandardMaterial;
-    Wolf3D_Outfit_Footwear: THREE.MeshStandardMaterial;
-    Wolf3D_Body: THREE.MeshStandardMaterial;
-    Wolf3D_Eye: THREE.MeshStandardMaterial;
-    Wolf3D_Skin: THREE.MeshStandardMaterial;
-    Wolf3D_Teeth: THREE.MeshStandardMaterial;
+  materials: Partial<Record<string, THREE.MeshStandardMaterial>> & {
+    Wolf3D_Hair?: THREE.MeshStandardMaterial;
+    Wolf3D_Glasses?: THREE.MeshStandardMaterial;
+    Wolf3D_Outfit_Top?: THREE.MeshStandardMaterial;
+    Wolf3D_Outfit_Bottom?: THREE.MeshStandardMaterial;
+    Wolf3D_Outfit_Footwear?: THREE.MeshStandardMaterial;
+    Wolf3D_Body?: THREE.MeshStandardMaterial;
+    Wolf3D_Eye?: THREE.MeshStandardMaterial;
+    Wolf3D_Skin?: THREE.MeshStandardMaterial;
+    Wolf3D_Teeth?: THREE.MeshStandardMaterial;
   };
 };
 
@@ -96,6 +96,7 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
   // Visage material normalization: Prevents texture pixelation and sets specific roughness
   React.useEffect(() => {
     Object.values(materials).forEach((material) => {
+      if (!material) return;
       const mat = material as THREE.MeshStandardMaterial;
       if (mat.map) {
         mat.map.minFilter = THREE.LinearFilter;
@@ -132,19 +133,19 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
     if (!actionName || !actions[actionName]) return;
 
     const currentAction = actions[actionName];
+    const isIdleAction = actionName === "idle";
 
     // Retrieve custom scaling from Gemini logic
     const activeData = activeQueueItems.find(item => item.name === currentAnimationName);
     const speed = activeData?.timeScale || 1.0;
     currentAction.setEffectiveTimeScale(speed);
 
-    // Stop the action from violently teleporting back to frame 0 when complete.
-    // Instead, it physically freezes on its final frame and holds the pose
-    // until the next chronological sequence item begins to crossfade!
-    currentAction.setLoop(THREE.LoopOnce, 1);
-     
-    // eslint-disable-next-line
-    currentAction.clampWhenFinished = true;
+    if (isIdleAction) {
+      currentAction.setLoop(THREE.LoopRepeat, Infinity);
+    } else {
+      // Stop non-idle actions from snapping back to frame 0 at completion.
+      currentAction.setLoop(THREE.LoopOnce, 1);
+    }
 
     currentAction.reset().play();
     log.debug({ animation: actionName, speed }, "Playing Avatar animation");
@@ -167,14 +168,10 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
     };
   }, [currentAnimationName, actions, activeQueueItems]);
 
-  const idleEngine = useRef<IdleExpressionEngine | null>(null);
-  if (!idleEngine.current) idleEngine.current = new IdleExpressionEngine();
-  const gazeEngine = useRef<GazeEngine | null>(null);
-  if (!gazeEngine.current) gazeEngine.current = new GazeEngine();
-  const lipsyncEngine = useRef<LipSyncEngine | null>(null);
-  if (!lipsyncEngine.current) lipsyncEngine.current = new LipSyncEngine();
-  const emotionEngine = useRef<EmotionEngine | null>(null);
-  if (!emotionEngine.current) emotionEngine.current = new EmotionEngine();
+  const idleEngine = React.useMemo(() => new IdleExpressionEngine(), []);
+  const gazeEngine = React.useMemo(() => new GazeEngine(), []);
+  const lipsyncEngine = React.useMemo(() => new LipSyncEngine(), []);
+  const emotionEngine = React.useMemo(() => new EmotionEngine(), []);
 
   // Safeguard: Reset zero/NaN scales on bones to prevent mesh collapse
   React.useEffect(() => {
@@ -209,36 +206,48 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
     const level = smoothedLevel.current;
     const isSpeaking = level > 0.05;
 
+    // Keep body idle subtle while speaking so visemes remain the visual focus.
+    const activeBodyAction = actions[currentAnimationName];
+    if (currentAnimationName === "idle" && activeBodyAction) {
+      const targetWeight = isSpeaking ? 0.2 : 1;
+      const targetScale = isSpeaking ? 0.25 : 1;
+      activeBodyAction.setEffectiveWeight(
+        THREE.MathUtils.damp(activeBodyAction.getEffectiveWeight(), targetWeight, 8, delta),
+      );
+      activeBodyAction.setEffectiveTimeScale(
+        THREE.MathUtils.damp(activeBodyAction.getEffectiveTimeScale(), targetScale, 10, delta),
+      );
+    }
+
     // Drive jaw/mouth morph targets for lip-sync using LipSyncEngine
-    if (featureToggles.lipSync && lipsyncEngine.current) {
-      lipsyncEngine.current.wawaLipsync = useLipSyncStore.getState().wawaLipsync;
-      lipsyncEngine.current.updateFromAudioLevel(level, delta, nodes);
+    if (featureToggles.lipSync) {
+      lipsyncEngine.updateFromAudioLevel(level, delta, nodes, useLipSyncStore.getState().wawaLipsync);
     }
 
     // Execute Emotion Engine (handles UI override, sentiments, and hover effects)
-    if (emotionEngine.current) {
-      /* eslint-disable */
-      emotionEngine.current.update(delta, nodes, currentExpression || "idle", hovered, featureToggles as any);
-      /* eslint-enable */
-    }
+    /* eslint-disable */
+    emotionEngine.update(delta, nodes, currentExpression || "idle", hovered, featureToggles as any, isSpeaking);
+    /* eslint-enable */
 
     // Execute procedural idle engines only for enabled channels.
-    if (idleEngine.current) {
-      idleEngine.current.update(delta, nodes, {
-        breathing: featureToggles.breathing,
-        blinking: featureToggles.blinking,
-        browTwitch: false,
-      });
-    }
+    idleEngine.update(delta, nodes, {
+      breathing: featureToggles.breathing,
+      blinking: featureToggles.blinking,
+      browTwitch: false,
+    });
     
-    if ((featureToggles.gazeDrift || featureToggles.headMovement) && gazeEngine.current) {
-      gazeEngine.current.update(delta, camera, nodes, state.pointer, isSpeaking, {
+    if (featureToggles.gazeDrift || featureToggles.headMovement) {
+      gazeEngine.update(delta, camera, nodes, state.pointer, isSpeaking, {
         eyeDrift: featureToggles.gazeDrift,
         headMovement: featureToggles.headMovement,
       });
     }
 
   });
+
+  const hasSkinnedMesh = (
+    mesh: THREE.SkinnedMesh | undefined,
+  ): mesh is THREE.SkinnedMesh => Boolean(mesh?.geometry && mesh?.skeleton);
 
   return (
     <group
@@ -258,101 +267,121 @@ export function Avatar({ audioLevelRef, avatarUrl, currentExpression, skinPreset
       }}
       scale={1}
     >
-      <primitive object={nodes.Hips} />
-      <skinnedMesh
-        castShadow
-        receiveShadow
-        frustumCulled={false}
-        geometry={nodes.Wolf3D_Hair.geometry}
-        material={materials.Wolf3D_Hair}
-        skeleton={nodes.Wolf3D_Hair.skeleton}
-      />
-      <skinnedMesh
-        castShadow
-        receiveShadow
-        frustumCulled={false}
-        geometry={nodes.Wolf3D_Glasses.geometry}
-        material={materials.Wolf3D_Glasses}
-        skeleton={nodes.Wolf3D_Glasses.skeleton}
-      />
-      <skinnedMesh
-        castShadow
-        receiveShadow
-        frustumCulled={false}
-        geometry={nodes.Wolf3D_Outfit_Top.geometry}
-        material={materials.Wolf3D_Outfit_Top}
-        skeleton={nodes.Wolf3D_Outfit_Top.skeleton}
-      />
-      <skinnedMesh
-        castShadow
-        receiveShadow
-        frustumCulled={false}
-        geometry={nodes.Wolf3D_Outfit_Bottom.geometry}
-        material={materials.Wolf3D_Outfit_Bottom}
-        skeleton={nodes.Wolf3D_Outfit_Bottom.skeleton}
-      />
-      <skinnedMesh
-        castShadow
-        receiveShadow
-        frustumCulled={false}
-        geometry={nodes.Wolf3D_Outfit_Footwear.geometry}
-        material={materials.Wolf3D_Outfit_Footwear}
-        skeleton={nodes.Wolf3D_Outfit_Footwear.skeleton}
-      />
+      {nodes.Hips && <primitive object={nodes.Hips} />}
+      {hasSkinnedMesh(nodes.Wolf3D_Hair) && materials.Wolf3D_Hair && (
+        <skinnedMesh
+          castShadow
+          receiveShadow
+          frustumCulled={false}
+          geometry={nodes.Wolf3D_Hair.geometry}
+          material={materials.Wolf3D_Hair}
+          skeleton={nodes.Wolf3D_Hair.skeleton}
+        />
+      )}
+      {hasSkinnedMesh(nodes.Wolf3D_Glasses) && materials.Wolf3D_Glasses && (
+        <skinnedMesh
+          castShadow
+          receiveShadow
+          frustumCulled={false}
+          geometry={nodes.Wolf3D_Glasses.geometry}
+          material={materials.Wolf3D_Glasses}
+          skeleton={nodes.Wolf3D_Glasses.skeleton}
+        />
+      )}
+      {hasSkinnedMesh(nodes.Wolf3D_Outfit_Top) && materials.Wolf3D_Outfit_Top && (
+        <skinnedMesh
+          castShadow
+          receiveShadow
+          frustumCulled={false}
+          geometry={nodes.Wolf3D_Outfit_Top.geometry}
+          material={materials.Wolf3D_Outfit_Top}
+          skeleton={nodes.Wolf3D_Outfit_Top.skeleton}
+        />
+      )}
+      {hasSkinnedMesh(nodes.Wolf3D_Outfit_Bottom) && materials.Wolf3D_Outfit_Bottom && (
+        <skinnedMesh
+          castShadow
+          receiveShadow
+          frustumCulled={false}
+          geometry={nodes.Wolf3D_Outfit_Bottom.geometry}
+          material={materials.Wolf3D_Outfit_Bottom}
+          skeleton={nodes.Wolf3D_Outfit_Bottom.skeleton}
+        />
+      )}
+      {hasSkinnedMesh(nodes.Wolf3D_Outfit_Footwear) && materials.Wolf3D_Outfit_Footwear && (
+        <skinnedMesh
+          castShadow
+          receiveShadow
+          frustumCulled={false}
+          geometry={nodes.Wolf3D_Outfit_Footwear.geometry}
+          material={materials.Wolf3D_Outfit_Footwear}
+          skeleton={nodes.Wolf3D_Outfit_Footwear.skeleton}
+        />
+      )}
       {/* Body — uses same PBR skin material for consistency */}
-      <skinnedMesh
-        castShadow
-        receiveShadow
-        frustumCulled={false}
-        geometry={nodes.Wolf3D_Body.geometry}
-        material={skinMaterial || materials.Wolf3D_Body}
-        skeleton={nodes.Wolf3D_Body.skeleton}
-      />
-      <skinnedMesh
-        castShadow
-        receiveShadow
-        frustumCulled={false}
-        name="EyeLeft"
-        geometry={nodes.EyeLeft.geometry}
-        material={materials.Wolf3D_Eye}
-        skeleton={nodes.EyeLeft.skeleton}
-        morphTargetDictionary={nodes.EyeLeft.morphTargetDictionary}
-        morphTargetInfluences={nodes.EyeLeft.morphTargetInfluences}
-      />
-      <skinnedMesh
-        castShadow
-        receiveShadow
-        frustumCulled={false}
-        name="EyeRight"
-        geometry={nodes.EyeRight.geometry}
-        material={materials.Wolf3D_Eye}
-        skeleton={nodes.EyeRight.skeleton}
-        morphTargetDictionary={nodes.EyeRight.morphTargetDictionary}
-        morphTargetInfluences={nodes.EyeRight.morphTargetInfluences}
-      />
+      {hasSkinnedMesh(nodes.Wolf3D_Body) && (skinMaterial || materials.Wolf3D_Body) && (
+        <skinnedMesh
+          castShadow
+          receiveShadow
+          frustumCulled={false}
+          geometry={nodes.Wolf3D_Body.geometry}
+          material={skinMaterial || materials.Wolf3D_Body}
+          skeleton={nodes.Wolf3D_Body.skeleton}
+        />
+      )}
+      {hasSkinnedMesh(nodes.EyeLeft) && materials.Wolf3D_Eye && (
+        <skinnedMesh
+          castShadow
+          receiveShadow
+          frustumCulled={false}
+          name="EyeLeft"
+          geometry={nodes.EyeLeft.geometry}
+          material={materials.Wolf3D_Eye}
+          skeleton={nodes.EyeLeft.skeleton}
+          morphTargetDictionary={nodes.EyeLeft.morphTargetDictionary}
+          morphTargetInfluences={nodes.EyeLeft.morphTargetInfluences}
+        />
+      )}
+      {hasSkinnedMesh(nodes.EyeRight) && materials.Wolf3D_Eye && (
+        <skinnedMesh
+          castShadow
+          receiveShadow
+          frustumCulled={false}
+          name="EyeRight"
+          geometry={nodes.EyeRight.geometry}
+          material={materials.Wolf3D_Eye}
+          skeleton={nodes.EyeRight.skeleton}
+          morphTargetDictionary={nodes.EyeRight.morphTargetDictionary}
+          morphTargetInfluences={nodes.EyeRight.morphTargetInfluences}
+        />
+      )}
       {/* Head — receives the full PBR MeshPhysicalMaterial with SSS (if not raw) */}
-      <skinnedMesh
-        castShadow
-        receiveShadow
-        frustumCulled={false}
-        name="Wolf3D_Head"
-        geometry={nodes.Wolf3D_Head.geometry}
-        material={skinMaterial || materials.Wolf3D_Skin}
-        skeleton={nodes.Wolf3D_Head.skeleton}
-        morphTargetDictionary={nodes.Wolf3D_Head.morphTargetDictionary}
-        morphTargetInfluences={nodes.Wolf3D_Head.morphTargetInfluences}
-      />
-      <skinnedMesh
-        castShadow
-        receiveShadow
-        frustumCulled={false}
-        name="Wolf3D_Teeth"
-        geometry={nodes.Wolf3D_Teeth.geometry}
-        material={materials.Wolf3D_Teeth}
-        skeleton={nodes.Wolf3D_Teeth.skeleton}
-        morphTargetDictionary={nodes.Wolf3D_Teeth.morphTargetDictionary}
-        morphTargetInfluences={nodes.Wolf3D_Teeth.morphTargetInfluences}
-      />
+      {hasSkinnedMesh(nodes.Wolf3D_Head) && (skinMaterial || materials.Wolf3D_Skin) && (
+        <skinnedMesh
+          castShadow
+          receiveShadow
+          frustumCulled={false}
+          name="Wolf3D_Head"
+          geometry={nodes.Wolf3D_Head.geometry}
+          material={skinMaterial || materials.Wolf3D_Skin}
+          skeleton={nodes.Wolf3D_Head.skeleton}
+          morphTargetDictionary={nodes.Wolf3D_Head.morphTargetDictionary}
+          morphTargetInfluences={nodes.Wolf3D_Head.morphTargetInfluences}
+        />
+      )}
+      {hasSkinnedMesh(nodes.Wolf3D_Teeth) && materials.Wolf3D_Teeth && (
+        <skinnedMesh
+          castShadow
+          receiveShadow
+          frustumCulled={false}
+          name="Wolf3D_Teeth"
+          geometry={nodes.Wolf3D_Teeth.geometry}
+          material={materials.Wolf3D_Teeth}
+          skeleton={nodes.Wolf3D_Teeth.skeleton}
+          morphTargetDictionary={nodes.Wolf3D_Teeth.morphTargetDictionary}
+          morphTargetInfluences={nodes.Wolf3D_Teeth.morphTargetInfluences}
+        />
+      )}
     </group>
   );
 }

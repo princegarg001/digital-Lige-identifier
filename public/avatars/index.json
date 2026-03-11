@@ -4,6 +4,11 @@
     "label": "Female",
     "file": "69b1976bf005c9608fd1e704.glb"
   },
+    {
+    "id": "female2",
+    "label": "Female2",
+    "file": "69b19dfbf005c9608fd23866.glb"
+  },
   {
     "id": "male",
     "label": "Male",
