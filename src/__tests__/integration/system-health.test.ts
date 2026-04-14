@@ -46,14 +46,14 @@ describe('Digital Persona System Health', () => {
       const { SYSTEM_PROMPT } = await import('@/lib/constants');
       
       expect(SYSTEM_PROMPT).toContain('Digital Persona');
-      expect(SYSTEM_PROMPT).toContain('Environmental Presence');
+      expect(SYSTEM_PROMPT).toContain('Visual Grounding');
       expect(SYSTEM_PROMPT).toContain('trigger_animation');
     });
 
     it('should have valid Gemini tools configuration', async () => {
       const { GEMINI_TOOLS } = await import('@/lib/constants');
       
-      expect(GEMINI_TOOLS).toHaveLength(1);
+      expect(GEMINI_TOOLS).toHaveLength(2);
       expect(GEMINI_TOOLS[0].functionDeclarations).toBeDefined();
       
       const triggerAnim = GEMINI_TOOLS[0].functionDeclarations?.find(
@@ -62,7 +62,7 @@ describe('Digital Persona System Health', () => {
       
       expect(triggerAnim).toBeDefined();
       expect(triggerAnim?.parameters?.properties?.gesture_sequence).toBeDefined();
-      expect(triggerAnim?.parameters?.properties?.gesture_sequence?.description).toContain('list of rich');
+      expect(triggerAnim?.parameters?.properties?.gesture_sequence?.description).toContain('rich semantic');
     });
 
     it('should use correct Gemini model (SDK format)', async () => {
